@@ -1,12 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/models/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { withCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
+import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    // Rate limiting (60 per minute)
+    const { allowed, response: rateLimitResponse } = await enforceRateLimit(
+      req,
+      "GET_EXAMS"
+    );
+
+    if (!allowed) {
+      return rateLimitResponse!;
+    }
     const session = await getServerSession(authOptions);
     const userId = session?.user && "id" in session.user ? parseInt((session.user as any).id) : null;
     const userRole = session?.user && "role" in session.user ? (session.user as any).role : null;

@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 import { withCache, CACHE_KEYS, CACHE_TTL, cacheManager } from "@/lib/cache";
+import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    // Rate limiting (60 per minute)
+    const { allowed, response: rateLimitResponse } = await enforceRateLimit(
+      req,
+      "GET_CONTESTS"
+    );
+
+    if (!allowed) {
+      return rateLimitResponse!;
+    }
     const result = await withCache(
       CACHE_KEYS.CONTESTS,
       async () => {

@@ -110,17 +110,51 @@
 - Per-namespace invalidation for bulk updates
 - Per-user invalidation for user-specific data
 
-## 7. Engineering Standards
+## 7. Rate Limiting System
+### Protection Against Abuse
+- **Per-Endpoint Limits**: Different limits for different operations
+- **User/IP Based**: By authenticated user ID or IP address
+- **4 Tier Strategy**: Strict, Restricted, Moderate, Light limits
+- **Automatic Tracking**: Memory-efficient in-process tracking
+- **Standard Headers**: X-RateLimit-* headers on all responses
+
+### Rate Limit Tiers
+- **Strict**: 5-10 requests/hour (registration, payment, upgrades)
+- **Restricted**: 10-50 requests/hour (content creation, submissions)
+- **Moderate**: 60 requests/minute (API reads, leaderboard, challenges)
+- **Light**: 30 requests/minute (search and heavy operations)
+
+### Protected Endpoints
+- POST /api/submit - 10 per 15 min (challenge submissions)
+- POST /api/register - 5 per hour (registration)
+- POST /api/login - 10 per 15 min (login attempts)
+- POST /api/payment - 5 per hour (payment processing)
+- GET /api/challenges - 60 per minute (challenge listing)
+- GET /api/leaderboard - 60 per minute (rankings)
+- GET /api/events - 60 per minute (event listing)
+- And 20+ more endpoints with appropriate limits
+
+### Implementation Features
+- Automatic rate limit header injection
+- 429 status code on limit exceeded
+- Retry-After headers for client guidance
+- Per-user isolation (no interference between users)
+- Automatic cleanup of expired entries (every 30 min)
+- Memory-efficient O(1) check operations
+
+## 8. Engineering Standards
 - **Migrations**: Automated idempotent migration system
 - **Device Agnostic**: Fully responsive layout
 - **Security Mandates**: AGENTS.md rules established
 - **Data Preservation**: Zero data loss migrations
 - **Type Safety**: Full TypeScript coverage
 - **Performance**: Smart caching to reduce database load
+- **Security**: Rate limiting to prevent abuse and DDoS
 
-## 8. Build Status
+## 9. Build Status
 - ✓ Successful compilation with no errors
 - ✓ All routes generated and deployed
 - ✓ Database migrations synchronized
 - ✓ Caching system integrated across all major endpoints
+- ✓ Rate limiting applied to all critical endpoints
 - ✓ Dev server running successfully

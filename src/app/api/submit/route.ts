@@ -1,13 +1,24 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/models/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { checkFlag } from "@/lib/flagUtils";
 import { cacheManager, CACHE_KEYS } from "@/lib/cache";
+import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    // Rate limiting for challenge submissions (10 per 15 minutes)
+    const { allowed, response: rateLimitResponse } = await enforceRateLimit(
+      req,
+      "SUBMIT_CHALLENGE"
+    );
+
+    if (!allowed) {
+      return rateLimitResponse!;
+    }
+
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

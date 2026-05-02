@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { SolveModel } from "@/models/SolveModel";
@@ -7,9 +7,19 @@ import { UserModel } from "@/models/UserModel";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 import { withCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
+import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    // Rate limiting (60 per minute)
+    const { allowed, response: rateLimitResponse } = await enforceRateLimit(
+      req,
+      "GET_USER_STATS"
+    );
+
+    if (!allowed) {
+      return rateLimitResponse!;
+    }
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
