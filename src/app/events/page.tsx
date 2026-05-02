@@ -42,15 +42,10 @@ export default function EventsPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login");
-      return;
-    }
-
-    if (status === "authenticated") {
+    if (status !== "loading") {
       fetchEvents();
     }
-  }, [status, router]);
+  }, [status]);
 
   const fetchEvents = async () => {
     try {
@@ -106,10 +101,6 @@ export default function EventsPage() {
         </div>
       </div>
     );
-  }
-
-  if (!session) {
-    return null;
   }
 
   return (

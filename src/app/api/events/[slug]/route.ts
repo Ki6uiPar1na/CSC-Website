@@ -17,37 +17,33 @@ export async function GET(
 
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let userId = null;
+    let isAdmin = false;
+    let isPremium = false;
+
+    if (session?.user && "id" in session.user) {
+      userId = parseInt((session.user as any).id);
+      
+      const [userRows] = await pool.query<RowDataPacket[]>(
+        `SELECT u.id,
+          CASE 
+            WHEN MAX(uc.id) IS NOT NULL AND MAX(uc.is_active) = TRUE AND MAX(uc.expires_at) > NOW() THEN TRUE 
+            ELSE FALSE 
+          END as is_premium,
+          u.role_id
+         FROM users u
+         LEFT JOIN upgrade_codes uc ON u.id = uc.used_by_user_id
+         WHERE u.id = ?
+         GROUP BY u.id`,
+        [userId]
+      );
+
+      if (userRows.length > 0) {
+        const user = userRows[0];
+        isAdmin = user.role_id === 1;
+        isPremium = user.is_premium === 1 || user.is_premium === true || isAdmin;
+      }
     }
-
-    const userId = "id" in session.user ? parseInt((session.user as any).id) : null;
-    if (!userId) {
-      return NextResponse.json({ error: "Invalid user" }, { status: 400 });
-    }
-
-    // Check if user is premium
-    const [userRows] = await pool.query<RowDataPacket[]>(
-      `SELECT u.id,
-        CASE 
-          WHEN MAX(uc.id) IS NOT NULL AND MAX(uc.is_active) = TRUE AND MAX(uc.expires_at) > NOW() THEN TRUE 
-          ELSE FALSE 
-        END as is_premium,
-        u.role_id
-       FROM users u
-       LEFT JOIN upgrade_codes uc ON u.id = uc.used_by_user_id
-       WHERE u.id = ?
-       GROUP BY u.id`,
-      [userId]
-    );
-
-    if (userRows.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const user = userRows[0];
-    const isAdmin = user.role_id === 1;
-    const isPremium = user.is_premium === 1 || user.is_premium === true || isAdmin;
 
     // Fetch event by slug or event_code
     const [events] = await pool.query<RowDataPacket[]>(

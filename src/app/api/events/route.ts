@@ -8,36 +8,32 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let userId = null;
+    let isAdmin = false;
+    let isPremium = false;
+
+    if (session?.user && "id" in session.user) {
+      userId = parseInt((session.user as any).id);
+      
+      const [userRows] = await pool.query<RowDataPacket[]>(
+        `SELECT u.id, u.role_id,
+          CASE 
+            WHEN MAX(uc.id) IS NOT NULL AND MAX(uc.is_active) = TRUE AND MAX(uc.expires_at) > NOW() THEN TRUE 
+            ELSE FALSE 
+          END as is_premium
+         FROM users u
+         LEFT JOIN upgrade_codes uc ON u.id = uc.used_by_user_id
+         WHERE u.id = ?
+         GROUP BY u.id`,
+        [userId]
+      );
+
+      if (userRows.length > 0) {
+        const user = userRows[0];
+        isAdmin = user.role_id === 1;
+        isPremium = user.is_premium === 1 || user.is_premium === true || isAdmin;
+      }
     }
-
-    const userId = "id" in session.user ? parseInt((session.user as any).id) : null;
-    if (!userId) {
-      return NextResponse.json({ error: "Invalid user" }, { status: 400 });
-    }
-
-    // Check if user is premium and their role
-    const [userRows] = await pool.query<RowDataPacket[]>(
-      `SELECT u.id, u.role_id,
-        CASE 
-          WHEN MAX(uc.id) IS NOT NULL AND MAX(uc.is_active) = TRUE AND MAX(uc.expires_at) > NOW() THEN TRUE 
-          ELSE FALSE 
-        END as is_premium
-       FROM users u
-       LEFT JOIN upgrade_codes uc ON u.id = uc.used_by_user_id
-       WHERE u.id = ?
-       GROUP BY u.id`,
-      [userId]
-    );
-
-    if (userRows.length === 0) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    const user = userRows[0];
-    const isAdmin = user.role_id === 1;
-    const isPremium = user.is_premium === 1 || user.is_premium === true || isAdmin;
 
     // Get events based on premium status and target audience
     let query = `
@@ -61,10 +57,10 @@ export async function GET() {
         e.photo_url,
         e.gallery_images,
         e.exclusivity_expires_at,
-        e.created_at,
-        r.rsvp_status
+        e.created_at
+        ${userId ? ", r.rsvp_status" : ""}
       FROM events e
-      LEFT JOIN event_rsvps r ON e.id = r.event_id AND r.user_id = ?
+      ${userId ? "LEFT JOIN event_rsvps r ON e.id = r.event_id AND r.user_id = ?" : ""}
       WHERE e.is_active = TRUE
     `;
 
@@ -100,7 +96,9 @@ export async function GET() {
 
     query += ` ORDER BY event_date DESC, event_time DESC LIMIT 100`;
 
-    const [events] = await pool.query<RowDataPacket[]>(query, [userId]);
+    const [events] = userId 
+      ? await pool.query<RowDataPacket[]>(query, [userId])
+      : await pool.query<RowDataPacket[]>(query);
 
     return NextResponse.json({
       events,
