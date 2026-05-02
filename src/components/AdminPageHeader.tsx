@@ -10,6 +10,7 @@ interface AdminPageHeaderProps {
     label: string;
     onClick: () => void;
     loading?: boolean;
+    icon?: React.ReactNode;
   };
   message?: Message | null;
 }
@@ -46,7 +47,10 @@ export const AdminPageHeader = ({
                 {actionButton.label}...
               </>
             ) : (
-              actionButton.label
+              <>
+                {actionButton.icon}
+                {actionButton.label}
+              </>
             )}
           </button>
         )}

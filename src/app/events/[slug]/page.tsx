@@ -318,7 +318,7 @@ export default function EventDetailPage() {
                   <div className="space-y-3">
                     <button
                       onClick={() => handleRSVP(rsvpStatus === 'going' ? null : 'going')}
-                      disabled={isRsvpLoading || (event.capacity && event.registered_count >= event.capacity && rsvpStatus !== 'going')}
+                      disabled={isRsvpLoading || Boolean(event.capacity && event.registered_count >= event.capacity && rsvpStatus !== 'going')}
                       className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-all ${
                         rsvpStatus === 'going' 
                           ? 'bg-primary text-black border-primary font-bold' 

@@ -23,6 +23,10 @@ export async function GET(req: Request) {
     }
     const isAdmin = userRole === 1;
 
+    const url = new URL(req.url);
+    const examId = url.searchParams.get("examId");
+    const lessonId = url.searchParams.get("lessonId");
+
     let query = "SELECT id, lesson_id, title, description FROM exams WHERE ";
     let params = [];
 

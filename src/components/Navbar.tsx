@@ -41,8 +41,10 @@ export default function Navbar() {
       <div className="w-full">
         {/* Top Bar: Logo + User Menu */}
         <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-4 lg:mb-0">
-          <Link href="/" className="logo shrink-0 no-underline font-bold text-2xl">
-            JKKNIU-CSC
+          <Link href="/" className="logo shrink-0 no-underline font-bold text-2xl flex items-center gap-3">
+            <img src="/logo.png" alt="JKKNIU-CSC" className="w-10 h-10 object-contain" />
+            <span className="hidden sm:inline">JKKNIU-CSC</span>
+            <span className="sm:hidden">CSC</span>
           </Link>
 
           {/* Mobile Menu Toggle */}
