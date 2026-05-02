@@ -1,11 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
+import { withCache, CACHE_KEYS, CACHE_TTL, cacheManager } from "@/lib/cache";
 
 export async function GET() {
   try {
-    const [result] = await pool.query<RowDataPacket[]>(
-      "SELECT * FROM contests ORDER BY event_date DESC"
+    const result = await withCache(
+      CACHE_KEYS.CONTESTS,
+      async () => {
+        const [data] = await pool.query<RowDataPacket[]>(
+          "SELECT * FROM contests ORDER BY event_date DESC"
+        );
+        return data;
+      },
+      CACHE_TTL.LONG
     );
     return NextResponse.json(result);
   } catch (error) {
@@ -41,6 +49,9 @@ export async function POST(req: NextRequest) {
         details || null,
       ]
     );
+
+    // Invalidate cache on new entry
+    cacheManager.invalidateNamespace(CACHE_KEYS.CONTESTS);
 
     return NextResponse.json(
       { id: (result as any)[0].insertId, name },

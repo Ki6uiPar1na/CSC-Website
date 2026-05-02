@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
+import { withCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
 
 export async function GET() {
   try {
-    const [rows] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.is_external,
-              ru.url as extra_url, ru.display_name as extra_display_name
-       FROM resources r
-       LEFT JOIN resource_urls ru ON r.id = ru.resource_id
-       ORDER BY r.category, r.created_at DESC`
+    const rows = await withCache(
+      CACHE_KEYS.RESOURCES,
+      async () => {
+        const [result] = await pool.query<RowDataPacket[]>(
+          `SELECT r.id, r.title, r.description, r.url, r.category, r.is_external,
+                  ru.url as extra_url, ru.display_name as extra_display_name
+           FROM resources r
+           LEFT JOIN resource_urls ru ON r.id = ru.resource_id
+           ORDER BY r.category, r.created_at DESC`
+        );
+        return result;
+      },
+      CACHE_TTL.VERY_LONG
     );
 
     // Group by category

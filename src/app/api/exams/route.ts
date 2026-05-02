@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import pool from "@/models/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
+import { withCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
 
 export async function GET(req: Request) {
   try {
@@ -13,13 +14,22 @@ export async function GET(req: Request) {
     // Check premium status
     let isPremium = false;
     if (userId) {
-      const [premiumRows] = await pool.query<RowDataPacket[]>(
-        `SELECT 1 FROM upgrade_code_usage u 
-         JOIN upgrade_codes c ON u.upgrade_code_id = c.id 
-         WHERE u.user_id = ? AND c.is_active = TRUE LIMIT 1`,
-        [userId]
+      const isPremiumCached = await withCache(
+        `${CACHE_KEYS.USER_PROFILE}:exams`,
+        async () => {
+          const [premiumRows] = await pool.query<RowDataPacket[]>(
+            `SELECT 1 FROM upgrade_code_usage u 
+             JOIN upgrade_codes c ON u.upgrade_code_id = c.id 
+             WHERE u.user_id = ? AND c.is_active = TRUE LIMIT 1`,
+            [userId]
+          );
+          return premiumRows.length > 0;
+        },
+        CACHE_TTL.SHORT,
+        { userId },
+        userId
       );
-      isPremium = premiumRows.length > 0;
+      isPremium = isPremiumCached;
     }
     const isAdmin = userRole === 1;
 
@@ -38,19 +48,35 @@ export async function GET(req: Request) {
       params.push(parseInt(lessonId!));
     }
 
-    const [exams] = await pool.query<RowDataPacket[]>(query, params);
+    const exams = await withCache(
+      CACHE_KEYS.EXAMS,
+      async () => {
+        const [result] = await pool.query<RowDataPacket[]>(query, params);
+        return result;
+      },
+      CACHE_TTL.LONG,
+      { examId, lessonId }
+    );
 
     if (exams.length === 0) return NextResponse.json({ exam: null });
 
     const exam = exams[0];
     
     // Fetch questions and check if linked challenges are premium
-    const [questions] = await pool.query<RowDataPacket[]>(
-      `SELECT q.id, q.question_type, q.question_text, q.points, q.challenge_id, c.is_premium as challenge_premium
-       FROM exam_questions q
-       LEFT JOIN challenges c ON q.challenge_id = c.id
-       WHERE q.exam_id = ?`,
-      [exam.id]
+    const questions = await withCache(
+      `${CACHE_KEYS.EXAMS}:questions`,
+      async () => {
+        const [result] = await pool.query<RowDataPacket[]>(
+          `SELECT q.id, q.question_type, q.question_text, q.points, q.challenge_id, c.is_premium as challenge_premium
+           FROM exam_questions q
+           LEFT JOIN challenges c ON q.challenge_id = c.id
+           WHERE q.exam_id = ?`,
+          [exam.id]
+        );
+        return result;
+      },
+      CACHE_TTL.LONG,
+      { examId: exam.id }
     );
 
     // Filter out premium challenges for free users
@@ -64,9 +90,17 @@ export async function GET(req: Request) {
 
     for (const q of filteredQuestions) {
       if (q.question_type === 'mcq' || q.question_type === 'checkbox') {
-        const [options] = await pool.query<RowDataPacket[]>(
-          "SELECT id, option_text FROM exam_options WHERE question_id = ?",
-          [q.id]
+        const options = await withCache(
+          `${CACHE_KEYS.EXAMS}:options`,
+          async () => {
+            const [result] = await pool.query<RowDataPacket[]>(
+              "SELECT id, option_text FROM exam_options WHERE question_id = ?",
+              [q.id]
+            );
+            return result;
+          },
+          CACHE_TTL.LONG,
+          { questionId: q.id }
         );
         q.options = options;
       }

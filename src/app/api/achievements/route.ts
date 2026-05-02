@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { AchievementModel } from "@/models/AchievementModel";
+import { withCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
 
 export async function GET(req: Request) {
   try {
@@ -11,7 +12,13 @@ export async function GET(req: Request) {
     }
 
     const userId = parseInt((session.user as any).id);
-    const achievements = await AchievementModel.getUserAchievements(userId);
+    const achievements = await withCache(
+      CACHE_KEYS.USER_ACHIEVEMENTS,
+      () => AchievementModel.getUserAchievements(userId),
+      CACHE_TTL.MEDIUM,
+      { userId },
+      userId
+    );
 
     return NextResponse.json(achievements);
   } catch (error: any) {

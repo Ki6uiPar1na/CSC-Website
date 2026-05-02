@@ -75,15 +75,52 @@
 - **Session Management**: NextAuth.js secure sessions
 - **Password Hashing**: Bcryptjs for all passwords
 
-## 6. Engineering Standards
+## 6. Performance Optimizations
+### Caching System
+- **In-Memory Cache**: Intelligent caching layer for database queries
+- **Cache Manager**: Centralized cache management with automatic TTL-based expiration
+- **Cache Keys**: Organized by data type (challenges, leaderboard, modules, etc.)
+- **User-Specific Caching**: Separate cache entries per user for personalized data
+- **Cache Invalidation**: Automatic invalidation on data mutations (POST, PUT, DELETE)
+- **TTL Tiers**: 
+  - SHORT (60s): Real-time user stats, premium status
+  - MEDIUM (300s): Frequently changing data like challenges, user solves
+  - LONG (900s): Less frequently changing data like modules, lessons
+  - VERY_LONG (3600s): Static data like resources, executives, alumni
+
+### Endpoints with Caching
+- `/api/challenges` - Challenge listings (MEDIUM - 5 min)
+- `/api/leaderboard` - Top user rankings (LONG - 15 min)
+- `/api/user/stats` - User profile data (SHORT - 1 min)
+- `/api/modules` - Module listings (LONG - 15 min)
+- `/api/lessons` - Lesson content (LONG - 15 min)
+- `/api/achievements` - User achievements (MEDIUM - 5 min)
+- `/api/events` - Event listings (MEDIUM - 5 min)
+- `/api/exams` - Exam data (LONG - 15 min)
+- `/api/resources` - Learning resources (VERY_LONG - 1 hour)
+- `/api/executives` - Executive team (VERY_LONG - 1 hour)
+- `/api/alumni` - Alumni list (VERY_LONG - 1 hour)
+- `/api/contests` - Contest listings (LONG - 15 min)
+- `/api/club-achievements` - Club achievements (VERY_LONG - 1 hour)
+- `/api/club-gallery` - Gallery images (VERY_LONG - 1 hour)
+
+### Cache Invalidation
+- Automatic on data mutations (challenges solved, new events, etc.)
+- Manual via `cacheInvalidators` utility for admin operations
+- Per-namespace invalidation for bulk updates
+- Per-user invalidation for user-specific data
+
+## 7. Engineering Standards
 - **Migrations**: Automated idempotent migration system
 - **Device Agnostic**: Fully responsive layout
 - **Security Mandates**: AGENTS.md rules established
 - **Data Preservation**: Zero data loss migrations
 - **Type Safety**: Full TypeScript coverage
+- **Performance**: Smart caching to reduce database load
 
-## 7. Build Status
+## 8. Build Status
 - ✓ Successful compilation with no errors
-- ✓ All 21 routes generated and deployed
+- ✓ All routes generated and deployed
 - ✓ Database migrations synchronized
+- ✓ Caching system integrated across all major endpoints
 - ✓ Dev server running successfully

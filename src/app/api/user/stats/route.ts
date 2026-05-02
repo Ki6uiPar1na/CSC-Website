@@ -6,6 +6,7 @@ import { ScoringModel } from "@/models/ScoringModel";
 import { UserModel } from "@/models/UserModel";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
+import { withCache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
 
 export async function GET() {
   try {
@@ -16,17 +17,47 @@ export async function GET() {
 
     const userId = parseInt((session.user as any).id);
     
-    const solves = await SolveModel.getAllUserSolves(userId);
-    const moduleStatus = await ScoringModel.getUserModuleStatus(userId);
-    const user = await UserModel.findByUsername(session.user.name!);
+    // Cache user-specific data with shorter TTL for real-time stats
+    const [solves, moduleStatus, user, premiumRows] = await Promise.all([
+      withCache(
+        CACHE_KEYS.USER_SOLVES,
+        () => SolveModel.getAllUserSolves(userId),
+        CACHE_TTL.SHORT,
+        { userId },
+        userId
+      ),
+      withCache(
+        CACHE_KEYS.USER_PROFILE,
+        () => ScoringModel.getUserModuleStatus(userId),
+        CACHE_TTL.MEDIUM,
+        { userId },
+        userId
+      ),
+      withCache(
+        CACHE_KEYS.USER_STATS,
+        () => UserModel.findByUsername(session?.user?.name!),
+        CACHE_TTL.SHORT,
+        { username: session?.user?.name },
+        userId
+      ),
+      withCache(
+        `${CACHE_KEYS.USER_PROFILE}:premium`,
+        async () => {
+          const [rows] = await pool.query<RowDataPacket[]>(
+            `SELECT 1 FROM upgrade_code_usage u 
+             JOIN upgrade_codes c ON u.upgrade_code_id = c.id 
+             WHERE u.user_id = ? AND c.is_active = TRUE LIMIT 1`,
+            [userId]
+          );
+          return rows.length > 0;
+        },
+        CACHE_TTL.SHORT,
+        { userId },
+        userId
+      ),
+    ]);
 
-    const [premiumRows] = await pool.query<RowDataPacket[]>(
-      `SELECT 1 FROM upgrade_code_usage u 
-       JOIN upgrade_codes c ON u.upgrade_code_id = c.id 
-       WHERE u.user_id = ? AND c.is_active = TRUE LIMIT 1`,
-      [userId]
-    );
-    const isPremium = premiumRows.length > 0;
+    const isPremium = premiumRows;
 
     return NextResponse.json({
       solves: solves.map(s => ({ solved_at: s.solved_at, challenge_id: s.challenge_id })),

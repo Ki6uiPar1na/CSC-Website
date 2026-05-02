@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import pool from "@/models/db";
 import { RowDataPacket, ResultSetHeader } from "mysql2";
 import { checkFlag } from "@/lib/flagUtils";
+import { cacheManager, CACHE_KEYS } from "@/lib/cache";
 
 export async function POST(req: Request) {
   try {
@@ -83,6 +84,14 @@ export async function POST(req: Request) {
       await connection.query("INSERT INTO submissions (user_id, task_id, submitted_flag, is_correct) VALUES (?, ?, ?, ?)", [userId, challengeId, flag, true]);
       await connection.commit();
       connection.release();
+      
+      // Invalidate caches after successful solve
+      cacheManager.invalidateNamespace(CACHE_KEYS.CHALLENGES);
+      cacheManager.invalidate(CACHE_KEYS.USER_SOLVES, { userId }, userId);
+      cacheManager.invalidate(CACHE_KEYS.USER_STATS, { username: session?.user?.name }, userId);
+      cacheManager.invalidateNamespace(CACHE_KEYS.LEADERBOARD);
+      cacheManager.invalidate(CACHE_KEYS.USER_ACHIEVEMENTS, { userId }, userId);
+      
       return NextResponse.json({ success: true, message: "Correct flag!", points: pointsAwarded });
     } catch (err) {
       await connection.rollback();
