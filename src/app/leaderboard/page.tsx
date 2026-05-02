@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Trophy, Flame, User } from "lucide-react";
 
 interface LeaderboardEntry {
@@ -11,19 +13,28 @@ interface LeaderboardEntry {
 }
 
 export default function LeaderboardPage() {
+  const router = useRouter();
+  const { status } = useSession();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/leaderboard")
-      .then((res) => res.json())
-      .then((data) => {
-        setLeaderboard(data);
-        setLoading(false);
-      });
-  }, []);
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+    if (status === "authenticated") {
+      fetch("/api/leaderboard")
+        .then((res) => res.json())
+        .then((data) => {
+          setLeaderboard(data);
+          setLoading(false);
+        });
+    }
+  }, [status, router]);
 
-  if (loading) return <div className="p-12 text-center text-primary font-mono animate-pulse">Retrieving Rankings...</div>;
+  if (status === "loading" || loading) return <div className="p-12 text-center text-primary font-mono animate-pulse">Retrieving Rankings...</div>;
+  if (status === "unauthenticated") return null;
 
   return (
     <div className="max-w-4xl mx-auto px-4">

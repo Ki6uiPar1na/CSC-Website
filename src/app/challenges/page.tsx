@@ -35,6 +35,11 @@ function ChallengesContent() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+
     // Set a cookie for the 'Cookie Monster' challenge
     document.cookie = "challenge_flag=flag{cookies_are_tasty}; path=/; max-age=3600";
     
@@ -49,12 +54,11 @@ function ChallengesContent() {
       fetch("/api/user/stats")
         .then(res => res.json())
         .then(data => {
-          // User is premium if they have an ACTIVE code (isPremium from API)
           setIsSubscribed(data.isPremium === true);
           setSolvedChallengeIds(data.solves.map((s: any) => s.challenge_id));
         });
     }
-  }, [session]);
+  }, [session, status, router]);
 
   // Filter challenges based on id query parameter and search query
   useEffect(() => {
@@ -103,7 +107,8 @@ function ChallengesContent() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-primary font-mono animate-pulse">Scanning for challenges...</div>;
+  if (status === "loading" || loading) return <div className="p-8 text-center text-primary font-mono animate-pulse">Scanning for challenges...</div>;
+  if (status === "unauthenticated") return null;
 
   return (
     <div className="max-w-4xl mx-auto">

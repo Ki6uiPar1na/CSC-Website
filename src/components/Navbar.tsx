@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useNotifications } from "@/lib/NotificationContext";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const { unreadCount } = useNotifications();
@@ -23,18 +23,20 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navItems = [
-    { href: "/challenges", label: "Challenges", category: "main" },
-    { href: "/leaderboard", label: "Leaderboard", category: "main" },
+  const allNavItems = [
+    { href: "/challenges", label: "Challenges", category: "main", requiresAuth: true },
+    { href: "/leaderboard", label: "Leaderboard", category: "main", requiresAuth: true },
     { href: "/events", label: "Events", category: "main" },
     { href: "/achievements", label: "Achievements", category: "explore" },
     { href: "/gallery", label: "Gallery", category: "explore" },
-    { href: "/resources", label: "Resources", category: "explore" },
+    { href: "/resources", label: "Resources", category: "explore", requiresAuth: true },
     { href: "/about", label: "About", category: "about" },
     { href: "/executive", label: "Executive", category: "about" },
     { href: "/alumni", label: "Alumni", category: "about" },
     { href: "/contests", label: "Contests", category: "about" },
   ];
+
+  const navItems = allNavItems.filter(item => !item.requiresAuth || session);
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-md border-b border-white/10 py-3' : 'bg-transparent py-4'}`}>

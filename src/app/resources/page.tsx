@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Loader2, Search } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Search } from "lucide-react";
 import { SearchBox } from "@/components/SearchBox";
 
 interface ResourceLink {
@@ -55,18 +56,26 @@ const fallbackResources: Category[] = [
 
 export default function ResourcesPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+      return;
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    
     const fetchResources = async () => {
       try {
         const res = await fetch("/api/resources");
         if (!res.ok) throw new Error("Failed to fetch resources");
         const data = await res.json();
-        // If data is empty, we use our fallback to "not have bad data"
         if (data.categories && data.categories.length > 0) {
           setCategories(data.categories);
         } else {
@@ -81,7 +90,12 @@ export default function ResourcesPage() {
     };
 
     fetchResources();
-  }, []);
+  }, [status]);
+
+  if (status === "loading" || (status === "authenticated" && isLoading)) {
+    return <div className="p-12 text-center text-primary font-mono animate-pulse">Loading resources...</div>;
+  }
+  if (status === "unauthenticated") return null;
 
   return (
     <div className="max-w-5xl mx-auto px-4">
@@ -98,89 +112,82 @@ export default function ResourcesPage() {
         />
       </div>
 
-      {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 size={48} className="text-primary animate-spin mb-4" />
-          <p className="text-gray-500 font-mono">Loading resources...</p>
-        </div>
-      ) : (
-        (() => {
-          const query = searchQuery.toLowerCase();
-          const filteredCategories = categories.map(cat => {
-            const catNameMatch = cat.name.toLowerCase().includes(query);
-            const filteredLinks = cat.links.filter(link => 
-              catNameMatch || 
-              link.name.toLowerCase().includes(query) || 
-              (link.description && link.description.toLowerCase().includes(query))
-            );
-            return { ...cat, links: filteredLinks };
-          }).filter(cat => cat.links.length > 0);
+      {(() => {
+        const query = searchQuery.toLowerCase();
+        const filteredCategories = categories.map(cat => {
+          const catNameMatch = cat.name.toLowerCase().includes(query);
+          const filteredLinks = cat.links.filter(link => 
+            catNameMatch || 
+            link.name.toLowerCase().includes(query) || 
+            (link.description && link.description.toLowerCase().includes(query))
+          );
+          return { ...cat, links: filteredLinks };
+        }).filter(cat => cat.links.length > 0);
 
-          if (filteredCategories.length === 0) {
-            return (
-              <div className="text-center py-20 bg-gray-900/30 border border-dashed border-gray-800 rounded-3xl">
-                <Search size={48} className="mx-auto text-gray-700 mb-4" />
-                <h3 className="text-xl font-semibold text-gray-300 mb-2">No matches found</h3>
-                <p className="text-gray-500">Try adjusting your search terms.</p>
-                <button 
-                  onClick={() => setSearchQuery("")}
-                  className="btn btn-primary mt-6"
-                >
-                  Clear Search
-                </button>
-              </div>
-            );
-          }
-
+        if (filteredCategories.length === 0) {
           return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredCategories.map((category, index) => (
-                <div key={index} className="card group">
-                  <h2 className="text-primary text-lg font-bold border-b border-border-color pb-3 mb-6 flex items-center justify-between">
-                    <span>{category.name}</span>
-                    <span className="text-[10px] bg-primary/10 px-2 py-0.5 rounded text-primary/70">{category.links.length} LINKS</span>
-                  </h2>
-                  <ul className="space-y-4">
-                    {category.links.map((link, lIndex) => (
-                      <li key={link.id || lIndex}>
-                        <div className="flex flex-col gap-1">
-                          <a 
-                            href={link.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 text-gray-300 hover:text-primary transition-all duration-200 group/link"
-                          >
-                            <span className="text-accent group-hover/link:translate-x-1 transition-transform">→</span> 
-                            <span className="text-sm sm:text-base font-medium underline-offset-4 group-hover/link:underline">{link.name}</span>
-                          </a>
-                          {link.description && (
-                            <p className="text-xs text-gray-500 ml-6">{link.description}</p>
-                          )}
-                          {link.extraLinks && link.extraLinks.length > 0 && (
-                            <div className="flex flex-wrap gap-2 ml-6 mt-1">
-                              {link.extraLinks.map((extra, ei) => (
-                                <a 
-                                  key={ei} 
-                                  href={extra.url} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-[10px] text-accent hover:underline"
-                                >
-                                  [{extra.name}]
-                                </a>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+            <div className="text-center py-20 bg-gray-900/30 border border-dashed border-gray-800 rounded-3xl">
+              <Search size={48} className="mx-auto text-gray-700 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-300 mb-2">No matches found</h3>
+              <p className="text-gray-500">Try adjusting your search terms.</p>
+              <button 
+                onClick={() => setSearchQuery("")}
+                className="btn btn-primary mt-6"
+              >
+                Clear Search
+              </button>
             </div>
           );
-        })()
-      )}
+        }
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredCategories.map((category, index) => (
+              <div key={index} className="card group">
+                <h2 className="text-primary text-lg font-bold border-b border-border-color pb-3 mb-6 flex items-center justify-between">
+                  <span>{category.name}</span>
+                  <span className="text-[10px] bg-primary/10 px-2 py-0.5 rounded text-primary/70">{category.links.length} LINKS</span>
+                </h2>
+                <ul className="space-y-4">
+                  {category.links.map((link, lIndex) => (
+                    <li key={link.id || lIndex}>
+                      <div className="flex flex-col gap-1">
+                        <a 
+                          href={link.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 text-gray-300 hover:text-primary transition-all duration-200 group/link"
+                        >
+                          <span className="text-accent group-hover/link:translate-x-1 transition-transform">→</span> 
+                          <span className="text-sm sm:text-base font-medium underline-offset-4 group-hover/link:underline">{link.name}</span>
+                        </a>
+                        {link.description && (
+                          <p className="text-xs text-gray-500 ml-6">{link.description}</p>
+                        )}
+                        {link.extraLinks && link.extraLinks.length > 0 && (
+                          <div className="flex flex-wrap gap-2 ml-6 mt-1">
+                            {link.extraLinks.map((extra, ei) => (
+                              <a 
+                                key={ei} 
+                                href={extra.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-accent hover:underline"
+                              >
+                                [{extra.name}]
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="card mt-16 text-center bg-primary/5 border-dashed">
         <h3 className="text-primary text-xl font-bold mb-4">Private Resources</h3>
