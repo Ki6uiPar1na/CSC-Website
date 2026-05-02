@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/models/db";
+import { RowDataPacket } from "mysql2";
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const [rows] = await pool.query<RowDataPacket[]>(
+      "SELECT * FROM contests WHERE id = ?",
+      [id]
+    );
+    if (rows.length === 0) {
+      return NextResponse.json({ error: "Contest not found" }, { status: 404 });
+    }
+    return NextResponse.json(rows[0]);
+  } catch (error) {
+    console.error("Error fetching contest:", error);
+    return NextResponse.json({ error: "Failed to fetch contest" }, { status: 500 });
+  }
+}
 
 export async function PUT(
   req: NextRequest,

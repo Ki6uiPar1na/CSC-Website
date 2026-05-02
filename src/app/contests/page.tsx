@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { SearchBox } from "@/components/SearchBox";
@@ -16,9 +17,9 @@ interface Contest {
 }
 
 export default function ContestsPage() {
+  const router = useRouter();
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -116,149 +117,34 @@ export default function ContestsPage() {
                 key={contest.id}
                 className="group bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 hover:border-primary/50 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/20"
               >
-                {/* Compact View */}
-                {expandedId !== contest.id && (
-                  <div 
-                    onClick={() => setExpandedId(contest.id)}
-                    className="cursor-pointer p-6 hover:bg-slate-800/30 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-6">
-                      {contest.photo_url && (
-                        <img
-                          src={contest.photo_url}
-                          alt={contest.name}
-                          className="w-24 h-24 object-cover rounded-lg border border-primary/30 flex-shrink-0"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
-                          {contest.name}
-                        </h3>
-                        <p className="text-primary text-sm font-mono mb-2">
-                          📅 {formatDate(contest.event_date)}
-                        </p>
-                        <p className="text-gray-300 text-sm line-clamp-1">
-                          {contest.description}
-                        </p>
-                      </div>
-                      <button
-                        className="flex-shrink-0 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-semibold transition-all duration-300 text-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExpandedId(contest.id);
-                        }}
-                      >
-                        View Details
-                      </button>
+                <div className="p-6">
+                  <div className="flex items-start justify-between gap-6">
+                    {contest.photo_url && (
+                      <img
+                        src={contest.photo_url}
+                        alt={contest.name}
+                        className="w-24 h-24 object-cover rounded-lg border border-primary/30 flex-shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                        {contest.name}
+                      </h3>
+                      <p className="text-primary text-sm font-mono mb-2">
+                        📅 {formatDate(contest.event_date)}
+                      </p>
+                      <p className="text-gray-300 text-sm line-clamp-1">
+                        {contest.description}
+                      </p>
                     </div>
-                  </div>
-                )}
-
-                {/* Expanded View */}
-                {expandedId === contest.id && (
-                  <div className="p-8 animate-in fade-in duration-300">
-                    <div className="flex items-start justify-between mb-6">
-                      <h2 className="text-3xl font-bold text-primary">{contest.name}</h2>
-                      <button
-                        onClick={() => setExpandedId(null)}
-                        className="text-gray-400 hover:text-white transition-colors text-2xl"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      {contest.photo_url && (
-                        <div className="md:col-span-1">
-                          <img
-                            src={contest.photo_url}
-                            alt={contest.name}
-                            className="w-full h-64 object-cover rounded-lg border border-primary/30"
-                          />
-                        </div>
-                      )}
-
-                      <div className={contest.photo_url ? "md:col-span-2" : "md:col-span-3"}>
-                        <div className="mb-6">
-                          <p className="text-primary text-sm font-mono uppercase tracking-widest mb-4">
-                            📅 {formatDate(contest.event_date)}
-                          </p>
-                          <p className="text-gray-300 mb-6 leading-relaxed">
-                            {contest.description}
-                          </p>
-                        </div>
-
-                        {contest.winners && (contest.winners as any).length > 0 && (
-                          <div className="mb-6 bg-slate-800/50 rounded-lg p-4 border border-primary/20">
-                            <h3 className="font-bold text-accent mb-3 text-lg">🏆 Winners</h3>
-                            <ul className="space-y-2">
-                              {(() => {
-                                try {
-                                  let parsed = typeof contest.winners === 'string' 
-                                    ? JSON.parse(contest.winners) 
-                                    : contest.winners;
-                                  
-                                  let winnersArray: any[] = [];
-                                  if (Array.isArray(parsed)) {
-                                    winnersArray = parsed;
-                                  } else if (parsed && typeof parsed === 'object') {
-                                    if (parsed.first) winnersArray.push(parsed.first);
-                                    if (parsed.second) winnersArray.push(parsed.second);
-                                    if (parsed.third) winnersArray.push(parsed.third);
-                                    if (winnersArray.length === 0) winnersArray = Object.values(parsed);
-                                  }
-                                  
-                                  if (winnersArray.length === 0) return null;
-
-                                  return winnersArray.map((winner: any, idx: number) => (
-                                    <li key={idx} className="flex items-center gap-3 text-gray-300">
-                                      <span className="text-lg">
-                                        {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "•"}
-                                      </span>
-                                      <span>
-                                        {typeof winner === "string"
-                                          ? winner
-                                          : winner.name || JSON.stringify(winner)}
-                                      </span>
-                                    </li>
-                                  ));
-                                } catch (e) {
-                                  return null;
-                                }
-                              })()}
-                            </ul>
-                          </div>
-                        )}
-
-                        {contest.details && (
-                          <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/50">
-                            <h3 className="font-bold text-white mb-2">📝 Details</h3>
-                            <div className="text-gray-400 text-sm leading-relaxed overflow-hidden text-ellipsis">
-                              {(() => {
-                                try {
-                                  const parsed = typeof contest.details === 'string' ? JSON.parse(contest.details) : contest.details;
-                                  if (parsed && parsed.link) {
-                                    return <a href={parsed.link} target="_blank" rel="noreferrer" className="text-primary hover:underline break-all">{parsed.link}</a>;
-                                  }
-                                  return contest.details;
-                                } catch (e) {
-                                  return contest.details;
-                                }
-                              })()}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
                     <button
-                      onClick={() => setExpandedId(null)}
-                      className="mt-6 px-6 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-semibold transition-all duration-300"
+                      className="flex-shrink-0 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-semibold transition-all duration-300 text-sm"
+                      onClick={() => router.push(`/contests/${contest.id}`)}
                     >
-                      Close
+                      View Details
                     </button>
                   </div>
-                )}
+                </div>
               </div>
             ))}
           </div>
