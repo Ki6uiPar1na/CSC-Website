@@ -1,0 +1,41 @@
+{
+  "name": "tmp_app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon --delay 5 --watch src --ext ts,tsx,js,jsx,css,sql --exec \"next dev\"",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "lucide-react": "^1.8.0",
+    "mysql2": "^3.22.0",
+    "next": "16.2.4",
+    "next-auth": "^4.24.14",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.1",
+    "remark-gfm": "^4.0.1",
+    "svg-captcha": "^1.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "nodemon": "^3.1.14",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  }
+}
