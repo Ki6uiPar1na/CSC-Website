@@ -193,27 +193,38 @@ export default function ContestsPage() {
                             <h3 className="font-bold text-accent mb-3 text-lg">🏆 Winners</h3>
                             <ul className="space-y-2">
                               {(() => {
-                                const winnersArray = typeof contest.winners === 'string' 
-                                  ? JSON.parse(contest.winners) 
-                                  : Array.isArray(contest.winners) ? contest.winners : [];
-                                return winnersArray.map((winner: any, idx: number) => (
-                                  <li key={idx} className="flex items-center gap-3 text-gray-300">
-                                    <span className="text-lg">
-                                      {idx === 0
-                                        ? "🥇"
-                                        : idx === 1
-                                          ? "🥈"
-                                          : idx === 2
-                                            ? "🥉"
-                                            : "•"}
-                                    </span>
-                                    <span>
-                                      {typeof winner === "string"
-                                        ? winner
-                                        : winner.name || JSON.stringify(winner)}
-                                    </span>
-                                  </li>
-                                ));
+                                try {
+                                  let parsed = typeof contest.winners === 'string' 
+                                    ? JSON.parse(contest.winners) 
+                                    : contest.winners;
+                                  
+                                  let winnersArray: any[] = [];
+                                  if (Array.isArray(parsed)) {
+                                    winnersArray = parsed;
+                                  } else if (parsed && typeof parsed === 'object') {
+                                    if (parsed.first) winnersArray.push(parsed.first);
+                                    if (parsed.second) winnersArray.push(parsed.second);
+                                    if (parsed.third) winnersArray.push(parsed.third);
+                                    if (winnersArray.length === 0) winnersArray = Object.values(parsed);
+                                  }
+                                  
+                                  if (winnersArray.length === 0) return null;
+
+                                  return winnersArray.map((winner: any, idx: number) => (
+                                    <li key={idx} className="flex items-center gap-3 text-gray-300">
+                                      <span className="text-lg">
+                                        {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "•"}
+                                      </span>
+                                      <span>
+                                        {typeof winner === "string"
+                                          ? winner
+                                          : winner.name || JSON.stringify(winner)}
+                                      </span>
+                                    </li>
+                                  ));
+                                } catch (e) {
+                                  return null;
+                                }
                               })()}
                             </ul>
                           </div>
@@ -222,9 +233,19 @@ export default function ContestsPage() {
                         {contest.details && (
                           <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700/50">
                             <h3 className="font-bold text-white mb-2">📝 Details</h3>
-                            <p className="text-gray-400 text-sm leading-relaxed">
-                              {contest.details}
-                            </p>
+                            <div className="text-gray-400 text-sm leading-relaxed overflow-hidden text-ellipsis">
+                              {(() => {
+                                try {
+                                  const parsed = typeof contest.details === 'string' ? JSON.parse(contest.details) : contest.details;
+                                  if (parsed && parsed.link) {
+                                    return <a href={parsed.link} target="_blank" rel="noreferrer" className="text-primary hover:underline break-all">{parsed.link}</a>;
+                                  }
+                                  return contest.details;
+                                } catch (e) {
+                                  return contest.details;
+                                }
+                              })()}
+                            </div>
                           </div>
                         )}
                       </div>
