@@ -288,6 +288,21 @@ async function migrate() {
     console.log('competition_achievements is_team_contest column migration error:', err.message);
   }
 
+  // 16. Add exclusivity_expires_at to events if it doesn't exist
+  try {
+    const [columns] = await connection.query(
+      `SHOW COLUMNS FROM events LIKE 'exclusivity_expires_at'`
+    );
+    if (columns.length === 0) {
+      await connection.query(
+        `ALTER TABLE events ADD COLUMN exclusivity_expires_at TIMESTAMP NULL AFTER gallery_images`
+      );
+      console.log('Added exclusivity_expires_at column to events table');
+    }
+  } catch (err) {
+    console.log('exclusivity_expires_at column migration error:', err.message);
+  }
+
   console.log('Migration synchronized successfully');
   await connection.end();
 }
