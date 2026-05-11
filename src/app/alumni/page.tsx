@@ -106,14 +106,23 @@ export default function AlumniPage() {
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
     const fetchAlumni = async () => {
       try {
-        const response = await fetch("/api/alumni");
+        const response = await fetch("/api/alumni", {
+          cache: "no-store"
+        });
         if (response.ok) {
           const data = await response.json();
-          setAlumni(data);
+          setAlumni(Array.isArray(data) ? data : SAMPLE_ALUMNI);
         } else {
           // Use sample data as fallback
           setAlumni(SAMPLE_ALUMNI);
@@ -128,7 +137,7 @@ export default function AlumniPage() {
     };
 
     fetchAlumni();
-  }, []);
+  }, [hydrated]);
 
   const sessions = Array.from(new Set(alumni.map((a) => a.session))).sort(
     (a, b) => {

@@ -21,24 +21,36 @@ export default function ContestsPage() {
   const [contests, setContests] = useState<Contest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
     const fetchContests = async () => {
       try {
-        const response = await fetch("/api/contests");
+        const response = await fetch("/api/contests", {
+          cache: "no-store"
+        });
         if (response.ok) {
           const data = await response.json();
-          setContests(data);
+          setContests(Array.isArray(data) ? data : []);
+        } else {
+          setContests([]);
         }
       } catch (error) {
         console.error("Failed to fetch contests:", error);
+        setContests([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchContests();
-  }, []);
+  }, [hydrated]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

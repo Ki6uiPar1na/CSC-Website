@@ -394,23 +394,7 @@ INSERT IGNORE INTO roles (role_id, name) VALUES
 (3, 'user');
 
 -- Competition Achievements Table
-CREATE TABLE IF NOT EXISTS competition_achievements (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  competition_name VARCHAR(255) NOT NULL,
-  contest_name VARCHAR(255) NOT NULL,
-  position INT,
-  prize_money INT,
-  description TEXT,
-  achievement_date DATE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_competition_name (competition_name),
-  INDEX idx_achievement_date (achievement_date)
-);
-
--- Drop old table if exists
-DROP TABLE IF EXISTS competition_achievements;
-
--- New Competition Achievements Table with Team Info
+-- Competition Achievements Table with Team Info
 CREATE TABLE IF NOT EXISTS competition_achievements (
   id INT AUTO_INCREMENT PRIMARY KEY,
   competition_name VARCHAR(255) NOT NULL,

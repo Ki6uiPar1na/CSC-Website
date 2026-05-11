@@ -29,11 +29,20 @@ export default function ExecutiveBody() {
   const [selectedExecutive, setSelectedExecutive] = useState<Executive | null>(null);
   const [expandedSessions, setExpandedSessions] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+
     const fetchExecutives = async () => {
       try {
-        const response = await fetch("/api/executives");
+        const response = await fetch("/api/executives", {
+          cache: "no-store"
+        });
         if (response.ok) {
           const data = await response.json();
           setExecutives(data);
@@ -63,16 +72,21 @@ export default function ExecutiveBody() {
           if (sessions.length > 0) {
             setExpandedSessions({ [sessions[0].session]: true });
           }
+        } else {
+          setSessionGroups([]);
+          setExecutives([]);
         }
       } catch (error) {
         console.error("Failed to fetch executives:", error);
+        setSessionGroups([]);
+        setExecutives([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchExecutives();
-  }, []);
+  }, [hydrated]);
 
   const [filteredSessionGroups, setFilteredSessionGroups] = useState<SessionGroup[]>([]);
 

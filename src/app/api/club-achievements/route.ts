@@ -18,20 +18,25 @@ export async function GET(req: NextRequest) {
     const result = await withCache(
       CACHE_KEYS.CLUB_ACHIEVEMENTS,
       async () => {
-        const [data] = await pool.query<RowDataPacket[]>(
-          "SELECT * FROM competition_achievements ORDER BY achievement_date DESC"
-        );
-        return data;
+        try {
+          const [data] = await pool.query<RowDataPacket[]>(
+            "SELECT * FROM competition_achievements ORDER BY achievement_date DESC"
+          );
+          console.log("[ACHIEVEMENTS] Query executed, rows returned:", data?.length || 0);
+          return Array.isArray(data) ? data : [];
+        } catch (dbError) {
+          console.error("[ACHIEVEMENTS] Database query failed:", dbError);
+          return [];
+        }
       },
       CACHE_TTL.VERY_LONG
     );
-    return NextResponse.json(result);
+    console.log("[ACHIEVEMENTS] API returning:", result?.length || 0, "achievements");
+    return NextResponse.json(result || []);
   } catch (error) {
     console.error("Error fetching achievements:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch achievements" },
-      { status: 500 }
-    );
+    // Return empty array instead of error to prevent page from breaking
+    return NextResponse.json([], { status: 200 });
   }
 }
 

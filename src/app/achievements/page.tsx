@@ -25,33 +25,54 @@ export default function AchievementsPage() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hydrated, setHydrated] = useState(false);
+
+  // Ensure hydration is complete before rendering
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
 
   useEffect(() => {
     const fetchAchievements = async () => {
       try {
-        const response = await fetch("/api/club-achievements");
+        setLoading(true);
+        const response = await fetch("/api/club-achievements", {
+          cache: "no-store" // Prevent caching on client side
+        });
         if (response.ok) {
           const data = await response.json();
-          setAchievements(data);
+          console.log("Fetched achievements:", data?.length || 0);
+          
+          // Ensure data is an array
+          const achievementsArray = Array.isArray(data) ? data : [];
+          setAchievements(achievementsArray);
 
           const grouped: Record<string, Achievement[]> = {};
-          data.forEach((achievement: Achievement) => {
+          achievementsArray.forEach((achievement: Achievement) => {
             if (!grouped[achievement.competition_name]) {
               grouped[achievement.competition_name] = [];
             }
             grouped[achievement.competition_name].push(achievement);
           });
           setGroupedAchievements(grouped);
+        } else {
+          console.error("Failed to fetch, status:", response.status);
+          setAchievements([]);
+          setGroupedAchievements({});
         }
       } catch (error) {
         console.error("Failed to fetch achievements:", error);
+        setAchievements([]);
+        setGroupedAchievements({});
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAchievements();
-  }, []);
+    if (hydrated) {
+      fetchAchievements();
+    }
+  }, [hydrated]);
 
   useEffect(() => {
     const filtered = achievements.filter((a) => {
@@ -348,24 +369,44 @@ export default function AchievementsPage() {
                 )}
 
                 {/* Gallery Section */}
-                {selectedAchievement.gallery_images && JSON.parse(selectedAchievement.gallery_images).length > 0 && (
-                  <div className="bg-secondary/50 border border-primary/30 rounded-lg p-4">
-                    <p className="text-xs uppercase text-primary/60 font-bold mb-3 flex items-center gap-2">
-                      <ImageIcon size={14} /> Gallery
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {JSON.parse(selectedAchievement.gallery_images).map((img: string, idx: number) => (
-                        <div 
-                          key={idx} 
-                          onClick={() => setSelectedImage(img)}
-                          className="group relative aspect-square rounded-lg overflow-hidden border border-gray-700 hover:border-primary/30 transition-all cursor-zoom-in"
-                        >
-                          <img src={img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                          <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                {selectedAchievement.gallery_images && (
+                  (() => {
+                    try {
+                      const images = typeof selectedAchievement.gallery_images === 'string' 
+                        ? JSON.parse(selectedAchievement.gallery_images)
+                        : selectedAchievement.gallery_images;
+                      return Array.isArray(images) && images.length > 0 ? (
+                        <div className="bg-secondary/50 border border-primary/30 rounded-lg p-4">
+                          <p className="text-xs uppercase text-primary/60 font-bold mb-3 flex items-center gap-2">
+                            <ImageIcon size={14} /> Gallery
+                          </p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {images.map((img: string, idx: number) => (
+                              <div 
+                                key={idx} 
+                                onClick={() => setSelectedImage(img)}
+                                className="group relative aspect-square rounded-lg overflow-hidden border border-gray-700 hover:border-primary/30 transition-all cursor-zoom-in"
+                              >
+                                <img 
+                                  src={img} 
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  alt={`Gallery ${idx + 1}`}
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    console.error("Image failed to load:", img);
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      ) : null;
+                    } catch (err) {
+                      console.error("Failed to parse gallery_images:", err, selectedAchievement.gallery_images);
+                      return null;
+                    }
+                  })()
                 )}
 
                 {/* Close Button */}

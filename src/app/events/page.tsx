@@ -50,22 +50,26 @@ export default function EventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch("/api/events");
+      const response = await fetch("/api/events", {
+        cache: "no-store"
+      });
       
       if (!response.ok) {
         throw new Error("Failed to fetch events");
       }
 
       const data = await response.json();
-      setEvents(data.events || []);
-      setIsPremium(data.isPremium);
+      setEvents(Array.isArray(data.events) ? data.events : []);
+      setIsPremium(data.isPremium || false);
       
       // Show helpful message for non-premium users
       if (!data.isPremium && data.message) {
         setMessage(data.message);
       }
     } catch (err: any) {
+      console.error("Error fetching events:", err);
       setError(err.message);
+      setEvents([]);
     } finally {
       setLoading(false);
     }

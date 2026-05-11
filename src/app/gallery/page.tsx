@@ -17,25 +17,37 @@ export default function GalleryPage() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    fetchGallery();
+    setHydrated(true);
   }, []);
 
-  const fetchGallery = async () => {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/club-gallery");
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setImages(data);
+  useEffect(() => {
+    if (!hydrated) return;
+    
+    const fetchGallery = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/club-gallery", {
+          cache: "no-store"
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setImages(data);
+        } else {
+          setImages([]);
+        }
+      } catch (error) {
+        console.error("Error fetching gallery:", error);
+        setImages([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching gallery:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchGallery();
+  }, [hydrated]);
 
   return (
     <main className="min-h-screen bg-black text-white py-12 px-4 sm:px-6 lg:px-8">
