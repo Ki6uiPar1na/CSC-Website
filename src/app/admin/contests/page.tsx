@@ -51,7 +51,9 @@ export default function ContestsAdmin() {
 
   const fetchContests = async () => {
     try {
-      const res = await fetch('/api/contests');
+      const res = await fetch('/api/contests', {
+        cache: 'no-store'
+      });
       const data = await res.json();
       setContests(Array.isArray(data) ? data : []);
     } catch (error) {

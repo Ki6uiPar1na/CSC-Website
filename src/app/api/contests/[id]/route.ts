@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
+import { cacheManager, CACHE_KEYS } from "@/lib/cache";
 
 export async function GET(
   _req: NextRequest,
@@ -51,6 +52,9 @@ export async function PUT(
       ]
     );
 
+    // Invalidate cache when contest is updated
+    cacheManager.invalidateNamespace(CACHE_KEYS.CONTESTS);
+
     return NextResponse.json({ message: "Contest updated successfully" });
   } catch (error) {
     console.error("Error updating contest:", error);
@@ -69,6 +73,9 @@ export async function DELETE(
     const { id } = await params;
 
     await pool.query("DELETE FROM contests WHERE id = ?", [id]);
+
+    // Invalidate cache when contest is deleted
+    cacheManager.invalidateNamespace(CACHE_KEYS.CONTESTS);
 
     return NextResponse.json({ message: "Contest deleted successfully" });
   } catch (error) {
