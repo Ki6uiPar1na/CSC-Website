@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
           return [];
         }
       },
-      CACHE_TTL.VERY_LONG
+      CACHE_TTL.MEDIUM
     );
     console.log("[ACHIEVEMENTS] API returning:", result?.length || 0, "achievements");
     return NextResponse.json(result || []);
