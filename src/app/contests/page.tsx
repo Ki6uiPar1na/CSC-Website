@@ -14,6 +14,7 @@ interface Contest {
   winners: string | any[];
   photo_url: string;
   details: string;
+  team_name?: string | null;
 }
 
 export default function ContestsPage() {
@@ -148,6 +149,11 @@ export default function ContestsPage() {
                       <p className="text-gray-300 text-sm line-clamp-1">
                         {contest.description}
                       </p>
+                      {contest.team_name && (
+                        <p className="text-xs text-primary font-mono mt-2 flex items-center gap-1">
+                          Team: {contest.team_name}
+                        </p>
+                      )}
                     </div>
                     <button
                       className="flex-shrink-0 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-semibold transition-all duration-300 text-sm"

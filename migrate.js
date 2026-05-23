@@ -303,6 +303,177 @@ async function migrate() {
     console.log('exclusivity_expires_at column migration error:', err.message);
   }
 
+  // 17. Create teams table if not exists
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS teams (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Created teams table');
+  } catch (err) {
+    console.log('teams table creation error:', err.message);
+  }
+
+  // 18. Create team_members table if not exists
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS team_members (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        team_id INT NOT NULL,
+        user_id INT NOT NULL,
+        joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_user (user_id),
+        FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('Created team_members table');
+  } catch (err) {
+    console.log('team_members table creation error:', err.message);
+  }
+
+  // 19. Add team_id and ctftime_event_id to contests table
+  try {
+    const [teamIdCol] = await connection.query(
+      `SHOW COLUMNS FROM contests LIKE 'team_id'`
+    );
+    if (teamIdCol.length === 0) {
+      await connection.query(
+        `ALTER TABLE contests ADD COLUMN team_id INT NULL AFTER details`
+      );
+      console.log('Added team_id column to contests table');
+    }
+  } catch (err) {
+    console.log('team_id column migration error:', err.message);
+  }
+
+  try {
+    const [ctfCol] = await connection.query(
+      `SHOW COLUMNS FROM contests LIKE 'ctftime_event_id'`
+    );
+    if (ctfCol.length === 0) {
+      await connection.query(
+        `ALTER TABLE contests ADD COLUMN ctftime_event_id INT NULL AFTER team_id`
+      );
+      console.log('Added ctftime_event_id column to contests table');
+    }
+  } catch (err) {
+    console.log('ctftime_event_id column migration error:', err.message);
+  }
+
+  // Add unique constraint on ctftime_event_id
+  try {
+    const [existing] = await connection.query(
+      `SHOW KEYS FROM contests WHERE Key_name = 'unique_ctftime_event'`
+    );
+    if (existing.length === 0) {
+      await connection.query(
+        `ALTER TABLE contests ADD UNIQUE KEY unique_ctftime_event (ctftime_event_id)`
+      );
+      console.log('Added unique constraint on contests.ctftime_event_id');
+    }
+  } catch (err) {
+    console.log('unique_ctftime_event constraint:', err.message);
+  }
+  // Add FK for team_id if not exists
+  try {
+    await connection.query(
+      `ALTER TABLE contests ADD CONSTRAINT fk_contest_team FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL`
+    );
+    console.log('Added FK constraint on contests.team_id');
+  } catch (err) {
+    if (!err.message.includes('Duplicate foreign key') && !err.message.includes('already exists')) {
+      console.log('FK constraint message:', err.message);
+    }
+  }
+
+  // 20. Add ctftime_team_id to teams table
+  try {
+    const [ctfCol] = await connection.query(
+      `SHOW COLUMNS FROM teams LIKE 'ctftime_team_id'`
+    );
+    if (ctfCol.length === 0) {
+      await connection.query(
+        `ALTER TABLE teams ADD COLUMN ctftime_team_id INT NULL AFTER description`
+      );
+      console.log('Added ctftime_team_id column to teams table');
+    }
+  } catch (err) {
+    console.log('ctftime_team_id column migration error:', err.message);
+  }
+
+  // 21. Add CTFtime cache columns to teams table
+  const ctftimeCacheColumns = [
+    { name: 'ctftime_logo', definition: 'VARCHAR(500) NULL' },
+    { name: 'ctftime_country', definition: 'VARCHAR(100) NULL' },
+    { name: 'ctftime_primary_alias', definition: 'VARCHAR(255) NULL' },
+    { name: 'ctftime_rating', definition: 'JSON NULL' },
+    { name: 'ctftime_last_fetched', definition: 'DATETIME NULL' },
+    { name: 'ctftime_members', definition: 'JSON NULL' },
+  ];
+  for (const col of ctftimeCacheColumns) {
+    try {
+      const [existing] = await connection.query(
+        `SHOW COLUMNS FROM teams LIKE ?`, [col.name]
+      );
+      if (existing.length === 0) {
+        await connection.query(
+          `ALTER TABLE teams ADD COLUMN ${col.name} ${col.definition} AFTER ctftime_team_id`
+        );
+        console.log(`Added ${col.name} column to teams table`);
+      }
+    } catch (err) {
+      console.log(`${col.name} column migration: `, err.message);
+    }
+  }
+
+  // 22. Enforce one user per team: replace composite unique with single user_id unique
+  try {
+    const [constraints] = await connection.query(
+      `SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+       WHERE TABLE_NAME = 'team_members' AND COLUMN_NAME = 'user_id'
+       AND TABLE_SCHEMA = (SELECT DATABASE())`
+    );
+    // Drop old composite unique if it exists
+    try {
+      await connection.query(`ALTER TABLE team_members DROP INDEX unique_team_user`);
+      console.log('Dropped old composite unique_team_user constraint');
+    } catch (err) {
+      // Index may not exist
+    }
+    // Add unique on user_id if not already present
+    try {
+      await connection.query(`ALTER TABLE team_members ADD UNIQUE KEY unique_user (user_id)`);
+      console.log('Added unique_user constraint on user_id');
+    } catch (err) {
+      if (err.code !== 'ER_DUP_KEYNAME' && !err.message.includes('Duplicate key name')) {
+        console.log('unique_user constraint message:', err.message);
+      }
+    }
+  } catch (err) {
+    console.log('team_members constraint migration:', err.message);
+  }
+
+  // 23. Remove unique constraint on ctftime_event_id to allow multi-team assignments
+  try {
+    const [existing] = await connection.query(
+      `SHOW KEYS FROM contests WHERE Key_name = 'unique_ctftime_event'`
+    );
+    if (existing.length > 0) {
+      await connection.query(
+        `ALTER TABLE contests DROP INDEX unique_ctftime_event`
+      );
+      console.log('Dropped unique constraint unique_ctftime_event on contests.ctftime_event_id');
+    }
+  } catch (err) {
+    console.log('unique_ctftime_event drop:', err.message);
+  }
+
   console.log('Migration synchronized successfully');
   await connection.end();
 }

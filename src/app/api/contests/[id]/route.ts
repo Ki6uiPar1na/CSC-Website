@@ -10,7 +10,10 @@ export async function GET(
   try {
     const { id } = await params;
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT * FROM contests WHERE id = ?",
+      `SELECT c.*, t.name as team_name
+       FROM contests c
+       LEFT JOIN teams t ON t.id = c.team_id
+       WHERE c.id = ?`,
       [id]
     );
     if (rows.length === 0) {
@@ -30,7 +33,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { name, description, event_date, winners, photo_url, details } = body;
+    const { name, description, event_date, winners, photo_url, details, team_id } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -40,7 +43,7 @@ export async function PUT(
     }
 
     await pool.query(
-      "UPDATE contests SET name = ?, description = ?, event_date = ?, winners = ?, photo_url = ?, details = ? WHERE id = ?",
+      "UPDATE contests SET name = ?, description = ?, event_date = ?, winners = ?, photo_url = ?, details = ?, team_id = ? WHERE id = ?",
       [
         name,
         description || null,
@@ -48,6 +51,7 @@ export async function PUT(
         winners ? JSON.stringify(winners) : null,
         photo_url || null,
         details || null,
+        team_id || null,
         id
       ]
     );

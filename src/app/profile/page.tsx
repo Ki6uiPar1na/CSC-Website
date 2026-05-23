@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Trophy, Flame, CheckCircle, Calendar, Shield, Info } from "lucide-react";
+import { Trophy, Flame, CheckCircle, Calendar, Shield, Info, Users } from "lucide-react";
 import UpgradeModal from "@/components/UpgradeModal";
 import PaymentModal from "@/components/PaymentModal";
 
@@ -16,6 +16,14 @@ interface Stats {
   subscription_expires_at: string | null;
 }
 
+interface TeamInfo {
+  id: number;
+  name: string;
+  description: string | null;
+  members: { id: number; username: string; email: string }[];
+  contests?: { id: number; name: string; description: string; event_date: string; details: string }[];
+}
+
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -25,6 +33,7 @@ export default function ProfilePage() {
   const [selectedDay, setSelectedDay] = useState<{ date: string; count: number } | null>(null);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [teamInfo, setTeamInfo] = useState<TeamInfo | null>(null);
 
   useEffect(() => {
     if (status !== "loading" && !session) {
@@ -40,6 +49,10 @@ export default function ProfilePage() {
           setStats(data);
           setLoading(false);
         });
+      fetch("/api/user/team")
+        .then(res => res.json())
+        .then(data => setTeamInfo(data.team || null))
+        .catch(() => setTeamInfo(null));
     }
   }, [session]);
 
@@ -137,6 +150,58 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {teamInfo && (
+        <div className="card mb-6 border border-primary/20">
+          <h3 className="mb-4 flex items-center gap-2 text-base font-bold">
+            <Users size={18} className="text-primary" /> My Team
+          </h3>
+          <div className="mb-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-sm font-bold rounded-full border border-primary/30">
+              <Users size={14} /> {teamInfo.name}
+            </span>
+            {teamInfo.description && (
+              <p className="text-xs text-gray-400 mt-2">{teamInfo.description}</p>
+            )}
+          </div>
+          <div className="space-y-2 mb-4">
+            {teamInfo.members.map(m => (
+              <div key={m.id} className="flex items-center gap-3 py-2 px-3 rounded-lg bg-gray-800/30">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary text-xs font-bold">
+                  {m.username[0].toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-white">{m.username}</p>
+                  <p className="text-xs text-gray-500">{m.email}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {teamInfo.contests && teamInfo.contests.length > 0 && (
+            <>
+              <div className="h-px bg-gray-800 mb-4" />
+              <h4 className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
+                <Trophy size={16} /> Past CTF Participations
+              </h4>
+              <div className="space-y-2">
+                {teamInfo.contests.map(c => (
+                  <div key={c.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-gray-800/20">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Trophy size={14} className="text-primary shrink-0" />
+                      <span className="text-sm text-white truncate">{c.name}</span>
+                    </div>
+                    {c.event_date && (
+                      <span className="text-[10px] text-gray-500 font-mono shrink-0 ml-2">
+                        {new Date(c.event_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="card mb-6">
         <div className="flex justify-between items-center mb-4">

@@ -15,6 +15,13 @@ interface Contest {
   photo_url?: string;
   details?: string;
   winners?: string;
+  team_id?: number | null;
+  team_name?: string | null;
+}
+
+interface Team {
+  id: number;
+  name: string;
 }
 
 export default function ContestsAdmin() {
@@ -26,6 +33,8 @@ export default function ContestsAdmin() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [fetchingCtftime, setFetchingCtftime] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -34,6 +43,7 @@ export default function ContestsAdmin() {
     photo_url: '',
     details: '',
     winners: '',
+    team_id: '',
   });
 
   useEffect(() => {
@@ -47,7 +57,18 @@ export default function ContestsAdmin() {
       return;
     }
     fetchContests();
+    fetchTeams();
   }, [session, router]);
+
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch('/api/admin/teams');
+      const data = await res.json();
+      setTeams(Array.isArray(data.teams) ? data.teams : []);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
 
   const fetchContests = async () => {
     try {
@@ -64,6 +85,21 @@ export default function ContestsAdmin() {
     }
   };
 
+  const fetchFromCtftime = async () => {
+    if (!confirm('Fetch upcoming/past CTF events from CTFtime? This will import new contests.')) return;
+    setFetchingCtftime(true);
+    try {
+      const res = await fetch('/api/admin/contests/fetch-ctftime', { method: 'POST' });
+      const data = await res.json();
+      alert(data.message || data.error || 'Done');
+      if (res.ok) fetchContests();
+    } catch (error) {
+      alert('Failed to fetch from CTFtime');
+    } finally {
+      setFetchingCtftime(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
@@ -72,10 +108,15 @@ export default function ContestsAdmin() {
       const url = editingId ? `/api/contests/${editingId}` : '/api/contests';
       const method = editingId ? 'PUT' : 'POST';
       
+      const body = {
+        ...formData,
+        team_id: formData.team_id ? parseInt(formData.team_id) : null,
+      };
+      
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(body),
       });
       
       if (res.ok) {
@@ -97,6 +138,7 @@ export default function ContestsAdmin() {
       photo_url: '',
       details: '',
       winners: '',
+      team_id: '',
     });
     setShowForm(false);
     setEditingId(null);
@@ -110,6 +152,7 @@ export default function ContestsAdmin() {
       photo_url: contest.photo_url || '',
       details: contest.details || '',
       winners: contest.winners || '',
+      team_id: contest.team_id ? String(contest.team_id) : '',
     });
     setEditingId(contest.id);
     setShowForm(true);
@@ -230,6 +273,20 @@ export default function ContestsAdmin() {
               )}
             </div>
             
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Assign Team</label>
+              <select
+                value={formData.team_id}
+                onChange={(e) => setFormData({ ...formData, team_id: e.target.value })}
+                className="input w-full"
+              >
+                <option value="">No team assigned</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>{team.name}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="md:col-span-2 space-y-2">
               <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Full Contest Details (Markdown)</label>
               <textarea
@@ -329,6 +386,11 @@ export default function ContestsAdmin() {
                     {contest.details && (
                       <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider rounded-full border border-blue-500/20">
                         <FileText size={12} /> Rich Details
+                      </span>
+                    )}
+                    {contest.team_name && (
+                      <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-full border border-primary/20">
+                        <Users size={12} /> {contest.team_name}
                       </span>
                     )}
                     <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-full border border-primary/20">

@@ -383,6 +383,8 @@ CREATE TABLE IF NOT EXISTS contests (
   winners LONGTEXT,
   photo_url LONGTEXT,
   details TEXT,
+  team_id INT NULL,
+  ctftime_event_id INT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -431,6 +433,33 @@ INSERT INTO competition_achievements (competition_name, contest_name, team_name,
 ('Bug Bounty Programs', 'Critical Vulnerability Discovery', 'Md. Hasan Ali', 'Solo - Found critical vulnerability in government portal', 0, NULL, 300000, 'Identified and responsibly disclosed a critical vulnerability in a major government portal. Received recognition and reward.', '2025-09-12'),
 
 ('Regional Cybersecurity Summit 2025', 'Capture The Flag', 'JKKNIU Summit Team', 'Karim Hassan, Nusrat Jahan, Ahmed Khan', 1, 1, 100000, 'Winner of the CTF competition at the Regional Cybersecurity Summit with 95% accuracy rate.', '2025-08-30');
+
+-- Teams Table
+CREATE TABLE IF NOT EXISTS teams (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) UNIQUE NOT NULL,
+  description TEXT,
+  ctftime_team_id INT NULL,
+  ctftime_logo VARCHAR(500) NULL,
+  ctftime_country VARCHAR(100) NULL,
+  ctftime_primary_alias VARCHAR(255) NULL,
+  ctftime_rating JSON NULL,
+  ctftime_members JSON NULL,
+  ctftime_last_fetched DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Team Members Table
+CREATE TABLE IF NOT EXISTS team_members (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  team_id INT NOT NULL,
+  user_id INT NOT NULL,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_user (user_id),
+  FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
 -- Event RSVPs Table
 CREATE TABLE IF NOT EXISTS event_rsvps (

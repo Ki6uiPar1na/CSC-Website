@@ -173,6 +173,33 @@ export interface Message {
   text: string;
 }
 
+export interface Team {
+  id: number;
+  name: string;
+  description: string | null;
+  created_at: string;
+  member_count?: number;
+  members?: TeamMemberWithUser[];
+}
+
+export interface TeamMember {
+  id: number;
+  team_id: number;
+  user_id: number;
+  joined_at: string;
+}
+
+export interface TeamMemberWithUser extends TeamMember {
+  username: string;
+  email: string;
+}
+
+export interface SimpleUser {
+  id: number;
+  username: string;
+  email: string;
+}
+
 export interface PaginationInfo {
   page: number;
   limit: number;

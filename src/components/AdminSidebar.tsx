@@ -20,6 +20,7 @@ import {
   Briefcase,
   GraduationCap,
   Award,
+  Globe,
 } from "lucide-react";
 
 interface NavItem {
@@ -40,7 +41,9 @@ const navItems: NavItem[] = [
   { label: "Notifications", href: "/admin/notifications", icon: <Bell size={18} /> },
   { label: "Executives", href: "/admin/executives", icon: <Briefcase size={18} />, roles: [1] },
   { label: "Contests", href: "/admin/contests", icon: <Trophy size={18} />, roles: [1] },
+  { label: "CTFtime Events", href: "/admin/ctftime", icon: <Globe size={18} />, roles: [1] },
   { label: "Achievements", href: "/admin/achievements", icon: <Award size={18} /> },
+  { label: "Teams", href: "/admin/teams", icon: <Users size={18} /> },
   { label: "Alumni", href: "/admin/alumni", icon: <GraduationCap size={18} />, roles: [1] },
   { label: "Settings", href: "/admin/settings", icon: <Settings size={18} />, roles: [1] },
 ];

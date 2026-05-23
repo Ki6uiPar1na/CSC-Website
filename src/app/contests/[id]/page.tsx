@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Trophy, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Trophy, ExternalLink, Users } from "lucide-react";
 
 interface Contest {
   id: number;
@@ -13,6 +13,7 @@ interface Contest {
   winners: string | Record<string, string>;
   photo_url: string;
   details: string;
+  team_name?: string | null;
 }
 
 export default function ContestDetailPage() {
@@ -125,10 +126,17 @@ export default function ContestDetailPage() {
             </h1>
 
             {/* Date */}
-            <div className="flex items-center gap-2 text-primary mb-8">
+            <div className="flex items-center gap-2 text-primary mb-2">
               <Calendar size={18} />
               <span className="font-mono text-sm">{formatDate(contest.event_date)}</span>
             </div>
+
+            {contest.team_name && (
+              <div className="flex items-center gap-2 text-primary/70 mb-8">
+                <Users size={16} />
+                <span className="font-mono text-xs">Team: {contest.team_name}</span>
+              </div>
+            )}
 
             {/* Description */}
             {contest.description && (

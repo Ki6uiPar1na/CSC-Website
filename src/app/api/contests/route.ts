@@ -19,7 +19,11 @@ export async function GET(req: NextRequest) {
       CACHE_KEYS.CONTESTS,
       async () => {
         const [data] = await pool.query<RowDataPacket[]>(
-          "SELECT * FROM contests ORDER BY event_date DESC"
+          `SELECT c.*, t.name as team_name
+           FROM contests c
+           LEFT JOIN teams t ON t.id = c.team_id
+           WHERE c.ctftime_event_id IS NULL
+           ORDER BY c.event_date DESC`
         );
         return data;
       },
@@ -38,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, description, event_date, winners, photo_url, details } =
+    const { name, description, event_date, winners, photo_url, details, team_id, ctftime_event_id } =
       body;
 
     if (!name) {
@@ -49,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await pool.query(
-      "INSERT INTO contests (name, description, event_date, winners, photo_url, details) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO contests (name, description, event_date, winners, photo_url, details, team_id, ctftime_event_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [
         name,
         description || null,
@@ -57,6 +61,8 @@ export async function POST(req: NextRequest) {
         winners ? JSON.stringify(winners) : null,
         photo_url || null,
         details || null,
+        team_id || null,
+        ctftime_event_id || null,
       ]
     );
 

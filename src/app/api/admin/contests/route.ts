@@ -9,7 +9,11 @@ export async function GET() {
     if (!auth.authorized) return auth.response;
 
     const [contests] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM contests ORDER BY event_date DESC`
+      `SELECT c.*, t.name as team_name
+       FROM contests c
+       LEFT JOIN teams t ON t.id = c.team_id
+       WHERE c.ctftime_event_id IS NULL
+       ORDER BY c.event_date DESC`
     );
 
     return NextResponse.json({ contests });
