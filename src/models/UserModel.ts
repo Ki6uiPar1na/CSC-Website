@@ -56,8 +56,8 @@ export const UserModel = {
     await pool.query('UPDATE users SET score = score + ? WHERE id = ?', [score, userId]);
   },
 
-  async getLeaderboard(): Promise<User[]> {
-    const [rows] = await pool.query<User[]>('SELECT id, username, total_points, current_streak FROM users ORDER BY total_points DESC LIMIT 10');
+  async getLeaderboard(limit: number = 15, offset: number = 0): Promise<User[]> {
+    const [rows] = await pool.query<User[]>('SELECT id, username, total_points, current_streak FROM users ORDER BY total_points DESC LIMIT ? OFFSET ?', [limit, offset]);
     return rows;
   }
 };

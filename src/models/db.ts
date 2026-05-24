@@ -165,4 +165,17 @@ async function initDb() {
 // Run init in background
 initDb();
 
+export const ctfdPool = process.env.CTFD_DATABASE_URL
+  ? mysql.createPool({
+      uri: process.env.CTFD_DATABASE_URL,
+      ssl: (process.env.CTFD_DATABASE_URL || '').includes('ssl=') || (process.env.CTFD_DATABASE_URL || '').includes('tidbcloud.com') ? {
+        minVersion: 'TLSv1.2',
+        rejectUnauthorized: (process.env.CTFD_DATABASE_URL || '').includes('rejectUnauthorized=true') || (process.env.CTFD_DATABASE_URL || '').includes('tidbcloud.com'),
+      } : undefined,
+      waitForConnections: true,
+      connectionLimit: 5,
+      queueLimit: 0,
+    })
+  : null;
+
 export default pool;

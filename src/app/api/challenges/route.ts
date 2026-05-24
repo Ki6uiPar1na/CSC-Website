@@ -46,8 +46,10 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const moduleId = searchParams.get("moduleId");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
 
-    // Fetch challenges with caching
     const challenges = await withCache(
       CACHE_KEYS.CHALLENGES,
       async () => {
@@ -69,7 +71,6 @@ export async function GET(req: NextRequest) {
           params.push(moduleId);
         }
 
-        // Filter premium challenges for free users (except admins)
         if (!isAdmin && !isPremium) {
           whereClauses.push("c.is_premium = 0");
         }
@@ -78,17 +79,22 @@ export async function GET(req: NextRequest) {
           query += " WHERE " + whereClauses.join(" AND ");
         }
 
-        query += " ORDER BY c.id ASC";
+        query += " ORDER BY c.id ASC LIMIT ? OFFSET ?";
+        params.push(limit, offset);
 
         const [result]: any = await pool.query<RowDataPacket[]>(query, params);
         return result || [];
       },
       CACHE_TTL.MEDIUM,
-      { moduleId, isPremium, isAdmin },
+      { moduleId, isPremium, isAdmin, page },
       userId
     );
 
-    // Filter challenges based on chaining (prerequisite_id)
+    const [totalResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM challenges"
+    );
+    const total = (totalResult[0] as any).total;
+
     const filteredChallenges = (challenges || []).map((chal: any) => {
       if (!chal.prerequisite_id) return { ...chal, is_locked: false };
       
@@ -96,7 +102,13 @@ export async function GET(req: NextRequest) {
       return { ...chal, is_locked: !prereqSolved };
     });
 
-    return NextResponse.json({ challenges: filteredChallenges }, { status: 200 });
+    return NextResponse.json({
+      challenges: filteredChallenges,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Fetch Challenges Error:", error);
     return NextResponse.json({ error: error.message, challenges: [] }, { status: 500 });

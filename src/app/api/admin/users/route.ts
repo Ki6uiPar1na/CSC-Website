@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const role = searchParams.get("role") || "";
     const status = searchParams.get("status") || "";
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const limit = parseInt(searchParams.get("limit") || "15");
     const offset = (page - 1) * limit;
 
     let whereClause = "";

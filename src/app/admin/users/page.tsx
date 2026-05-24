@@ -40,7 +40,7 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const res = await fetch(
-        `/api/admin/users?search=${encodeURIComponent(searchQuery)}&role=${roleFilter}&status=${statusFilter}&page=${currentPage}&limit=10`
+        `/api/admin/users?search=${encodeURIComponent(searchQuery)}&role=${roleFilter}&status=${statusFilter}&page=${currentPage}&limit=15`
       );
       const data = await res.json();
       

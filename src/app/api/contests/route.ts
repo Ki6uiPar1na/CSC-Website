@@ -6,7 +6,6 @@ import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
 export async function GET(req: NextRequest) {
   try {
-    // Rate limiting (60 per minute)
     const { allowed, response: rateLimitResponse } = await enforceRateLimit(
       req,
       "GET_CONTESTS"
@@ -15,6 +14,17 @@ export async function GET(req: NextRequest) {
     if (!allowed) {
       return rateLimitResponse!;
     }
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [totalResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM contests WHERE ctftime_event_id IS NULL"
+    );
+    const total = (totalResult[0] as any).total;
+
     const result = await withCache(
       CACHE_KEYS.CONTESTS,
       async () => {
@@ -23,13 +33,15 @@ export async function GET(req: NextRequest) {
            FROM contests c
            LEFT JOIN teams t ON t.id = c.team_id
            WHERE c.ctftime_event_id IS NULL
-           ORDER BY c.event_date DESC`
+           ORDER BY c.event_date DESC LIMIT ? OFFSET ?`,
+          [limit, offset]
         );
         return data;
       },
-      CACHE_TTL.LONG
+      CACHE_TTL.LONG,
+      { page }
     );
-    return NextResponse.json(result);
+    return NextResponse.json({ contests: result, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error("Error fetching contests:", error);
     return NextResponse.json(

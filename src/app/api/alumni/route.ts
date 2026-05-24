@@ -6,7 +6,6 @@ import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
 export async function GET(req: NextRequest) {
   try {
-    // Rate limiting (60 per minute)
     const { allowed, response: rateLimitResponse } = await enforceRateLimit(
       req,
       "GET_ALUMNI"
@@ -15,17 +14,30 @@ export async function GET(req: NextRequest) {
     if (!allowed) {
       return rateLimitResponse!;
     }
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [totalResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM alumni"
+    );
+    const total = (totalResult[0] as any).total;
+
     const result = await withCache(
       CACHE_KEYS.ALUMNI,
       async () => {
         const [data] = await pool.query<RowDataPacket[]>(
-          "SELECT * FROM alumni ORDER BY graduation_year DESC, name ASC"
+          "SELECT * FROM alumni ORDER BY graduation_year DESC, name ASC LIMIT ? OFFSET ?",
+          [limit, offset]
         );
         return data;
       },
-      CACHE_TTL.VERY_LONG
+      CACHE_TTL.VERY_LONG,
+      { page }
     );
-    return NextResponse.json(result);
+    return NextResponse.json({ alumni: result, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error("Error fetching alumni:", error);
     return NextResponse.json(

@@ -23,6 +23,9 @@ export default function ContestsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     setHydrated(true);
@@ -33,12 +36,14 @@ export default function ContestsPage() {
 
     const fetchContests = async () => {
       try {
-        const response = await fetch("/api/contests", {
+        const response = await fetch(`/api/contests?page=${currentPage}&limit=15`, {
           cache: "no-store"
         });
         if (response.ok) {
           const data = await response.json();
-          setContests(Array.isArray(data) ? data : []);
+          setContests(Array.isArray(data.contests) ? data.contests : []);
+          setTotalPages(data.totalPages || 1);
+          setTotal(data.total || 0);
         } else {
           setContests([]);
         }
@@ -51,7 +56,7 @@ export default function ContestsPage() {
     };
 
     fetchContests();
-  }, [hydrated]);
+  }, [hydrated, currentPage]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -167,6 +172,27 @@ export default function ContestsPage() {
             ))}
           </div>
         )}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <span>Page {currentPage} of {totalPages}</span>
+          </div>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      )}
       </div>
     </div>
   );

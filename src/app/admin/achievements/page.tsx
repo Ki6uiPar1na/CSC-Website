@@ -28,6 +28,9 @@ export default function AchievementsAdmin() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   
   const [formData, setFormData] = useState({
     competition_name: '',
@@ -54,13 +57,15 @@ export default function AchievementsAdmin() {
       return;
     }
     fetchAchievements();
-  }, [session, router]);
+  }, [session, router, currentPage]);
 
   const fetchAchievements = async () => {
     try {
-      const res = await fetch('/api/admin/achievements');
+      const res = await fetch(`/api/admin/achievements?page=${currentPage}&limit=15`);
       const data = await res.json();
       setAchievements(data.achievements || []);
+      setTotal(data.total || 0);
+      setTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching achievements:', error);
       setAchievements([]);
@@ -199,7 +204,7 @@ export default function AchievementsAdmin() {
             type="text"
             placeholder="Search achievements..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2 text-white focus:ring-2 focus:ring-primary outline-none transition-all"
           />
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -478,6 +483,27 @@ export default function AchievementsAdmin() {
           ))
         )}
       </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <span>Page {currentPage} of {totalPages}</span>
+          </div>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

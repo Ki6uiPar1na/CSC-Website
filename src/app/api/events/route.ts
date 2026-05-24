@@ -54,7 +54,16 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Get events based on premium status and target audience
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [totalResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM events WHERE is_active = TRUE"
+    );
+    const total = (totalResult[0] as any).total;
+
     const events = await withCache(
       CACHE_KEYS.EVENTS,
       async () => {
@@ -86,15 +95,7 @@ export async function GET(req: NextRequest) {
           WHERE e.is_active = TRUE
         `;
 
-        // Visibility Logic:
-        // Admin sees everything.
         if (!isAdmin) {
-          // 1. If event is finished (date < NOW), show to everyone.
-          // 2. If event is upcoming (date >= NOW):
-          //    - If target_audience is 'all', show to everyone.
-          //    - If target_audience is 'premium', show only to premium users.
-          //    - If target_audience is 'free', show only to non-premium users.
-
           const dateFilter = `(
             (event_date < CURDATE()) OR 
             (event_date = CURDATE() AND event_time <= CURTIME()) OR
@@ -110,26 +111,29 @@ export async function GET(req: NextRequest) {
 
           query += ` AND ${dateFilter}`;
 
-          // Plus existing premium exclusivity logic if needed (backward compatibility)
           if (!isPremium) {
             query += ` AND (is_premium = FALSE OR (is_premium = TRUE AND exclusivity_expires_at IS NOT NULL AND exclusivity_expires_at <= NOW()))`;
           }
         }
 
-        query += ` ORDER BY event_date DESC, event_time DESC LIMIT 100`;
+        query += ` ORDER BY event_date DESC, event_time DESC LIMIT ? OFFSET ?`;
 
         const [result] = userId 
-          ? await pool.query<RowDataPacket[]>(query, [userId])
-          : await pool.query<RowDataPacket[]>(query);
+          ? await pool.query<RowDataPacket[]>(query, [userId, limit, offset])
+          : await pool.query<RowDataPacket[]>(query, [limit, offset]);
         
         return result;
       },
       CACHE_TTL.MEDIUM,
-      { userId, isPremium, isAdmin }
+      { userId, isPremium, isAdmin, page }
     );
 
     return NextResponse.json({
       events,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
       isPremium,
       message: isPremium 
         ? "Showing all accessible events (Premium & Free)" 

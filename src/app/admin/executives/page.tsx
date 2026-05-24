@@ -26,6 +26,9 @@ export default function ExecutivesAdmin() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -47,13 +50,15 @@ export default function ExecutivesAdmin() {
       return;
     }
     fetchExecutives();
-  }, [session, router]);
+  }, [session, router, currentPage]);
 
   const fetchExecutives = async () => {
     try {
-      const res = await fetch('/api/executives');
+      const res = await fetch(`/api/executives?page=${currentPage}&limit=15`);
       const data = await res.json();
-      setExecutives(Array.isArray(data) ? data : []);
+      setExecutives(data.executives || []);
+      setTotal(data.total || 0);
+      setTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching executives:', error);
       setExecutives([]);
@@ -343,6 +348,27 @@ export default function ExecutivesAdmin() {
           ))
         )}
       </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <span>Page {currentPage} of {totalPages}</span>
+          </div>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

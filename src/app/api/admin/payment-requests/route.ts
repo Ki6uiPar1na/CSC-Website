@@ -3,11 +3,20 @@ import { checkAdminRole } from "@/lib/admin-auth";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 
-// GET: Retrieve pending payment requests
 export async function GET(request: NextRequest) {
   try {
     const auth = await checkAdminRole([1]);
     if (!auth.authorized) return auth.response!;
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) as total FROM payment_requests`
+    );
+    const total = (countResult[0] as any).total;
 
     const [requests] = await pool.query<RowDataPacket[]>(
       `SELECT pr.id, pr.user_id, u.username, u.email, pr.plan, pr.amount, 
@@ -15,10 +24,18 @@ export async function GET(request: NextRequest) {
               pr.reviewed_at, pr.reviewed_by, pr.rejection_reason
        FROM payment_requests pr
        JOIN users u ON pr.user_id = u.id
-       ORDER BY pr.created_at DESC`
+       ORDER BY pr.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
-    return NextResponse.json({ requests });
+    return NextResponse.json({
+      requests,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error: any) {
     console.error("Error fetching payment requests:", error);
     return NextResponse.json(

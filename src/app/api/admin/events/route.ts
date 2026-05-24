@@ -5,17 +5,33 @@ import { RowDataPacket } from "mysql2";
 import { generateEventSlug, generateEventCode, makeSlugUnique } from "@/lib/eventUtils";
 import { sendEventNotification } from "@/lib/mailer";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response;
 
-    // Get all events
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM events"
+    );
+    const total = (countResult[0] as any).total;
+
     const [events] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM events ORDER BY event_date DESC, event_time DESC LIMIT 500`
+      `SELECT * FROM events ORDER BY event_date DESC, event_time DESC LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
-    return NextResponse.json({ events });
+    return NextResponse.json({
+      events,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error: any) {
     console.error("Get Events Error:", error);
     return NextResponse.json(

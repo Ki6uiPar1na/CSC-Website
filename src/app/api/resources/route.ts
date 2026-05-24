@@ -6,7 +6,6 @@ import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
 export async function GET(req: NextRequest) {
   try {
-    // Rate limiting (60 per minute)
     const { allowed, response: rateLimitResponse } = await enforceRateLimit(
       req,
       "GET_RESOURCES"
@@ -15,6 +14,17 @@ export async function GET(req: NextRequest) {
     if (!allowed) {
       return rateLimitResponse!;
     }
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [totalResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM resources"
+    );
+    const total = (totalResult[0] as any).total;
+
     const rows = await withCache(
       CACHE_KEYS.RESOURCES,
       async () => {
@@ -23,14 +33,16 @@ export async function GET(req: NextRequest) {
                   ru.url as extra_url, ru.display_name as extra_display_name
            FROM resources r
            LEFT JOIN resource_urls ru ON r.id = ru.resource_id
-           ORDER BY r.category, r.created_at DESC`
+           ORDER BY r.category, r.created_at DESC
+           LIMIT ? OFFSET ?`,
+          [limit, offset]
         );
         return result;
       },
-      CACHE_TTL.VERY_LONG
+      CACHE_TTL.VERY_LONG,
+      { page }
     );
 
-    // Group by category
     const categories: { [key: string]: any } = {};
     
     rows.forEach(row => {
@@ -42,7 +54,6 @@ export async function GET(req: NextRequest) {
         };
       }
 
-      // Check if this resource is already in the links (due to JOIN with extra URLs)
       let resource = categories[categoryName].links.find((l: any) => l.id === row.id);
       if (!resource) {
         resource = {
@@ -63,7 +74,13 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    return NextResponse.json({ categories: Object.values(categories) }, { status: 200 });
+    return NextResponse.json({
+      categories: Object.values(categories),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Resources API Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

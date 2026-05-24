@@ -3,15 +3,32 @@ import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 import { checkAdminRole } from "@/lib/admin-auth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const auth = await checkAdminRole([1, 2]); // Admin and Instructor
+    const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response;
 
-    const [result] = await pool.query<RowDataPacket[]>(
-      "SELECT * FROM competition_achievements ORDER BY achievement_date DESC"
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM competition_achievements"
     );
-    return NextResponse.json({ achievements: result });
+    const total = (countResult[0] as any).total;
+
+    const [result] = await pool.query<RowDataPacket[]>(
+      "SELECT * FROM competition_achievements ORDER BY achievement_date DESC LIMIT ? OFFSET ?",
+      [limit, offset]
+    );
+    return NextResponse.json({
+      achievements: result,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     console.error("Error fetching achievements:", error);
     return NextResponse.json(

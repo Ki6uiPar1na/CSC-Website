@@ -5,15 +5,32 @@ import { checkAdminRole } from "@/lib/admin-auth";
 
 export async function GET(req: Request) {
   try {
-    const auth = await checkAdminRole([1, 2]); // Admin and Instructor
+    const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response;
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM modules"
+    );
+    const total = (countResult[0] as any).total;
 
     const [modules] = await pool.query<RowDataPacket[]>(
       `SELECT id, title, description, is_premium, completion_bonus_points, instructor_id, created_at 
-       FROM modules ORDER BY created_at DESC`
+       FROM modules ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
-    return NextResponse.json({ modules }, { status: 200 });
+    return NextResponse.json({
+      modules,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Get Modules Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

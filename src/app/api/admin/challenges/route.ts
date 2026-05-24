@@ -9,6 +9,16 @@ export async function GET(req: Request) {
     const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response!;
 
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM challenges"
+    );
+    const total = (countResult[0] as any).total;
+
     const [challenges] = await pool.query<RowDataPacket[]>(
       `SELECT c.*, 
               COALESCE(
@@ -21,10 +31,17 @@ export async function GET(req: Request) {
                  FROM challenge_urls cu WHERE cu.challenge_id = c.id),
                 JSON_ARRAY()
               ) as urls
-       FROM challenges c ORDER BY c.id DESC`
+       FROM challenges c ORDER BY c.id DESC LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
-    return NextResponse.json({ challenges }, { status: 200 });
+    return NextResponse.json({
+      challenges,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

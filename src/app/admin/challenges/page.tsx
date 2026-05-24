@@ -30,21 +30,26 @@ export default function ChallengesPage() {
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
   const { loading: formLoading, setLoading: setFormLoading } = useLoading();
   const { message, showMessage } = useMessage();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [currentPage]);
 
   const fetchData = async () => {
     setFetchLoading(true);
     try {
       const [challengesRes, modulesRes] = await Promise.all([
-        fetch("/api/admin/challenges"),
+        fetch(`/api/admin/challenges?page=${currentPage}&limit=15`),
         fetch("/api/admin/modules"),
       ]);
       const challengesData = await challengesRes.json();
       const modulesData = await modulesRes.json();
       setChallenges(challengesData.challenges || []);
+      setTotal(challengesData.total || 0);
+      setTotalPages(challengesData.totalPages || 1);
       setModules(modulesData.modules || []);
     } catch (error: any) {
       showMessage("error", error.message);
@@ -416,6 +421,27 @@ export default function ChallengesPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <span>Page {currentPage} of {totalPages}</span>
+          </div>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

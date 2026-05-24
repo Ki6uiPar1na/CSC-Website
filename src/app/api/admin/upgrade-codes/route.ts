@@ -158,7 +158,6 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Invalid user" }, { status: 400 });
     }
 
-    // Check if user is admin
     const [userRows] = await pool.query<RowDataPacket[]>(
       `SELECT role_id FROM users WHERE id = ?`,
       [userId]
@@ -168,23 +167,33 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Admin access required" }, { status: 403 });
     }
 
-    // Get URL params for filtering
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status") || "all"; // all, unused, used
+    const status = searchParams.get("status") || "all";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
 
-    let query = `SELECT id, code, validity_months, created_by_admin_id, created_at, expires_at, is_used, used_by_user_id, used_at, is_reusable, is_active, deleted_at, usage_limit, usage_count, is_custom FROM upgrade_codes WHERE is_active = TRUE`;
+    let whereClause = "WHERE is_active = TRUE";
+    const countParams: any[] = [];
 
     if (status === "unused") {
-      query += ` AND (is_used = FALSE AND (usage_limit = 1 OR usage_count < usage_limit))`;
+      whereClause += ` AND (is_used = FALSE AND (usage_limit = 1 OR usage_count < usage_limit))`;
     } else if (status === "used") {
-      query += ` AND (is_used = TRUE OR (usage_limit > 1 AND usage_count >= usage_limit))`;
+      whereClause += ` AND (is_used = TRUE OR (usage_limit > 1 AND usage_count >= usage_limit))`;
     }
 
-    query += ` ORDER BY created_at DESC LIMIT 100`;
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) as total FROM upgrade_codes ${whereClause}`,
+      countParams
+    );
+    const total = (countResult[0] as any).total;
 
-    const [codes] = await pool.query<RowDataPacket[]>(query);
+    const [codes] = await pool.query<RowDataPacket[]>(
+      `SELECT id, code, validity_months, created_by_admin_id, created_at, expires_at, is_used, used_by_user_id, used_at, is_reusable, is_active, deleted_at, usage_limit, usage_count, is_custom 
+       FROM upgrade_codes ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...countParams, limit, offset]
+    );
 
-    // Get count statistics (only for active codes)
     const [countStats] = await pool.query<RowDataPacket[]>(
       `SELECT 
         COUNT(*) as total,
@@ -193,13 +202,14 @@ export async function GET(req: Request) {
        FROM upgrade_codes WHERE is_active = TRUE`
     );
 
-    return NextResponse.json(
-      {
-        codes,
-        stats: countStats[0],
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      codes,
+      stats: countStats[0],
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Get Upgrade Codes Error:", error);
     return NextResponse.json(

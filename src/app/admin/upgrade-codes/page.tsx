@@ -17,6 +17,9 @@ export default function UpgradeCodesPage() {
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "used" | "unused">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
   
   const [formData, setFormData] = useState({
     count: 1,
@@ -37,12 +40,12 @@ export default function UpgradeCodesPage() {
 
   useEffect(() => {
     fetchCodesData();
-  }, []);
+  }, [currentPage]);
 
   const fetchCodesData = async () => {
     setFetchLoading(true);
     try {
-      const res = await fetch("/api/admin/upgrade-codes");
+      const res = await fetch(`/api/admin/upgrade-codes?page=${currentPage}&limit=15`);
       const data = await res.json();
       if (!res.ok) {
         if (data.error === "Admin access required") {
@@ -52,6 +55,8 @@ export default function UpgradeCodesPage() {
         throw new Error(data.error || "Failed to fetch codes");
       }
       setCodes(data.codes || []);
+      setTotal(data.total || 0);
+      setTotalPages(data.totalPages || 1);
       setStats(data.stats || null);
     } catch (error: any) {
       showMessage("error", error.message);
@@ -531,6 +536,27 @@ export default function UpgradeCodesPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Previous
+          </button>
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <span>Page {currentPage} of {totalPages}</span>
+          </div>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+          >
+            Next
+          </button>
         </div>
       )}
     </div>

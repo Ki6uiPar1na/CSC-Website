@@ -6,7 +6,6 @@ import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
 
 export async function GET(req: NextRequest) {
   try {
-    // Rate limiting (60 per minute)
     const { allowed, response: rateLimitResponse } = await enforceRateLimit(
       req,
       "GET_EXECUTIVES"
@@ -15,17 +14,30 @@ export async function GET(req: NextRequest) {
     if (!allowed) {
       return rateLimitResponse!;
     }
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [totalResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM executives"
+    );
+    const total = (totalResult[0] as any).total;
+
     const result = await withCache(
       CACHE_KEYS.EXECUTIVES,
       async () => {
         const [data] = await pool.query<RowDataPacket[]>(
-          "SELECT * FROM executives ORDER BY id ASC"
+          "SELECT * FROM executives ORDER BY id ASC LIMIT ? OFFSET ?",
+          [limit, offset]
         );
         return data;
       },
-      CACHE_TTL.VERY_LONG
+      CACHE_TTL.VERY_LONG,
+      { page }
     );
-    return NextResponse.json(result);
+    return NextResponse.json({ executives: result, total, page, limit, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error("Error fetching executives:", error);
     return NextResponse.json(

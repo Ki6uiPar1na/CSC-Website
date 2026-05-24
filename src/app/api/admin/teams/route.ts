@@ -3,17 +3,34 @@ import { checkAdminRole } from "@/lib/admin-auth";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response;
 
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM teams"
+    );
+    const total = (countResult[0] as any).total;
+
     const [teams] = await pool.query<RowDataPacket[]>(
       `SELECT t.*, (SELECT COUNT(*) FROM team_members WHERE team_id = t.id) as member_count
-       FROM teams t ORDER BY t.created_at DESC`
+       FROM teams t ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
-    return NextResponse.json({ teams });
+    return NextResponse.json({
+      teams,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error: any) {
     console.error("Get Teams Error:", error);
     return NextResponse.json(

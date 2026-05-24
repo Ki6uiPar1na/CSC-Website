@@ -5,8 +5,18 @@ import { checkAdminRole } from "@/lib/admin-auth";
 
 export async function GET(req: Request) {
   try {
-    const auth = await checkAdminRole([1, 2]); // Admin and Instructor
+    const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response;
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await pool.query<RowDataPacket[]>(
+      "SELECT COUNT(*) as total FROM resources"
+    );
+    const total = (countResult[0] as any).total;
 
     const [resources] = await pool.query<RowDataPacket[]>(
       `SELECT r.id, r.title, r.description, r.url, r.category, r.is_external, r.created_at, r.created_by_admin_id,
@@ -21,10 +31,18 @@ export async function GET(req: Request) {
        FROM resources r
        LEFT JOIN resource_urls ru ON r.id = ru.resource_id
        GROUP BY r.id
-       ORDER BY r.created_at DESC`
+       ORDER BY r.created_at DESC
+       LIMIT ? OFFSET ?`,
+      [limit, offset]
     );
 
-    return NextResponse.json({ resources }, { status: 200 });
+    return NextResponse.json({
+      resources,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }, { status: 200 });
   } catch (error: any) {
     console.error("Get Resources Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
