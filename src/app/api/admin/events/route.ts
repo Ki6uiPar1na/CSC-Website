@@ -3,6 +3,7 @@ import { checkAdminRole } from "@/lib/admin-auth";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 import { generateEventSlug, generateEventCode, makeSlugUnique } from "@/lib/eventUtils";
+import { sendEventNotification } from "@/lib/mailer";
 
 export async function GET() {
   try {
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
       photo_url,
       gallery_images,
       exclusivity_expires_at,
+      convert_to_contest,
     } = await request.json();
 
     // Validate required fields
@@ -118,9 +120,9 @@ export async function POST(request: NextRequest) {
 
     // Create event with slug and event_code
     const [result] = await pool.query(
-      `INSERT INTO events (title, type, description, slug, event_code, event_type, event_date, event_time, location, platform_name, meeting_link, capacity, is_premium, target_audience, photo_url, gallery_images, exclusivity_expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title, type, description, uniqueSlug, eventCode, event_type, event_date, event_time, location, platform_name, meeting_link, capacity, is_premium || false, target_audience || 'all', photo_url || null, gallery_images || null, exclusivity_expires_at || null]
+      `INSERT INTO events (title, type, description, slug, event_code, event_type, event_date, event_time, location, platform_name, meeting_link, capacity, is_premium, target_audience, photo_url, gallery_images, exclusivity_expires_at, convert_to_contest)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, type, description, uniqueSlug, eventCode, event_type, event_date, event_time, location, platform_name, meeting_link, capacity, is_premium || false, target_audience || 'all', photo_url || null, gallery_images || null, exclusivity_expires_at || null, convert_to_contest || false]
     );
 
     // Determine target audience based on event premium status
@@ -136,6 +138,40 @@ export async function POST(request: NextRequest) {
       [notificationMessage, targetAudience]
     );
     console.log("Event creation notification sent to", targetAudience, ":", eventNotif);
+
+    // Send email notifications
+    try {
+      let userRows: RowDataPacket[];
+      if (is_premium) {
+        [userRows] = await pool.query<RowDataPacket[]>(
+          `SELECT DISTINCT u.email FROM users u
+           JOIN upgrade_codes uc ON u.id = uc.used_by_user_id
+           WHERE uc.is_active = TRUE AND (uc.expires_at IS NULL OR uc.expires_at > NOW())
+           AND u.email IS NOT NULL AND u.email != ''`
+        );
+      } else {
+        [userRows] = await pool.query<RowDataPacket[]>(
+          `SELECT email FROM users WHERE status = 'approved' AND email IS NOT NULL AND email != ''`
+        );
+      }
+      const emails = userRows.map((r: any) => r.email).filter(Boolean);
+      const { sent, failed } = await sendEventNotification(emails, {
+        title,
+        description: description || null,
+        event_date,
+        event_time,
+        event_type,
+        location: location || null,
+        platform_name: platform_name || null,
+        meeting_link: meeting_link || null,
+        is_premium: !!is_premium,
+        event_code: eventCode,
+        share_url: uniqueSlug,
+      });
+      console.log(`Event emails: ${sent} sent, ${failed} failed`);
+    } catch (err) {
+      console.error("Event email dispatch error:", err);
+    }
 
     return NextResponse.json({
       message: "Event created successfully",

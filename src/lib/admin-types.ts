@@ -143,6 +143,8 @@ export interface Event {
   gallery_images?: string;
   exclusivity_expires_at: string | null;
   is_active: boolean;
+  convert_to_contest?: boolean;
+  is_converted?: boolean;
   created_at: string;
 }
 

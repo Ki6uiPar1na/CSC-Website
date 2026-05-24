@@ -36,11 +36,12 @@ export async function PUT(
       photo_url,
       gallery_images,
       exclusivity_expires_at,
+      convert_to_contest,
     } = await request.json();
 
     // Check if event exists
     const [eventRows] = await pool.query<RowDataPacket[]>(
-      `SELECT id, is_premium FROM events WHERE id = ?`,
+      `SELECT id, is_premium, is_converted FROM events WHERE id = ?`,
       [eventId]
     );
 
@@ -53,9 +54,9 @@ export async function PUT(
     // Update event
     await pool.query(
       `UPDATE events 
-       SET title = ?, type = ?, description = ?, event_type = ?, event_date = ?, event_time = ?, location = ?, platform_name = ?, meeting_link = ?, capacity = ?, is_premium = ?, target_audience = ?, photo_url = ?, gallery_images = ?, exclusivity_expires_at = ?
+       SET title = ?, type = ?, description = ?, event_type = ?, event_date = ?, event_time = ?, location = ?, platform_name = ?, meeting_link = ?, capacity = ?, is_premium = ?, target_audience = ?, photo_url = ?, gallery_images = ?, exclusivity_expires_at = ?, convert_to_contest = ?
        WHERE id = ?`,
-      [title, type, description, event_type, event_date, event_time, location, platform_name, meeting_link, capacity, is_premium !== undefined ? is_premium : (event as any).is_premium, target_audience || 'all', photo_url !== undefined ? photo_url : (event as any).photo_url, gallery_images !== undefined ? gallery_images : (event as any).gallery_images, exclusivity_expires_at || null, eventId]
+      [title, type, description, event_type, event_date, event_time, location, platform_name, meeting_link, capacity, is_premium !== undefined ? is_premium : (event as any).is_premium, target_audience || 'all', photo_url !== undefined ? photo_url : (event as any).photo_url, gallery_images !== undefined ? gallery_images : (event as any).gallery_images, exclusivity_expires_at || null, convert_to_contest !== undefined ? convert_to_contest : (event as any).convert_to_contest, eventId]
     );
 
     // Send broadcast notification based on event premium status

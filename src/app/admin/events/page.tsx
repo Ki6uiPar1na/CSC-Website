@@ -5,7 +5,8 @@ import Link from "next/link";
 import { 
   Plus, Edit2, Trash2, Loader2, AlertCircle, Calendar as CalendarIcon, 
   MapPin, Users, Upload, X, CheckCircle, Save, Image as ImageIcon, 
-  Search, Filter, ExternalLink, Clock, Lock, Globe, Camera
+  Search, Filter, ExternalLink, Clock, Lock, Globe, Camera,
+  Trophy, RefreshCw
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { useMessage, useLoading } from "@/lib/admin-hooks";
@@ -39,11 +40,13 @@ export default function EventsPage() {
     gallery_images: "[]",
     exclusivity_expires_at: "",
     is_active: true,
+    convert_to_contest: false,
   });
 
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
   const { loading: formLoading, setLoading: setFormLoading } = useLoading();
+  const { loading: convertLoading, setLoading: setConvertLoading } = useLoading();
   const { message, showMessage } = useMessage();
 
   useEffect(() => {
@@ -101,6 +104,7 @@ export default function EventsPage() {
       gallery_images: "[]",
       exclusivity_expires_at: "",
       is_active: true,
+      convert_to_contest: false,
     });
     setEditingEvent(null);
     setShowForm(false);
@@ -153,7 +157,7 @@ export default function EventsPage() {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, convert_to_contest: formData.convert_to_contest }),
       });
 
       if (!res.ok) throw new Error("Failed to save event");
@@ -186,6 +190,7 @@ export default function EventsPage() {
       gallery_images: event.gallery_images || "[]",
       exclusivity_expires_at: event.exclusivity_expires_at ? new Date(event.exclusivity_expires_at).toISOString().split('T')[0] : "",
       is_active: !!event.is_active,
+      convert_to_contest: !!event.convert_to_contest,
     });
     setShowForm(true);
   };
@@ -202,6 +207,26 @@ export default function EventsPage() {
       showMessage("error", error.message);
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleConvertToContest = async (event: Event) => {
+    if (!confirm(`Convert "${event.title}" to contest and competition achievement?\n\nThis will create entries in the Contests and Competition Achievements tables.`)) return;
+    setConvertLoading(true);
+    try {
+      const res = await fetch("/api/admin/events/convert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_id: event.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to convert");
+      showMessage("success", `"${event.title}" converted to contest successfully`);
+      fetchEventsData();
+    } catch (error: any) {
+      showMessage("error", error.message);
+    } finally {
+      setConvertLoading(false);
     }
   };
 
@@ -402,7 +427,35 @@ export default function EventsPage() {
                           {event.event_code}
                         </span>
                       )}
+                      {event.convert_to_contest && !event.is_converted && !finished && (
+                        <span className="text-[9px] px-2 py-0.5 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full uppercase font-bold tracking-widest flex items-center gap-1">
+                          <Trophy size={8} /> Auto-Convert Pending
+                        </span>
+                      )}
+                      {event.convert_to_contest && !event.is_converted && finished && (
+                        <span className="text-[9px] px-2 py-0.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full uppercase font-bold tracking-widest flex items-center gap-1">
+                          <RefreshCw size={8} /> Ready to Convert
+                        </span>
+                      )}
+                      {event.is_converted && (
+                        <span className="text-[9px] px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full uppercase font-bold tracking-widest flex items-center gap-1">
+                          <Trophy size={8} /> Converted
+                        </span>
+                      )}
                     </div>
+
+                    {event.convert_to_contest && !event.is_converted && finished && (
+                      <div className="pt-2">
+                        <button
+                          onClick={() => handleConvertToContest(event)}
+                          disabled={convertLoading}
+                          className="w-full py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
+                        >
+                          {convertLoading ? <Loader2 size={12} className="animate-spin" /> : <Trophy size={12} />}
+                          Convert to Contest & Achievement
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -629,6 +682,20 @@ export default function EventsPage() {
                           />
                         </div>
                       )}
+
+                      <div className="flex items-center justify-between p-3 bg-gray-900/50 rounded-xl border border-gray-800">
+                        <div className="flex items-center gap-3">
+                          <Trophy size={16} className={formData.convert_to_contest ? "text-orange-500" : "text-gray-600"} />
+                          <span className="text-xs font-bold text-gray-300">Convert to Contest After Event Ends</span>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => setFormData({ ...formData, convert_to_contest: !formData.convert_to_contest })}
+                          className={`w-10 h-5 rounded-full transition-all relative ${formData.convert_to_contest ? 'bg-orange-500' : 'bg-gray-700'}`}
+                        >
+                          <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${formData.convert_to_contest ? 'right-1' : 'left-1'}`}></div>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

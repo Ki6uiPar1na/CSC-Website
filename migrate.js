@@ -303,7 +303,37 @@ async function migrate() {
     console.log('exclusivity_expires_at column migration error:', err.message);
   }
 
-  // 17. Create teams table if not exists
+  // 17. Add convert_to_contest to events if it doesn't exist
+  try {
+    const [columns] = await connection.query(
+      `SHOW COLUMNS FROM events LIKE 'convert_to_contest'`
+    );
+    if (columns.length === 0) {
+      await connection.query(
+        `ALTER TABLE events ADD COLUMN convert_to_contest BOOLEAN DEFAULT FALSE AFTER is_active`
+      );
+      console.log('Added convert_to_contest column to events table');
+    }
+  } catch (err) {
+    console.log('convert_to_contest column migration error:', err.message);
+  }
+
+  // 17b. Add is_converted to events if it doesn't exist
+  try {
+    const [columns] = await connection.query(
+      `SHOW COLUMNS FROM events LIKE 'is_converted'`
+    );
+    if (columns.length === 0) {
+      await connection.query(
+        `ALTER TABLE events ADD COLUMN is_converted BOOLEAN DEFAULT FALSE AFTER convert_to_contest`
+      );
+      console.log('Added is_converted column to events table');
+    }
+  } catch (err) {
+    console.log('is_converted column migration error:', err.message);
+  }
+
+  // 18. Create teams table if not exists
   try {
     await connection.query(`
       CREATE TABLE IF NOT EXISTS teams (
