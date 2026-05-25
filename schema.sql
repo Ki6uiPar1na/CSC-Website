@@ -229,6 +229,7 @@ CREATE TABLE IF NOT EXISTS resources (
   description TEXT,
   url VARCHAR(500) NOT NULL,
   category VARCHAR(100),
+  action VARCHAR(50) DEFAULT 'Read',
   is_external BOOLEAN DEFAULT TRUE,
   created_by_admin_id INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -345,6 +346,18 @@ CREATE TABLE IF NOT EXISTS lesson_completion (
   INDEX (lesson_id),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (lesson_id) REFERENCES lessons(lesson_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS resource_completions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  resource_id INT NOT NULL,
+  completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY user_resource (user_id, resource_id),
+  INDEX (user_id),
+  INDEX (resource_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
 );
 
 -- Executives Table

@@ -17,7 +17,6 @@ export default function AdminLayout({
   // Allowed paths for Instructor (role 2)
   const allowedInstructorPaths = [
     "/admin",
-    "/admin/modules",
     "/admin/challenges",
     "/admin/resources",
     "/admin/events",

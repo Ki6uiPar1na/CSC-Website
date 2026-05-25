@@ -76,9 +76,9 @@ export default function LessonPlayerPage() {
           <p className="text-gray-400 mb-6">{error}</p>
           <button 
             className="btn btn-primary"
-            onClick={() => router.push("/materials")}
+            onClick={() => router.push("/resources")}
           >
-            Back to Materials
+            Back to Resources
           </button>
         </div>
       </div>

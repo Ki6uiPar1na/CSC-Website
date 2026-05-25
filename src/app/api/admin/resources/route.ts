@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const total = (countResult[0] as any).total;
 
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,
@@ -56,16 +56,16 @@ export async function POST(req: Request) {
 
     const userId = auth.userId;
     const body = await req.json();
-    const { title, description, url, category, is_external, urls } = body;
+    const { title, description, url, category, action, is_external, urls } = body;
 
     if (!title || !url) {
       return NextResponse.json({ error: "Title and URL required" }, { status: 400 });
     }
 
     const [result] = await pool.query(
-      `INSERT INTO resources (title, description, url, category, is_external, created_by_admin_id) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description || "", url, category || "General", is_external !== false, userId]
+      `INSERT INTO resources (title, description, url, category, action, is_external, created_by_admin_id) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [title, description || "", url, category || "General", action || "Read", is_external !== false, userId]
     );
 
     const resourceId = (result as any).insertId;
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
 
     // Fetch updated resources list with URLs
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,
@@ -124,7 +124,7 @@ export async function PUT(req: Request) {
     if (!auth.authorized) return auth.response;
 
     const body = await req.json();
-    const { resourceId, title, description, url, category, is_external, urls } = body;
+    const { resourceId, title, description, url, category, action, is_external, urls } = body;
 
     if (!resourceId) return NextResponse.json({ error: "Resource ID required" }, { status: 400 });
 
@@ -146,6 +146,10 @@ export async function PUT(req: Request) {
     if (category !== undefined) {
       updates.push("category = ?");
       values.push(category);
+    }
+    if (action !== undefined) {
+      updates.push("action = ?");
+      values.push(action);
     }
     if (is_external !== undefined) {
       updates.push("is_external = ?");
@@ -180,7 +184,7 @@ export async function PUT(req: Request) {
 
     // Fetch updated resources list with URLs
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,
@@ -228,7 +232,7 @@ export async function DELETE(req: Request) {
 
     // Fetch updated resources list with URLs
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,

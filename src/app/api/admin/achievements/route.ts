@@ -92,3 +92,32 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const auth = await checkAdminRole([1, 2]);
+    if (!auth.authorized) return auth.response;
+
+    const body = await req.json();
+    const { ids } = body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: "No IDs provided" },
+        { status: 400 }
+      );
+    }
+
+    await pool.query(
+      "DELETE FROM competition_achievements WHERE id IN (?)",
+      [ids]
+    );
+    return NextResponse.json({ deleted: ids.length });
+  } catch (error) {
+    console.error("Error bulk deleting achievements:", error);
+    return NextResponse.json(
+      { error: "Failed to delete achievements" },
+      { status: 500 }
+    );
+  }
+}

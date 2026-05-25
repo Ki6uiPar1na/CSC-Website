@@ -15,6 +15,7 @@ export default function ResourcesPage() {
     title: "",
     description: "",
     category: "tutorial",
+    action: "Read",
     urls: [{ url: "", display_name: "" }],
   });
 
@@ -46,7 +47,7 @@ export default function ResourcesPage() {
   };
 
   const resetForm = () => {
-    setFormData({ title: "", description: "", category: "tutorial", urls: [{ url: "", display_name: "" }] });
+    setFormData({ title: "", description: "", category: "tutorial", action: "Read", urls: [{ url: "", display_name: "" }] });
     setEditingResource(null);
     setShowForm(false);
   };
@@ -66,16 +67,19 @@ export default function ResourcesPage() {
 
     setFormLoading(true);
     try {
-      const url = editingResource ? `/api/admin/resources/${editingResource.id}` : "/api/admin/resources";
       const method = editingResource ? "PUT" : "POST";
+      const filteredUrls = formData.urls.filter((u) => u.url.trim()).map((u, i) => ({ ...u, url_order: i }));
+      const body: any = {
+        ...formData,
+        url: filteredUrls[0]?.url || "",
+        urls: filteredUrls,
+      };
+      if (editingResource) body.resourceId = editingResource.id;
 
-      const res = await fetch(url, {
+      const res = await fetch("/api/admin/resources", {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          urls: formData.urls.filter((u) => u.url.trim()).map((u, i) => ({ ...u, url_order: i })),
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error("Failed to save resource");
@@ -95,6 +99,7 @@ export default function ResourcesPage() {
       title: resource.title,
       description: resource.description,
       category: resource.category,
+      action: resource.action || "Read",
       urls: (resource.urls || []).map((u) => ({ url: u.url, display_name: u.display_name || "" })),
     });
     setShowForm(true);
@@ -104,7 +109,11 @@ export default function ResourcesPage() {
     if (!confirm(`Delete "${resource.title}"?`)) return;
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/admin/resources/${resource.id}`, { method: "DELETE" });
+      const res = await fetch("/api/admin/resources", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resourceId: resource.id }),
+      });
       if (!res.ok) throw new Error("Failed to delete");
       showMessage("success", "Resource deleted");
       fetchResourcesData();
@@ -116,6 +125,7 @@ export default function ResourcesPage() {
   };
 
   const categories = ["tutorial", "documentation", "tool", "video", "article", "course"];
+  const actions = ["Read", "Watch", "Tools", "Practice", "Article", "Course"];
 
   return (
     <div>
@@ -159,6 +169,9 @@ export default function ResourcesPage() {
                   <p className="text-xs text-gray-400 mt-1">
                     <span className="inline-block px-2 py-1 bg-primary/20 rounded text-primary text-xs mr-2">
                       {resource.category}
+                    </span>
+                    <span className="inline-block px-2 py-1 bg-accent/20 rounded text-accent text-xs mr-2">
+                      {resource.action || "Read"}
                     </span>
                     Created: {formatDate(resource.created_at)}
                   </p>
@@ -250,6 +263,20 @@ export default function ResourcesPage() {
                     <option key={cat} value={cat}>
                       {cat.charAt(0).toUpperCase() + cat.slice(1)}
                     </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Action</label>
+                <select
+                  value={formData.action}
+                  onChange={(e) => setFormData({ ...formData, action: e.target.value })}
+                  className="input w-full"
+                  disabled={formLoading}
+                >
+                  {actions.map((act) => (
+                    <option key={act} value={act}>{act}</option>
                   ))}
                 </select>
               </div>

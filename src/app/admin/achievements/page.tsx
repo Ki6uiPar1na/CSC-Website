@@ -31,6 +31,8 @@ export default function AchievementsAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
   
   const [formData, setFormData] = useState({
     competition_name: '',
@@ -169,6 +171,64 @@ export default function AchievementsAdmin() {
       }
     } catch (error) {
       console.error('Error deleting achievement:', error);
+    }
+  };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const filtered = achievements.filter(a => {
+      const q = searchQuery.toLowerCase();
+      return a.competition_name.toLowerCase().includes(q) || 
+             (a.team_name && a.team_name.toLowerCase().includes(q)) ||
+             (a.team_members && a.team_members.toLowerCase().includes(q)) ||
+             (a.description && a.description.toLowerCase().includes(q));
+    });
+    const filteredIds = new Set(filtered.map(a => a.id));
+    setSelectedIds(prev => {
+      const allSelected = filtered.every(a => prev.has(a.id));
+      if (allSelected) {
+        const next = new Set(prev);
+        filteredIds.forEach(id => next.delete(id));
+        return next;
+      } else {
+        const next = new Set(prev);
+        filteredIds.forEach(id => next.add(id));
+        return next;
+      }
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} achievement${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`)) return;
+    
+    setIsBulkDeleting(true);
+    try {
+      const res = await fetch('/api/admin/achievements', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      if (res.ok) {
+        setSelectedIds(new Set());
+        fetchAchievements();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete achievements');
+      }
+    } catch (error) {
+      console.error('Error bulk deleting:', error);
+      alert('Failed to delete achievements');
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -381,6 +441,44 @@ export default function AchievementsAdmin() {
         </div>
       )}
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={achievements.filter(a => {
+                const q = searchQuery.toLowerCase();
+                return a.competition_name.toLowerCase().includes(q) || 
+                       (a.team_name && a.team_name.toLowerCase().includes(q)) ||
+                       (a.team_members && a.team_members.toLowerCase().includes(q)) ||
+                       (a.description && a.description.toLowerCase().includes(q));
+              }).every(a => selectedIds.has(a.id))}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 text-primary rounded border-gray-600 focus:ring-primary"
+            />
+            <span className="text-sm font-semibold text-white">
+              {selectedIds.size} selected
+            </span>
+          </div>
+          <button
+            onClick={handleBulkDelete}
+            disabled={isBulkDeleting}
+            className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+          >
+            {isBulkDeleting ? (
+              <>
+                <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 size={16} />
+                Delete Selected
+              </>
+            )}
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-4">
         {achievements.length === 0 ? (
           <div className="text-center py-20 bg-gray-900/30 border border-dashed border-gray-700 rounded-xl">
@@ -409,74 +507,84 @@ export default function AchievementsAdmin() {
             })
             .map((achievement) => (
             <div key={achievement.id} className="card bg-gray-900/40 border-gray-800 hover:border-primary/30 transition-all group">
-              <div className="flex flex-col md:flex-row justify-between gap-6 overflow-hidden">
-                <div className="flex-1 space-y-4 min-w-0">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-xl font-bold text-white group-hover:text-primary transition-colors break-words">
-                        {achievement.competition_name}
-                      </h4>
-                    </div>
-                    {achievement.position && (
-                      <div className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-bold border border-primary/20">
-                        #{achievement.position} Position
-                      </div>
-                    )}
-                  </div>
-
-                  {achievement.gallery_images && JSON.parse(achievement.gallery_images).length > 0 && (
-                    <div className="flex items-center gap-2 text-[10px] text-accent font-bold uppercase tracking-widest bg-accent/5 w-fit px-2 py-1 rounded border border-accent/10">
-                      <ImageIcon size={12} />
-                      {JSON.parse(achievement.gallery_images).length} Gallery Images
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <Calendar size={16} className="text-primary" />
-                      {achievement.achievement_date ? new Date(achievement.achievement_date).toLocaleDateString() : 'N/A'}
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-400">
-                      {achievement.is_team_contest ? <Users size={16} className="text-primary" /> : <User size={16} className="text-primary" />}
-                      {achievement.is_team_contest ? (achievement.team_name || 'Team Contest') : 'Solo Contest'}
-                    </div>
-                    {achievement.prize_money && (
-                      <div className="flex items-center gap-2 text-green-400 font-semibold">
-                        <DollarSign size={16} />
-                        {achievement.prize_money.toLocaleString()} TK
-                      </div>
-                    )}
-                  </div>
-
-                  {achievement.team_members && (
-                    <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 overflow-hidden">
-                      <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Members</p>
-                      <p className="text-sm text-gray-300 break-all">{achievement.team_members}</p>
-                    </div>
-                  )}
-
-                    {achievement.description && (
-                      <p className="text-sm text-gray-400 italic whitespace-pre-wrap break-all overflow-hidden">
-                        "{achievement.description}"
-                      </p>
-                    )}
+              <div className="flex items-start gap-3">
+                <div className="pt-1">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(achievement.id)}
+                    onChange={() => toggleSelect(achievement.id)}
+                    className="w-4 h-4 text-primary rounded border-gray-600 focus:ring-primary mt-1"
+                  />
                 </div>
+                <div className="flex-1 flex flex-col md:flex-row justify-between gap-6 overflow-hidden">
+                  <div className="flex-1 space-y-4 min-w-0">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="text-xl font-bold text-white group-hover:text-primary transition-colors break-words">
+                          {achievement.competition_name}
+                        </h4>
+                      </div>
+                      {achievement.position && (
+                        <div className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-bold border border-primary/20">
+                          #{achievement.position} Position
+                        </div>
+                      )}
+                    </div>
 
-                <div className="flex md:flex-col gap-2 justify-end">
-                  <button
-                    onClick={() => handleEdit(achievement)}
-                    className="p-3 bg-blue-600/10 text-blue-500 rounded-lg hover:bg-blue-600 hover:text-white transition-all border border-blue-500/20"
-                    title="Edit"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(achievement.id)}
-                    className="p-3 bg-red-600/10 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all border border-red-500/20"
-                    title="Delete"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                    {achievement.gallery_images && JSON.parse(achievement.gallery_images).length > 0 && (
+                      <div className="flex items-center gap-2 text-[10px] text-accent font-bold uppercase tracking-widest bg-accent/5 w-fit px-2 py-1 rounded border border-accent/10">
+                        <ImageIcon size={12} />
+                        {JSON.parse(achievement.gallery_images).length} Gallery Images
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                      <div className="flex items-center gap-2 text-gray-400">
+                        <Calendar size={16} className="text-primary" />
+                        {achievement.achievement_date ? new Date(achievement.achievement_date).toLocaleDateString() : 'N/A'}
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-400">
+                        {achievement.is_team_contest ? <Users size={16} className="text-primary" /> : <User size={16} className="text-primary" />}
+                        {achievement.is_team_contest ? (achievement.team_name || 'Team Contest') : 'Solo Contest'}
+                      </div>
+                      {achievement.prize_money && (
+                        <div className="flex items-center gap-2 text-green-400 font-semibold">
+                          <DollarSign size={16} />
+                          {achievement.prize_money.toLocaleString()} TK
+                        </div>
+                      )}
+                    </div>
+
+                    {achievement.team_members && (
+                      <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 overflow-hidden">
+                        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Members</p>
+                        <p className="text-sm text-gray-300 break-all">{achievement.team_members}</p>
+                      </div>
+                    )}
+
+                      {achievement.description && (
+                        <p className="text-sm text-gray-400 italic whitespace-pre-wrap break-all overflow-hidden">
+                          "{achievement.description}"
+                        </p>
+                      )}
+                  </div>
+
+                  <div className="flex md:flex-col gap-2 justify-end">
+                    <button
+                      onClick={() => handleEdit(achievement)}
+                      className="p-3 bg-blue-600/10 text-blue-500 rounded-lg hover:bg-blue-600 hover:text-white transition-all border border-blue-500/20"
+                      title="Edit"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(achievement.id)}
+                      className="p-3 bg-red-600/10 text-red-500 rounded-lg hover:bg-red-600 hover:text-white transition-all border border-red-500/20"
+                      title="Delete"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

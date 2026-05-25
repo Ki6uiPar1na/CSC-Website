@@ -123,9 +123,9 @@ export default function ExamTakerPage() {
           <p className="text-gray-400 mb-6">{error}</p>
           <button 
             className="btn btn-primary"
-            onClick={() => router.push("/materials")}
+            onClick={() => router.push("/resources")}
           >
-            Back to Materials
+            Back to Resources
           </button>
         </div>
       </div>
@@ -177,9 +177,9 @@ export default function ExamTakerPage() {
             )}
             <button 
               className="btn btn-primary px-10"
-              onClick={() => router.push("/materials")}
+              onClick={() => router.push("/resources")}
             >
-              Back to Materials
+              Back to Resources
             </button>
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function ExamTakerPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-10">
         <Link 
-          href="/materials"
+          href="/resources"
           className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-mono text-sm mb-4"
         >
           <ChevronLeft size={16} /> EXIT EXAM

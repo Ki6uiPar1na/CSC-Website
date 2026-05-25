@@ -52,7 +52,7 @@ export default function ModuleDetailPage() {
         .then((res) => res.json())
         .then((data) => {
           if (data.error) {
-            router.push("/materials");
+            router.push("/resources");
           } else {
             setModule(data);
           }
@@ -60,7 +60,7 @@ export default function ModuleDetailPage() {
         })
         .catch(() => {
           setLoading(false);
-          router.push("/materials");
+          router.push("/resources");
         });
     }
   }, [session, id, router]);
@@ -77,7 +77,7 @@ export default function ModuleDetailPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-gray-500 text-sm mb-8 font-mono">
-        <Link href="/materials" className="hover:text-primary transition-colors">MATERIALS</Link>
+        <Link href="/resources" className="hover:text-primary transition-colors">RESOURCES</Link>
         <ChevronRight size={14} />
         <span className="text-gray-300 truncate">{module.title.toUpperCase()}</span>
       </div>

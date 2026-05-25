@@ -45,10 +45,11 @@ export default function ExecutiveBody() {
         });
         if (response.ok) {
           const data = await response.json();
-          setExecutives(data);
+          const execs = data.executives || data;
+          setExecutives(execs);
 
           const grouped: Record<string, Executive[]> = {};
-          data.forEach((executive: Executive) => {
+          execs.forEach((executive: Executive) => {
             const session = executive.session || "2026-2027";
             if (!grouped[session]) {
               grouped[session] = [];

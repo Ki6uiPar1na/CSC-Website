@@ -3,12 +3,11 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Users, BookOpen, Zap, BookMarked, Lock, Calendar, CreditCard, Bell, Settings, Loader2, ArrowRight, Award, Users2, Trophy } from "lucide-react";
+import { Users, Zap, BookMarked, Lock, Calendar, CreditCard, Bell, Settings, Loader2, ArrowRight, Award, Users2, Trophy } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
 
 interface DashboardStats {
   totalUsers?: number;
-  totalModules: number;
   totalChallenges: number;
   totalResources: number;
   totalEvents: number;
@@ -40,7 +39,6 @@ export default function AdminDashboard() {
       const isInstructor = userRole === 2;
       
       const endpoints = [
-        fetch("/api/admin/modules"),
         fetch("/api/admin/challenges"),
         fetch("/api/admin/resources"),
         fetch("/api/admin/events"),
@@ -58,17 +56,15 @@ export default function AdminDashboard() {
 
       const results = await Promise.all(endpoints);
       
-      const modulesData = await results[0].json();
-      const challengesData = await results[1].json();
-      const resourcesData = await results[2].json();
-      const eventsData = await results[3].json();
-      const executivesData = await results[4].json();
-      const contestsData = await results[5].json();
-      const alumniData = await results[6].json();
-      const achievementsData = await results[7].json();
+      const challengesData = await results[0].json();
+      const resourcesData = await results[1].json();
+      const eventsData = await results[2].json();
+      const executivesData = await results[3].json();
+      const contestsData = await results[4].json();
+      const alumniData = await results[5].json();
+      const achievementsData = await results[6].json();
 
       let statsObj: DashboardStats = {
-        totalModules: modulesData.modules?.length || 0,
         totalChallenges: challengesData.challenges?.length || 0,
         totalResources: resourcesData.resources?.length || 0,
         totalEvents: eventsData.events?.length || 0,
@@ -79,9 +75,9 @@ export default function AdminDashboard() {
       };
 
       if (!isInstructor) {
-        const usersData = await results[8].json();
-        const upgradeData = await results[9].json();
-        const paymentData = await results[10].json();
+        const usersData = await results[7].json();
+        const upgradeData = await results[8].json();
+        const paymentData = await results[9].json();
 
         statsObj.totalUsers = usersData.pagination?.totalCount || 0;
         statsObj.premiumUsers = usersData.users?.filter((u: any) => u.is_premium).length || 0;
@@ -113,13 +109,6 @@ export default function AdminDashboard() {
       href: "/admin/users",
       color: "from-yellow-500 to-yellow-600",
       roles: [1],
-    },
-    {
-      title: "Modules",
-      count: stats?.totalModules || 0,
-      icon: <BookOpen size={24} />,
-      href: "/admin/modules",
-      color: "from-purple-500 to-purple-600",
     },
     {
       title: "Challenges",

@@ -60,6 +60,12 @@ async function initDb() {
       console.log("[DB] Added github_url to lessons");
     }
 
+    const [actionCol]: any = await conn.query("SHOW COLUMNS FROM resources LIKE 'action'");
+    if (actionCol.length === 0) {
+      await conn.query("ALTER TABLE resources ADD COLUMN action VARCHAR(50) DEFAULT 'Read' AFTER category");
+      console.log("[DB] Added action column to resources");
+    }
+
     // 2. Tables
     await conn.query(`
       CREATE TABLE IF NOT EXISTS exams (

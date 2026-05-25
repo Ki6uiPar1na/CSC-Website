@@ -6,7 +6,6 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   KeyRound,
-  BookOpen,
   Zap,
   Users,
   Calendar,
@@ -32,7 +31,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Upgrade Codes", href: "/admin/upgrade-codes", icon: <KeyRound size={18} />, roles: [1] },
-  { label: "Modules", href: "/admin/modules", icon: <BookOpen size={18} /> },
   { label: "Challenges", href: "/admin/challenges", icon: <Zap size={18} /> },
   { label: "Resources", href: "/admin/resources", icon: <BookMarked size={18} /> },
   { label: "Users", href: "/admin/users", icon: <Users size={18} />, roles: [1] },

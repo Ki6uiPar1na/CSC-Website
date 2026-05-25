@@ -99,6 +99,7 @@ export interface Resource {
   description: string;
   url: string;
   category: string;
+  action?: string;
   created_at: string;
   urls?: Array<{ id: number; url: string; display_name?: string; url_order: number }>;
 }

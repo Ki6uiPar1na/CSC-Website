@@ -504,6 +504,41 @@ async function migrate() {
     console.log('unique_ctftime_event drop:', err.message);
   }
 
+  // 24. Create resource_completions table for tracking user progress
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS resource_completions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        resource_id INT NOT NULL,
+        completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY user_resource (user_id, resource_id),
+        INDEX (user_id),
+        INDEX (resource_id),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
+      )
+    `);
+    console.log('Created resource_completions table');
+  } catch (err) {
+    console.log('resource_completions table creation error:', err.message);
+  }
+
+  // 25. Add action column to resources table
+  try {
+    const [actionCol] = await connection.query(
+      `SHOW COLUMNS FROM resources LIKE 'action'`
+    );
+    if (actionCol.length === 0) {
+      await connection.query(
+        `ALTER TABLE resources ADD COLUMN action VARCHAR(50) DEFAULT 'Read' AFTER category`
+      );
+      console.log('Added action column to resources table');
+    }
+  } catch (err) {
+    console.log('action column migration error:', err.message);
+  }
+
   console.log('Migration synchronized successfully');
   await connection.end();
 }

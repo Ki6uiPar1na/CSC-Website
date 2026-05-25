@@ -256,7 +256,7 @@ function ChallengesContent() {
           <p className="text-[11px] text-gray-500 mb-6 font-mono">Explore our comprehensive library of specialized security materials.</p>
           <button 
             className="accent w-full"
-            onClick={() => router.push("/materials")}
+            onClick={() => router.push("/resources")}
           >
             Access Learning Materials
           </button>
