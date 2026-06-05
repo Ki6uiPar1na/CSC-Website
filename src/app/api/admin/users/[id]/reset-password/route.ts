@@ -46,7 +46,7 @@ export async function POST(
 
     // Update user password
     await pool.query(
-      `UPDATE users SET password = ? WHERE id = ?`,
+      `UPDATE users SET password_hash = ? WHERE id = ?`,
       [hashedPassword, userId]
     );
 

@@ -29,7 +29,7 @@ export async function GET() {
     const team = teams[0];
 
     const [members] = await pool.query<RowDataPacket[]>(
-      `SELECT u.id, u.username, u.email
+      `SELECT u.id, u.username
        FROM team_members tm
        JOIN users u ON u.id = tm.user_id
        WHERE tm.team_id = ?

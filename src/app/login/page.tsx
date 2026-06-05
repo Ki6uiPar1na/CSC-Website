@@ -39,14 +39,14 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] font-mono uppercase text-gray-500 tracking-[0.2em] flex items-center gap-2">
-              <User size={12} className="text-primary" /> Username
+              <User size={12} className="text-primary" /> Username / Email
             </label>
             <input 
               type="text" 
               value={username} 
               onChange={(e) => setUsername(e.target.value)} 
               className="bg-black/50 border-primary/20 focus:border-primary transition-all duration-300"
-              placeholder="OPERATIVE_ID"
+              placeholder="USERNAME / EMAIL"
               required
             />
           </div>
@@ -63,6 +63,11 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
             />
+            <div className="flex justify-end">
+              <Link href="/forgot-password" className="text-[10px] font-mono text-gray-500 hover:text-primary transition-colors">
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           <CaptchaInput 

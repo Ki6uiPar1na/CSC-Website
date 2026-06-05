@@ -110,6 +110,10 @@ export async function POST(req: NextRequest) {
       throw err;
     }
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Submission Error:", error);
+    return NextResponse.json(
+      { error: "Submission failed" },
+      { status: 500 }
+    );
   }
 }

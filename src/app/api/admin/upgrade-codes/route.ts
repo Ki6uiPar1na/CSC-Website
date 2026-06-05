@@ -118,14 +118,15 @@ export async function POST(req: Request) {
       });
     }
 
-    // Bulk insert codes
+    // Bulk insert codes using parameterized query
     const values = generatedCodes.map(
-      (c) => `('${c.code}', ${c.validity_months}, ${userId}, ${c.expiresAt ? `'${c.expiresAt.toISOString().slice(0, 19)}'` : 'NULL'}, ${c.is_reusable ? 1 : 0}, ${c.usage_limit})`
+      (c) => [c.code, c.validity_months, userId, c.expiresAt ? c.expiresAt.toISOString().slice(0, 19) : null, c.is_reusable ? 1 : 0, c.usage_limit]
     );
 
     await pool.query(
       `INSERT INTO upgrade_codes (code, validity_months, created_by_admin_id, expires_at, is_reusable, usage_limit) 
-       VALUES ${values.join(",")}`
+       VALUES ?`,
+      [values]
     );
 
     return NextResponse.json(

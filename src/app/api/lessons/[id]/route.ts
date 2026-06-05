@@ -54,15 +54,18 @@ export async function GET(
     // Check if user has access if it's premium
     if (lesson.is_premium) {
       const userId = (session.user as any).id;
-      const [user] = await pool.query<RowDataPacket[]>(
-        "SELECT subscription_status, subscription_expires_at FROM users WHERE id = ?",
+      const [premiumRows] = await pool.query<RowDataPacket[]>(
+        `SELECT 1 FROM upgrade_code_usage u 
+         JOIN upgrade_codes c ON u.upgrade_code_id = c.id 
+         WHERE u.user_id = ? AND c.is_active = TRUE LIMIT 1`,
         [userId]
       );
-      
-      const isPremium = user[0]?.subscription_status === 'active' && 
-                        (!user[0]?.subscription_expires_at || new Date(user[0].subscription_expires_at) > new Date());
-      
-      if (!isPremium) {
+      const [userRole] = await pool.query<RowDataPacket[]>(
+        "SELECT role_id FROM users WHERE id = ?",
+        [userId]
+      );
+      const isAdmin = userRole.length > 0 && userRole[0].role_id === 1;
+      if (!isAdmin && premiumRows.length === 0) {
         return NextResponse.json({ error: "Premium subscription required" }, { status: 403 });
       }
     }

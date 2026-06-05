@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   subscription_status ENUM('active', 'inactive', 'canceled') DEFAULT 'inactive',
   subscription_expires_at TIMESTAMP NULL,
   status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
+  rejection_reason TEXT,
   otp_code VARCHAR(255),
   otp_expires_at TIMESTAMP NULL,
   total_points INT DEFAULT 0,
@@ -474,6 +475,19 @@ CREATE TABLE IF NOT EXISTS team_members (
   UNIQUE KEY unique_user (user_id),
   FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Password Reset Tokens Table
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  used_at TIMESTAMP NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX idx_token (token),
+  INDEX idx_user_id (user_id)
 );
 
 -- Event RSVPs Table

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 import { cacheManager, CACHE_KEYS } from "@/lib/cache";
+import { checkAdminRole } from "@/lib/admin-auth";
 
 export async function GET(
   _req: NextRequest,
@@ -31,6 +32,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
     const { id } = await params;
     const body = await req.json();
     const { name, description, event_date, winners, photo_url, details, team_id } = body;
@@ -74,6 +77,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
     const { id } = await params;
 
     await pool.query("DELETE FROM contests WHERE id = ?", [id]);

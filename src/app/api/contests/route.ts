@@ -3,6 +3,7 @@ import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 import { withCache, CACHE_KEYS, CACHE_TTL, cacheManager } from "@/lib/cache";
 import { enforceRateLimit } from "@/lib/rateLimitMiddleware";
+import { checkAdminRole } from "@/lib/admin-auth";
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,6 +54,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
     const body = await req.json();
     const { name, description, event_date, winners, photo_url, details, team_id, ctftime_event_id } =
       body;

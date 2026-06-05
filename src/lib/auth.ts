@@ -21,7 +21,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await UserModel.findByUsername(credentials.username);
+        let user = await UserModel.findByUsername(credentials.username);
+        if (!user) {
+          user = await UserModel.findByEmail(credentials.username);
+        }
         if (user && await bcrypt.compare(credentials.password, user.password_hash)) {
           // Check if user is approved
           if (user.status === 'pending') {
@@ -65,5 +68,5 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_URL || "csc-secret-2024",
+  secret: process.env.NEXTAUTH_SECRET,
 };

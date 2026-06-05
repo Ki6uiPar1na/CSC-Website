@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/models/db";
+import { checkAdminRole } from "@/lib/admin-auth";
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
     const { id } = await params;
     const body = await req.json();
     const { name, role, bio, photo_url, year_joined, session, social_links } = body;
@@ -37,6 +40,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
     const { id } = await params;
 
     await pool.query("DELETE FROM executives WHERE id = ?", [id]);

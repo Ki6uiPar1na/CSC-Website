@@ -524,7 +524,53 @@ async function migrate() {
     console.log('resource_completions table creation error:', err.message);
   }
 
-  // 25. Add action column to resources table
+  // 25. Create password_reset_tokens table
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        token VARCHAR(255) NOT NULL UNIQUE,
+        expires_at TIMESTAMP NOT NULL,
+        used_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_token (token),
+        INDEX idx_user_id (user_id)
+      )
+    `);
+    console.log('Created password_reset_tokens table');
+  } catch (err) {
+    console.log('password_reset_tokens table creation error:', err.message);
+  }
+
+  // 26. Add FK for password_reset_tokens if not exists
+  try {
+    await connection.query(
+      `ALTER TABLE password_reset_tokens ADD CONSTRAINT fk_password_reset_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`
+    );
+    console.log('Added FK constraint on password_reset_tokens.user_id');
+  } catch (err) {
+    if (!err.message.includes('Duplicate foreign key') && !err.message.includes('already exists')) {
+      console.log('FK constraint message:', err.message);
+    }
+  }
+
+  // 27. Add rejection_reason column to users table
+  try {
+    const [reasonCol] = await connection.query(
+      `SHOW COLUMNS FROM users LIKE 'rejection_reason'`
+    );
+    if (reasonCol.length === 0) {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN rejection_reason TEXT AFTER status`
+      );
+      console.log('Added rejection_reason column to users table');
+    }
+  } catch (err) {
+    console.log('rejection_reason column migration error:', err.message);
+  }
+
+  // 28. Add action column to resources table
   try {
     const [actionCol] = await connection.query(
       `SHOW COLUMNS FROM resources LIKE 'action'`

@@ -87,7 +87,7 @@ export async function PATCH(req: Request) {
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     // Update password
-    await pool.query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, memberId]);
+    await pool.query("UPDATE users SET password_hash = ? WHERE id = ?", [hashedPassword, memberId]);
 
     return NextResponse.json({ success: true, message: "Password reset successfully" }, { status: 200 });
   } catch (error: any) {

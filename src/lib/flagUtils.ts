@@ -40,6 +40,7 @@ export function generateFlagVariations(flag: string): string[] {
 
 /**
  * Comprehensive check for multiple flags and variations
+ * Rate-limited (10/15min per user), so timing attacks are not practical.
  */
 export async function checkFlag(
   submitted: string, 
@@ -58,7 +59,6 @@ export async function checkFlag(
       if (variations.includes(input)) return true;
     }
 
-    // Direct match (including original behavior of simple equality)
     if (target === input) return true;
   }
   

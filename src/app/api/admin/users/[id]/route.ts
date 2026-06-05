@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { checkAdminRole } from "@/lib/admin-auth";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
+import { sendApprovalEmail, sendRejectionEmail } from "@/lib/mailer";
 
 export async function DELETE(
   request: NextRequest,
@@ -83,7 +84,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { roleId, status } = body;
+    const { roleId, status, rejectionReason } = body;
     
     const auth = await checkAdminRole([1]);
     if (!auth.authorized) return auth.response;
@@ -126,6 +127,26 @@ export async function PATCH(
       }
       updateFields.push("status = ?");
       queryParams.push(status);
+      if (status === 'approved') {
+        const [userRows] = await pool.query<RowDataPacket[]>(
+          `SELECT email, username FROM users WHERE id = ?`,
+          [userId]
+        );
+        if (userRows.length > 0 && userRows[0].email) {
+          sendApprovalEmail(userRows[0].email, userRows[0].username);
+        }
+      }
+      if (status === 'rejected') {
+        updateFields.push("rejection_reason = ?");
+        queryParams.push(rejectionReason || null);
+        const [userRows] = await pool.query<RowDataPacket[]>(
+          `SELECT email, username FROM users WHERE id = ?`,
+          [userId]
+        );
+        if (userRows.length > 0 && userRows[0].email) {
+          sendRejectionEmail(userRows[0].email, userRows[0].username, rejectionReason || '');
+        }
+      }
     }
 
     if (updateFields.length === 0) {

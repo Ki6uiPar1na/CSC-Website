@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
+import { checkAdminRole } from "@/lib/admin-auth";
 
-/**
- * DEBUG ENDPOINT - Shows upgrade codes and users with subscriptions
- * Remove this in production
- */
 export async function GET() {
   try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
     // Get all codes with their usage info
     const [codes] = await pool.query<RowDataPacket[]>(
       `SELECT id, code, is_used, used_by_user_id, is_active, deleted_at, subscription_expires_at 
@@ -37,6 +36,8 @@ export async function GET() {
 
 export async function POST() {
   try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
     const resourceCategories = [
       {
         name: "Web Exploitation",

@@ -23,6 +23,8 @@ export default function UsersPage() {
   const { message, showMessage } = useMessage();
   const [resetPasswordUserId, setResetPasswordUserId] = useState<number | null>(null);
   const [resetPasswordValue, setResetPasswordValue] = useState("");
+  const [rejectUser, setRejectUser] = useState<{ userId: number; username: string } | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
   const [roleToUpdate, setRoleToUpdate] = useState<{
     userId: number;
     username: string;
@@ -101,21 +103,43 @@ export default function UsersPage() {
     }
   };
 
-  const handleStatusUpdate = async (userId: number, newStatus: 'approved' | 'rejected') => {
-    if (!confirm(`Are you sure you want to ${newStatus} this user?`)) return;
-    
+  const handleApprove = async (userId: number) => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: 'approved' }),
       });
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || `Failed to ${newStatus} user`);
+        throw new Error(data.error || "Failed to approve user");
       }
-      showMessage("success", `User ${newStatus === 'approved' ? 'approved' : 'rejected'} successfully`);
+      showMessage("success", "User approved successfully");
+      fetchUsers();
+    } catch (error: any) {
+      showMessage("error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectUser) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${rejectUser.userId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: 'rejected', rejectionReason }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to reject user");
+      }
+      showMessage("success", "User rejected successfully");
+      setRejectUser(null);
+      setRejectionReason("");
       fetchUsers();
     } catch (error: any) {
       showMessage("error", error.message);
@@ -324,7 +348,7 @@ export default function UsersPage() {
                       <div className="flex gap-2 flex-wrap">
                         {user.status !== 'approved' && (
                           <button
-                            onClick={() => handleStatusUpdate(user.id, 'approved')}
+                            onClick={() => handleApprove(user.id)}
                             className="px-3 py-1 bg-green-600/20 text-green-400 hover:bg-green-600/40 rounded text-xs font-semibold transition-colors flex items-center gap-1"
                             title="Approve user"
                           >
@@ -333,7 +357,7 @@ export default function UsersPage() {
                         )}
                         {user.status === 'pending' && (
                           <button
-                            onClick={() => handleStatusUpdate(user.id, 'rejected')}
+                            onClick={() => setRejectUser({ userId: user.id, username: user.username })}
                             className="px-3 py-1 bg-red-600/20 text-red-400 hover:bg-red-600/40 rounded text-xs font-semibold transition-colors flex items-center gap-1"
                             title="Reject user"
                           >
@@ -452,6 +476,51 @@ export default function UsersPage() {
                 onClick={() => {
                   setResetPasswordUserId(null);
                   setResetPasswordValue("");
+                }}
+                className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection Reason Modal */}
+      {rejectUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 border border-red-500/30">
+            <h3 className="text-xl font-bold mb-2">Reject User</h3>
+            <p className="text-gray-400 text-sm mb-4">
+              You are rejecting <span className="font-semibold text-white">{rejectUser.username}</span>
+            </p>
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="Reason for rejection (optional)..."
+              className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-red-500 mb-2 resize-none"
+              rows={3}
+            />
+            <p className="text-xs text-gray-500 mb-4">The reason will be included in the notification email.</p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleReject}
+                disabled={mainLoading}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {mainLoading ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Rejecting...
+                  </>
+                ) : (
+                  'Confirm Reject'
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setRejectUser(null);
+                  setRejectionReason("");
                 }}
                 className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
               >
