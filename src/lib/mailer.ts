@@ -63,7 +63,7 @@ function buildEventHtml(event: EventEmailData): string {
     }
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.jkkniuctf.tech' || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech' || 'http://localhost:3000';
 
   return `
 <!DOCTYPE html>
@@ -99,7 +99,7 @@ function buildEventHtml(event: EventEmailData): string {
           </tr>
           <tr>
             <td style="padding:20px 40px;border-top:1px solid #1e293b;text-align:center">
-              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · csc.jkkniu.edu.bd</p>
+              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · club.jkkniuctf.tech</p>
               <p style="margin:4px 0 0;color:#334155;font-size:10px">You received this because you are a member of our community.</p>
             </td>
           </tr>
@@ -130,7 +130,7 @@ function buildEventText(event: EventEmailData): string {
     if (event.platform_name) details += `\nPlatform: ${event.platform_name}`;
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech' || 'http://localhost:3000';
 
   let text = `📢 New Event: ${event.title}\n`;
   text += `Date: ${dateStr} at ${timeStr}\n`;
@@ -195,7 +195,7 @@ export async function sendApprovalEmail(
     return false;
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.jkkniuctf.tech' || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech' || 'http://localhost:3000';
 
   const html = `
 <!DOCTYPE html>
@@ -223,7 +223,7 @@ export async function sendApprovalEmail(
           </tr>
           <tr>
             <td style="padding:20px 40px;border-top:1px solid #1e293b;text-align:center">
-              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · csc.jkkniu.edu.bd</p>
+              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · club.jkkniuctf.tech</p>
             </td>
           </tr>
         </table>
@@ -288,7 +288,7 @@ export async function sendRejectionEmail(
           </tr>
           <tr>
             <td style="padding:20px 40px;border-top:1px solid #1e293b;text-align:center">
-              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · csc.jkkniu.edu.bd</p>
+              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · club.jkkniuctf.tech</p>
             </td>
           </tr>
         </table>
@@ -354,7 +354,7 @@ export async function sendPasswordResetEmail(
           </tr>
           <tr>
             <td style="padding:20px 40px;border-top:1px solid #1e293b;text-align:center">
-              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · csc.jkkniu.edu.bd</p>
+              <p style="margin:0;color:#475569;font-size:11px">JKKNIU Computer Science Club · club.jkkniuctf.tech</p>
             </td>
           </tr>
         </table>
