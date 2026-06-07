@@ -25,11 +25,11 @@ export const AdminPageHeader = ({
   return (
     <div className="mb-8">
       {/* Header with title and button */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          {icon && <div className="text-primary">{icon}</div>}
-          <div>
-            <h2 className="text-2xl font-bold">{title}</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {icon && <div className="text-primary shrink-0">{icon}</div>}
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold truncate">{title}</h2>
             {count !== undefined && (
               <p className="text-sm text-gray-400">Total: {count}</p>
             )}
@@ -39,7 +39,7 @@ export const AdminPageHeader = ({
           <button
             onClick={actionButton.onClick}
             disabled={actionButton.loading}
-            className="accent px-4 py-2 text-sm flex items-center gap-2 disabled:opacity-50"
+            className="accent px-4 py-2 text-sm flex items-center gap-2 disabled:opacity-50 w-full sm:w-auto justify-center"
           >
             {actionButton.loading ? (
               <>

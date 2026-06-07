@@ -43,9 +43,9 @@ export default function LeaderboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4">
-      <div className="flex items-center gap-4 mb-8">
-        <Trophy className="text-primary" size={32} />
-        <h1 className="glitch-text text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight">Leaderboard</h1>
+      <div className="flex items-center gap-3 sm:gap-4 mb-8">
+        <Trophy className="text-primary shrink-0" size={24} />
+        <h1 className="glitch-text text-2xl sm:text-4xl md:text-5xl uppercase tracking-tight break-words">Leaderboard</h1>
       </div>
 
       <div className="card p-0 overflow-hidden border-border-color shadow-xl">

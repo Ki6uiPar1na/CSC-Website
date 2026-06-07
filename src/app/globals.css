@@ -38,6 +38,9 @@
       linear-gradient(rgba(13, 17, 23, 0.8) 1px, transparent 1px),
       linear-gradient(90deg, rgba(13, 17, 23, 0.8) 1px, transparent 1px);
     background-size: 100% 100%, 30px 30px, 30px 30px;
+    @media (max-width: 640px) {
+      background-size: 100% 100%, 20px 20px, 20px 20px;
+    }
   }
 }
 
@@ -49,7 +52,7 @@
   }
 
   .card {
-    @apply bg-card-bg border border-border-color rounded-sm p-4 sm:p-6 transition-all duration-300;
+    @apply bg-card-bg border border-border-color rounded-sm p-3 sm:p-6 transition-all duration-300;
   }
 
   .card:hover {
@@ -120,7 +123,7 @@
 
 @layer components {
   button {
-    @apply bg-transparent text-primary border border-primary rounded-sm px-4 py-2 sm:px-6 sm:py-2.5 cursor-pointer font-mono font-bold uppercase transition-all duration-300;
+    @apply bg-transparent text-primary border border-primary rounded-sm px-3 py-2 sm:px-6 sm:py-2.5 cursor-pointer font-mono font-bold uppercase transition-all duration-300;
   }
 
   button:hover {

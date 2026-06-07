@@ -114,29 +114,30 @@ export default function CategoryResourcesPage() {
           <p className="text-gray-500">Try adjusting your search terms.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="min-w-[500px] sm:min-w-0 px-4 sm:px-0">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border-color text-gray-500 uppercase tracking-wider text-xs">
-                <th className="text-left py-3 px-4 font-medium">Material</th>
-                <th className="text-center py-3 px-4 font-medium w-24">Action</th>
-                <th className="text-center py-3 px-4 font-medium w-20">Done</th>
+                <th className="text-left py-3 px-3 sm:px-4 font-medium">Material</th>
+                <th className="text-center py-3 px-2 sm:px-4 font-medium w-20 sm:w-24">Action</th>
+                <th className="text-center py-3 px-2 sm:px-4 font-medium w-14 sm:w-20">Done</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((link, i) => (
                 <tr key={link.id || i} className={`border-b border-border-color/50 hover:bg-white/[0.02] transition-colors ${link.is_completed ? 'opacity-60' : ''}`}>
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-3 sm:px-4">
                     <a
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-200 hover:text-primary transition-colors font-medium"
+                      className="text-gray-200 hover:text-primary transition-colors font-medium text-xs sm:text-sm"
                     >
                       {link.name}
                     </a>
                     {link.description && (
-                      <p className="text-xs text-gray-500 mt-0.5">{link.description}</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">{link.description}</p>
                     )}
                     {link.extraLinks && link.extraLinks.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-1">
@@ -154,8 +155,8 @@ export default function CategoryResourcesPage() {
                       </div>
                     )}
                   </td>
-                  <td className="py-3 px-4 text-center align-top">
-                    <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
+                  <td className="py-3 px-2 sm:px-4 text-center align-top">
+                    <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${
                       link.action === "Watch" ? "bg-red-500/10 text-red-400" :
                       link.action === "Tools" ? "bg-orange-500/10 text-orange-400" :
                       link.action === "Practice" ? "bg-purple-500/10 text-purple-400" :
@@ -166,16 +167,16 @@ export default function CategoryResourcesPage() {
                       {link.action || "Read"}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-center align-top">
+                  <td className="py-3 px-2 sm:px-4 text-center align-top">
                     <button
                       onClick={() => link.id && toggleComplete(link.id, !!link.is_completed)}
-                      className="text-gray-500 hover:text-primary transition-colors"
+                      className="text-gray-500 hover:text-primary transition-colors p-1"
                       title={link.is_completed ? "Mark incomplete" : "Mark complete"}
                     >
                       {link.is_completed ? (
-                        <CheckCircle size={18} className="text-green-500" />
+                        <CheckCircle size={16} className="text-green-500" />
                       ) : (
-                        <Circle size={18} />
+                        <Circle size={16} />
                       )}
                     </button>
                   </td>
@@ -183,6 +184,7 @@ export default function CategoryResourcesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

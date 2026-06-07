@@ -118,7 +118,7 @@ export default function ProfilePage() {
           Membership Details
         </h3>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
+          <div className="w-full sm:w-auto">
             <p className="text-sm font-bold">
               Status: <span className={statusTextColor}>{membershipStatus}</span>
             </p>

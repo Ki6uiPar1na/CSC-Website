@@ -110,7 +110,7 @@ export default function ContestDetailPage() {
 
           {/* Hero Image */}
           {contest.photo_url && (
-            <div className="w-full h-72 overflow-hidden">
+            <div className="w-full h-48 sm:h-72 overflow-hidden">
               <img
                 src={contest.photo_url}
                 alt={contest.name}
@@ -121,7 +121,7 @@ export default function ContestDetailPage() {
 
           <div className="p-8 sm:p-12">
             {/* Title */}
-            <h1 className="text-3xl sm:text-4xl font-black text-white mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-4xl font-black text-white mb-4 leading-tight break-words">
               {contest.name}
             </h1>
 

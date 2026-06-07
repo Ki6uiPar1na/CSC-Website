@@ -120,7 +120,7 @@ function ChallengesContent() {
       {/* 
         DEBUG: The flag for 'Inspect Me' is: flag{welcome_to_ctf} 
       */}
-      <h1 className="text-3xl sm:text-4xl md:text-5xl mb-8 font-bold tracking-tight uppercase">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl mb-8 font-bold tracking-tight uppercase break-words">
         {challengeId ? "Challenge" : "Challenges"}
       </h1>
 
@@ -160,10 +160,10 @@ function ChallengesContent() {
                 )}
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                <div className="pr-16 sm:pr-0">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
+                <div className="pr-[120px] sm:pr-0 w-full">
                   <span className="text-[10px] sm:text-xs font-mono text-primary uppercase tracking-wider">{challenge.module_title}</span>
-                  <h3 className="text-xl sm:text-2xl font-bold mt-1">{challenge.title}</h3>
+                  <h3 className="text-lg sm:text-2xl font-bold mt-1 break-words">{challenge.title}</h3>
                 </div>
                 <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 w-full sm:w-auto">
                   <div className="text-lg sm:text-xl font-bold text-primary shrink-0">{challenge.current_points} <span className="text-[10px] text-gray-500 font-normal">pts</span></div>
@@ -171,7 +171,7 @@ function ChallengesContent() {
                 </div>
               </div>
               
-              <p className="text-gray-400 text-sm sm:text-base leading-relaxed mb-6">{challenge.description}</p>
+              <p className="text-gray-400 text-sm sm:text-base leading-relaxed mb-6 break-words">{challenge.description}</p>
               
               {!session ? (
                 <div className="mt-4 p-6 bg-black/40 border border-dashed border-border-color rounded text-center">

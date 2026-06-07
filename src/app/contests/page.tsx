@@ -135,23 +135,23 @@ export default function ContestsPage() {
                 key={contest.id}
                 className="group bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 hover:border-primary/50 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/20"
               >
-                <div className="p-6">
-                  <div className="flex items-start justify-between gap-6">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
                     {contest.photo_url && (
                       <img
                         src={contest.photo_url}
                         alt={contest.name}
-                        className="w-24 h-24 object-cover rounded-lg border border-primary/30 flex-shrink-0"
+                        className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg border border-primary/30 flex-shrink-0 sm:block"
                       />
                     )}
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
+                    <div className="flex-1 min-w-0 order-first sm:order-none">
+                      <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
                         {contest.name}
                       </h3>
-                      <p className="text-primary text-sm font-mono mb-2">
+                      <p className="text-primary text-xs sm:text-sm font-mono mb-2">
                         📅 {formatDate(contest.event_date)}
                       </p>
-                      <p className="text-gray-300 text-sm line-clamp-1">
+                      <p className="text-gray-300 text-sm line-clamp-1 sm:line-clamp-2">
                         {contest.description}
                       </p>
                       {contest.team_name && (
@@ -161,7 +161,7 @@ export default function ContestsPage() {
                       )}
                     </div>
                     <button
-                      className="flex-shrink-0 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-semibold transition-all duration-300 text-sm"
+                      className="w-full sm:w-auto flex-shrink-0 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-semibold transition-all duration-300 text-sm"
                       onClick={() => router.push(`/contests/${contest.id}`)}
                     >
                       View Details

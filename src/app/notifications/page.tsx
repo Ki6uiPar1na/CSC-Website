@@ -259,7 +259,7 @@ export default function NotificationsPage() {
 
       {/* Action Buttons */}
       {notifications.length > 0 && (
-        <div className="flex gap-3 mb-6">
+        <div className="flex flex-wrap gap-3 mb-6">
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
@@ -337,11 +337,11 @@ export default function NotificationsPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-2 shrink-0">
                   {!notification.read && (
                     <button
                       onClick={() => markAsRead(notification.id)}
-                      className="text-xs px-3 py-1 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors border-none cursor-pointer font-mono uppercase"
+                      className="text-xs px-2 sm:px-3 py-1 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors border-none cursor-pointer font-mono uppercase whitespace-nowrap"
                       title="Mark as read"
                     >
                       Read

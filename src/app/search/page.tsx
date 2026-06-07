@@ -55,11 +55,11 @@ function SearchResults() {
 
   return (
     <div className="min-h-screen py-20 bg-black">
-      <div className="max-w-4xl mx-auto px-6">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4 flex items-center gap-4">
-            <Search size={36} className="text-primary" />
-            Search Results
+      <div className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="mb-8 sm:mb-12">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-4 flex items-center gap-3 sm:gap-4">
+            <Search size={24} className="text-primary shrink-0" />
+            <span className="break-words">Search Results</span>
           </h1>
           <p className="text-gray-400">
             Showing results for: <span className="text-white font-bold italic">"{query}"</span>
@@ -87,24 +87,24 @@ function SearchResults() {
                 className="block group"
               >
                 <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-6 hover:border-primary/50 transition-all duration-300 hover:bg-gray-900/60 shadow-lg hover:shadow-primary/5">
-                  <div className="flex items-start gap-5">
-                    <div className="p-3 bg-white/5 rounded-xl group-hover:bg-primary/10 transition-colors">
+                  <div className="flex items-start gap-3 sm:gap-5">
+                    <div className="p-2 sm:p-3 bg-white/5 rounded-xl group-hover:bg-primary/10 transition-colors shrink-0">
                       {getIcon(result.type)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-4 mb-1">
-                        <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors truncate">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-1">
+                        <h3 className="text-base sm:text-xl font-bold text-white group-hover:text-primary transition-colors truncate">
                           {result.title}
                         </h3>
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-white/5 text-gray-500 border border-white/10 group-hover:border-primary/30 group-hover:text-primary/70 transition-all">
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded bg-white/5 text-gray-500 border border-white/10 group-hover:border-primary/30 group-hover:text-primary/70 transition-all w-fit">
                           {result.type}
                         </span>
                       </div>
-                      <p className="text-sm text-primary/70 font-semibold mb-2">{result.subtitle}</p>
-                      <p className="text-sm text-gray-400 line-clamp-2 break-all">
+                      <p className="text-xs sm:text-sm text-primary/70 font-semibold mb-2">{result.subtitle}</p>
+                      <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 break-all">
                         {result.description}
                       </p>
-                      <div className="mt-4 flex items-center gap-2 text-xs font-bold text-gray-500 group-hover:text-primary transition-colors">
+                      <div className="mt-3 sm:mt-4 flex items-center gap-2 text-xs font-bold text-gray-500 group-hover:text-primary transition-colors">
                         GO TO {result.type.toUpperCase()} <ArrowRight size={14} />
                       </div>
                     </div>

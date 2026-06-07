@@ -82,9 +82,9 @@ export default function ExamsPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <BookOpen size={28} className="text-primary" />
-            <h1 className="text-4xl font-bold">Exams</h1>
+          <div className="flex items-center gap-2 sm:gap-3 mb-4">
+            <BookOpen size={24} className="text-primary shrink-0" />
+            <h1 className="text-2xl sm:text-4xl font-bold">Exams</h1>
           </div>
           <p className="text-gray-400">Take exams to test your knowledge and earn points</p>
         </div>
@@ -98,10 +98,10 @@ export default function ExamsPage() {
         )}
 
         {/* Filter Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded font-semibold transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded font-semibold transition-colors text-xs sm:text-sm ${
               filter === "all"
                 ? "bg-primary text-black"
                 : "bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -111,7 +111,7 @@ export default function ExamsPage() {
           </button>
           <button
             onClick={() => setFilter("pending")}
-            className={`px-4 py-2 rounded font-semibold transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded font-semibold transition-colors text-xs sm:text-sm ${
               filter === "pending"
                 ? "bg-primary text-black"
                 : "bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -121,7 +121,7 @@ export default function ExamsPage() {
           </button>
           <button
             onClick={() => setFilter("completed")}
-            className={`px-4 py-2 rounded font-semibold transition-colors ${
+            className={`px-3 sm:px-4 py-2 rounded font-semibold transition-colors text-xs sm:text-sm ${
               filter === "completed"
                 ? "bg-primary text-black"
                 : "bg-gray-800 text-gray-300 hover:bg-gray-700"

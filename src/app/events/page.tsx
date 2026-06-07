@@ -103,7 +103,7 @@ export default function EventsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-linear-to-b from-gray-950 to-gray-900 flex items-center justify-center">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 size={32} className="animate-spin text-primary" />
           <p className="text-gray-400">Loading events...</p>
@@ -113,13 +113,13 @@ export default function EventsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-linear-to-b from-gray-950 to-gray-900">
+    <main>
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Calendar size={28} className="text-primary" />
-            <h1 className="text-4xl font-bold">Events</h1>
+          <div className="flex items-center gap-2 sm:gap-3 mb-4">
+            <Calendar size={24} className="text-primary shrink-0" />
+            <h1 className="text-2xl sm:text-4xl font-bold">Events</h1>
             {isPremium && (
               <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-semibold">
                 <Crown size={14} />
@@ -188,7 +188,7 @@ export default function EventsPage() {
                   >
                     {/* Event Photo */}
                     {(event.photo_url || (event.gallery_images && JSON.parse(event.gallery_images).length > 0)) && (
-                      <div className="w-full h-48 overflow-hidden border-b border-gray-800">
+                      <div className="w-full h-40 sm:h-48 overflow-hidden border-b border-gray-800">
                         <img 
                           src={event.photo_url || JSON.parse(event.gallery_images!)[0]} 
                           alt={event.title} 
@@ -197,11 +197,11 @@ export default function EventsPage() {
                       </div>
                     )}
 
-                    <div className="p-6">
+                    <div className="p-4 sm:p-6">
                       {/* Event Header */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{event.title}</h3>
+                      <div className="flex items-start justify-between mb-3 gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg sm:text-xl font-bold mb-2 group-hover:text-primary transition-colors break-words">{event.title}</h3>
                           <div className="flex items-center gap-2 flex-wrap">
                             {event.target_audience && event.target_audience !== 'all' && (
                               <span className="text-[10px] tracking-tighter bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 uppercase font-bold">

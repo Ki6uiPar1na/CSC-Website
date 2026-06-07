@@ -177,7 +177,7 @@ export default function EventDetailPage() {
             <img 
               src={event.photo_url || JSON.parse(event.gallery_images!)[0]} 
               alt={event.title} 
-              className="w-full h-auto max-h-[400px] object-cover hover:scale-105 transition-transform duration-700" 
+              className="w-full h-auto max-h-[250px] sm:max-h-[400px] object-cover hover:scale-105 transition-transform duration-700" 
             />
           </div>
         )}
@@ -185,8 +185,8 @@ export default function EventDetailPage() {
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4 gap-4">
-            <div className="flex-1">
-              <h1 className="text-4xl font-bold mb-2">{event.title}</h1>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl sm:text-4xl font-bold mb-2 break-words">{event.title}</h1>
               <div className="flex gap-2 flex-wrap">
                 {event.target_audience && event.target_audience !== 'all' && (
                   <span className="badge bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase text-[10px] tracking-widest font-bold">
@@ -414,12 +414,12 @@ export default function EventDetailPage() {
               </h2>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {JSON.parse(event.gallery_images).map((img: string, idx: number) => (
                 <div 
                   key={idx} 
                   onClick={() => setSelectedImage(img)}
-                  className="group relative aspect-video rounded-2xl overflow-hidden border border-gray-800 hover:border-accent/30 transition-all cursor-zoom-in"
+                  className="group relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-gray-800 hover:border-accent/30 transition-all cursor-zoom-in"
                 >
                   <img src={img} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   <div className="absolute inset-0 bg-accent/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>

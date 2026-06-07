@@ -23,50 +23,50 @@ export default function Home() {
         </Link>
       </div>
       
-      <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-        <div className="card text-left p-8">
-          <div className="text-primary text-4xl mb-4">⚡</div>
-          <h3 className="text-xl font-bold mb-2">Dynamic Scoring</h3>
-          <p className="text-gray-400 text-sm leading-relaxed">Challenges lose value as more people solve them. Speed is key to staying on top.</p>
+      <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 w-full">
+        <div className="card text-left">
+          <div className="text-primary text-3xl sm:text-4xl mb-3 sm:mb-4">⚡</div>
+          <h3 className="text-lg sm:text-xl font-bold mb-2">Dynamic Scoring</h3>
+          <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">Challenges lose value as more people solve them. Speed is key to staying on top.</p>
         </div>
-        <div className="card text-left p-8">
-          <div className="text-accent text-4xl mb-4">🔥</div>
-          <h3 className="text-xl font-bold mb-2">Streak Bonus</h3>
-          <p className="text-gray-400 text-sm leading-relaxed">Stay consistent. Maintain your daily login streak to earn significant point multipliers.</p>
+        <div className="card text-left">
+          <div className="text-accent text-3xl sm:text-4xl mb-3 sm:mb-4">🔥</div>
+          <h3 className="text-lg sm:text-xl font-bold mb-2">Streak Bonus</h3>
+          <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">Stay consistent. Maintain your daily login streak to earn significant point multipliers.</p>
         </div>
-        <div className="card text-left p-8">
-          <div className="text-primary text-4xl mb-4">🛠️</div>
-          <h3 className="text-xl font-bold mb-2">Module Mastery</h3>
-          <p className="text-gray-400 text-sm leading-relaxed">Complete entire challenge categories to unlock massive completion bonuses.</p>
+        <div className="card text-left">
+          <div className="text-primary text-3xl sm:text-4xl mb-3 sm:mb-4">🛠️</div>
+          <h3 className="text-lg sm:text-xl font-bold mb-2">Module Mastery</h3>
+          <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">Complete entire challenge categories to unlock massive completion bonuses.</p>
         </div>
       </div>
 
       <div className="mt-16 text-center px-4">
         <p className="text-gray-400 mb-6 text-lg font-semibold">Quick Links</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-8">
-          <Link href="/executive" className="card p-3 hover:border-primary transition-colors text-center">
-            <div className="text-xl mb-2">👥</div>
-            <span className="text-xs font-semibold uppercase">Executive</span>
+          <Link href="/executive" className="card hover:border-primary transition-colors text-center">
+            <div className="text-lg sm:text-xl mb-1 sm:mb-2">👥</div>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase">Executive</span>
           </Link>
-          <Link href="/alumni" className="card p-3 hover:border-primary transition-colors text-center">
-            <div className="text-xl mb-2">🎓</div>
-            <span className="text-xs font-semibold uppercase">Alumni</span>
+          <Link href="/alumni" className="card hover:border-primary transition-colors text-center">
+            <div className="text-lg sm:text-xl mb-1 sm:mb-2">🎓</div>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase">Alumni</span>
           </Link>
-          <Link href="/events" className="card p-3 hover:border-primary transition-colors text-center">
-            <div className="text-xl mb-2">📅</div>
-            <span className="text-xs font-semibold uppercase">Events</span>
+          <Link href="/events" className="card hover:border-primary transition-colors text-center">
+            <div className="text-lg sm:text-xl mb-1 sm:mb-2">📅</div>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase">Events</span>
           </Link>
-          <Link href="/contests" className="card p-3 hover:border-primary transition-colors text-center">
-            <div className="text-xl mb-2">🏆</div>
-            <span className="text-xs font-semibold uppercase">Contests</span>
+          <Link href="/contests" className="card hover:border-primary transition-colors text-center">
+            <div className="text-lg sm:text-xl mb-1 sm:mb-2">🏆</div>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase">Contests</span>
           </Link>
-          <Link href="/achievements" className="card p-3 hover:border-primary transition-colors text-center">
-            <div className="text-xl mb-2">⭐</div>
-            <span className="text-xs font-semibold uppercase">Achievements</span>
+          <Link href="/achievements" className="card hover:border-primary transition-colors text-center">
+            <div className="text-lg sm:text-xl mb-1 sm:mb-2">⭐</div>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase">Achievements</span>
           </Link>
-          <Link href="/leaderboard" className="card p-3 hover:border-primary transition-colors text-center">
-            <div className="text-xl mb-2">📊</div>
-            <span className="text-xs font-semibold uppercase">Leaderboard</span>
+          <Link href="/leaderboard" className="card hover:border-primary transition-colors text-center">
+            <div className="text-lg sm:text-xl mb-1 sm:mb-2">📊</div>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase">Leaderboard</span>
           </Link>
         </div>
       </div>
