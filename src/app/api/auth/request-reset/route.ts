@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       [user.id, token, expiresAt]
     );
 
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "https://club.jkkniuctf.tech";
     const resetLink = `${baseUrl}/reset-password/${token}`;
 
     await sendPasswordResetEmail(user.email, user.username, resetLink);

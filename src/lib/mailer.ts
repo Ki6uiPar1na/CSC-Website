@@ -63,7 +63,7 @@ function buildEventHtml(event: EventEmailData): string {
     }
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech' || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech';
 
   return `
 <!DOCTYPE html>
@@ -130,7 +130,7 @@ function buildEventText(event: EventEmailData): string {
     if (event.platform_name) details += `\nPlatform: ${event.platform_name}`;
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech' || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech';
 
   let text = `📢 New Event: ${event.title}\n`;
   text += `Date: ${dateStr} at ${timeStr}\n`;
@@ -195,7 +195,7 @@ export async function sendApprovalEmail(
     return false;
   }
 
-  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech' || 'http://localhost:3000';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://club.jkkniuctf.tech';
 
   const html = `
 <!DOCTYPE html>
