@@ -29,9 +29,7 @@ export default function GalleryPage() {
     const fetchGallery = async () => {
       try {
         setLoading(true);
-        const res = await fetch("/api/club-gallery", {
-          cache: "no-store"
-        });
+        const res = await fetch("/api/club-gallery");
         const data = await res.json();
         if (Array.isArray(data)) {
           setImages(data);

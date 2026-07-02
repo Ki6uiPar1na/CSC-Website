@@ -168,8 +168,8 @@ async function initDb() {
   }
 }
 
-// Run init in background
-initDb();
+// Run init deferred to avoid blocking module load
+setTimeout(() => initDb(), 0);
 
 export const ctfdPool = process.env.CTFD_DATABASE_URL
   ? mysql.createPool({

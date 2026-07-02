@@ -53,9 +53,7 @@ export default function EventsPage() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/events?page=${currentPage}&limit=15`, {
-        cache: "no-store"
-      });
+      const response = await fetch(`/api/events?page=${currentPage}&limit=15`);
       
       if (!response.ok) {
         throw new Error("Failed to fetch events");

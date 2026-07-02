@@ -120,9 +120,7 @@ export default function AlumniPage() {
 
     const fetchAlumni = async () => {
       try {
-        const response = await fetch(`/api/alumni?page=${currentPage}&limit=15`, {
-          cache: "no-store"
-        });
+        const response = await fetch(`/api/alumni?page=${currentPage}&limit=15`);
         if (response.ok) {
           const data = await response.json();
           setAlumni(Array.isArray(data.alumni) ? data.alumni : SAMPLE_ALUMNI);

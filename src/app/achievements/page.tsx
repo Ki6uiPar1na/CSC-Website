@@ -36,9 +36,7 @@ export default function AchievementsPage() {
     const fetchAchievements = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/club-achievements", {
-          cache: "no-store" // Prevent caching on client side
-        });
+        const response = await fetch("/api/club-achievements");
         if (response.ok) {
           const data = await response.json();
           console.log("Fetched achievements:", data?.length || 0);

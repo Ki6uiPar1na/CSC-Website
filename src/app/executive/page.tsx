@@ -40,9 +40,7 @@ export default function ExecutiveBody() {
 
     const fetchExecutives = async () => {
       try {
-        const response = await fetch("/api/executives", {
-          cache: "no-store"
-        });
+        const response = await fetch("/api/executives");
         if (response.ok) {
           const data = await response.json();
           const execs = data.executives || data;

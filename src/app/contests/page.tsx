@@ -36,9 +36,7 @@ export default function ContestsPage() {
 
     const fetchContests = async () => {
       try {
-        const response = await fetch(`/api/contests?page=${currentPage}&limit=15`, {
-          cache: "no-store"
-        });
+        const response = await fetch(`/api/contests?page=${currentPage}&limit=15`);
         if (response.ok) {
           const data = await response.json();
           setContests(Array.isArray(data.contests) ? data.contests : []);
