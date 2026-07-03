@@ -125,7 +125,7 @@ export default function AdminDashboard() {
       color: "from-green-500 to-green-600",
     },
     {
-      title: "Events",
+      title: "Events & News Update",
       count: stats?.totalEvents || 0,
       icon: <Calendar size={24} />,
       href: "/admin/events",

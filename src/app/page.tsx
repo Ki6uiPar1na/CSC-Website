@@ -54,7 +54,7 @@ export default function Home() {
           </Link>
           <Link href="/events" className="card hover:border-primary transition-colors text-center">
             <div className="text-lg sm:text-xl mb-1 sm:mb-2">📅</div>
-            <span className="text-[10px] sm:text-xs font-semibold uppercase">Events</span>
+            <span className="text-[10px] sm:text-xs font-semibold uppercase">Events & News Update</span>
           </Link>
           <Link href="/contests" className="card hover:border-primary transition-colors text-center">
             <div className="text-lg sm:text-xl mb-1 sm:mb-2">🏆</div>

@@ -146,7 +146,7 @@ export default function EventDetailPage() {
               onClick={() => router.push("/events")}
               className="primary px-6 py-2 font-mono"
             >
-              Back to Events
+              Back to Events & News Update
             </button>
           </div>
         </div>
@@ -457,7 +457,7 @@ export default function EventDetailPage() {
             onClick={() => router.push("/events")}
             className="text-primary hover:text-primary/80 font-mono text-sm uppercase"
           >
-            ← Back to Events
+            ← Back to Events & News Update
           </button>
         </div>
       </div>

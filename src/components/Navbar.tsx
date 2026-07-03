@@ -61,7 +61,7 @@ export default function Navbar() {
   const allNavItems = [
     { href: "/challenges", label: "Challenges", category: "main", requiresAuth: true },
     { href: "/leaderboard", label: "Leaderboard", category: "main", requiresAuth: true },
-    { href: "/events", label: "Events", category: "main" },
+    { href: "/events", label: "Events & News Update", category: "main" },
     { href: "/achievements", label: "Achievements", category: "explore" },
     { href: "/gallery", label: "Gallery", category: "explore" },
     { href: "/resources", label: "Resources", category: "explore", requiresAuth: true },

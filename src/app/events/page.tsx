@@ -117,7 +117,7 @@ export default function EventsPage() {
         <div className="mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-4">
             <Calendar size={24} className="text-primary shrink-0" />
-            <h1 className="text-2xl sm:text-4xl font-bold">Events</h1>
+            <h1 className="text-2xl sm:text-4xl font-bold">Events & News Update</h1>
             {isPremium && (
               <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-semibold">
                 <Crown size={14} />
