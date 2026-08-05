@@ -1,4 +1,5 @@
 import Link from "next/link";
+import AchievementsHighlight from "@/components/AchievementsHighlight";
 
 export default function Home() {
   return (
@@ -10,9 +11,8 @@ export default function Home() {
       <p className="text-base sm:text-lg text-gray-400 mb-2 font-semibold px-4">
         Cyber Security Club
       </p>
-      <p className="text-base sm:text-lg text-gray-400 mb-12 max-w-2xl px-4 mx-auto leading-relaxed">
-        Protecting the Digital Frontier. The premier hub for cyber security enthusiasts at JKKNIU. Learn, compete, and secure the future.
-      </p>
+
+      <AchievementsHighlight />
       
       <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6 w-full max-w-lg px-4">
         <Link href="/challenges" className="flex-1">
