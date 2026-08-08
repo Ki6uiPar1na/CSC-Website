@@ -66,7 +66,7 @@ export default function ModuleDetailPage() {
   }, [session, id, router]);
 
   if (status === "loading" || loading) {
-    return <div className="p-8 text-center text-primary font-mono animate-pulse">Loading Module...</div>;
+    return <div className="p-8 text-center text-primary animate-pulse">Loading Module...</div>;
   }
 
   if (!module) return null;
@@ -76,8 +76,8 @@ export default function ModuleDetailPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-gray-500 text-sm mb-8 font-mono">
-        <Link href="/resources" className="hover:text-primary transition-colors">RESOURCES</Link>
+      <div className="flex items-center gap-2 text-gray-500 text-sm mb-8">
+        <Link href="/resources" className="hover:text-primary transition-colors">Resources</Link>
         <ChevronRight size={14} />
         <span className="text-gray-300 truncate">{module.title.toUpperCase()}</span>
       </div>
@@ -85,7 +85,7 @@ export default function ModuleDetailPage() {
       {/* Module Header */}
       <div className="card mb-12 border-primary/20 bg-primary/5">
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <h1 className="text-3xl sm:text-4xl font-bold text-white">{module.title}</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary">{module.title}</h1>
           {!!module.is_premium && (
             <span className={`text-[10px] px-2 py-0.5 rounded flex items-center gap-1 font-bold ${isLocked ? 'bg-gray-800 text-gray-500 border border-white/5' : 'bg-primary/10 text-primary border border-primary/30'}`}>
               {isLocked ? <Lock size={10} /> : <CheckCircle2 size={10} className="text-green-500" />} PREMIUM
@@ -95,7 +95,7 @@ export default function ModuleDetailPage() {
         <p className="text-gray-400 text-lg leading-relaxed">{module.description}</p>
       </div>
 
-      <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+      <h2 className="text-2xl font-bold mb-8 text-foreground flex items-center gap-2">
         <BookOpen className="text-primary" size={20} />
         Course Curriculum
       </h2>
@@ -125,7 +125,7 @@ export default function ModuleDetailPage() {
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded border flex items-center justify-center font-bold font-mono transition-colors ${
+                    <div className={`w-10 h-10 rounded border flex items-center justify-center font-bold transition-colors ${
                       lesson.is_completed 
                         ? 'bg-green-500/20 border-green-500/50 text-green-500' 
                         : 'bg-gray-900 border-border-color text-primary group-hover:bg-primary group-hover:text-black'
@@ -137,7 +137,7 @@ export default function ModuleDetailPage() {
                         lesson.is_completed ? 'text-gray-400' : 'text-white group-hover:text-primary'
                       }`}>
                         {lesson.title}
-                        {lesson.is_completed && <span className="ml-2 text-xs font-mono text-green-500 uppercase tracking-wider">[LEARNED]</span>}
+                        {lesson.is_completed && <span className="ml-2 text-xs font-bold text-green-500">Learned</span>}
                       </h3>
                       <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
                         <span className="flex items-center gap-1">

@@ -202,23 +202,23 @@ export default function CtftimeAdmin() {
       {!loading && events.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <div className="bg-gray-900/40 border border-gray-800 rounded-xl px-4 py-3">
-            <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Total</p>
+            <p className="text-xs font-bold text-gray-500">Total</p>
             <p className="text-xl font-bold text-white mt-0.5">{statusCounts.total}</p>
           </div>
           <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl px-4 py-3">
-            <p className="text-[10px] text-blue-400 font-mono uppercase tracking-wider">Upcoming</p>
+            <p className="text-xs font-bold text-blue-400">Upcoming</p>
             <p className="text-xl font-bold text-blue-300 mt-0.5">{statusCounts.upcoming}</p>
           </div>
           <div className="bg-green-500/5 border border-green-500/20 rounded-xl px-4 py-3">
-            <p className="text-[10px] text-green-400 font-mono uppercase tracking-wider">Live</p>
+            <p className="text-xs font-bold text-green-400">Live</p>
             <p className="text-xl font-bold text-green-300 mt-0.5">{statusCounts.live}</p>
           </div>
           <div className="bg-gray-500/5 border border-gray-600/20 rounded-xl px-4 py-3">
-            <p className="text-[10px] text-gray-400 font-mono uppercase tracking-wider">Ended</p>
+            <p className="text-xs font-bold text-gray-400">Ended</p>
             <p className="text-xl font-bold text-gray-300 mt-0.5">{statusCounts.ended}</p>
           </div>
           <div className="bg-primary/5 border border-primary/20 rounded-xl px-4 py-3">
-            <p className="text-[10px] text-primary font-mono uppercase tracking-wider">Imported</p>
+            <p className="text-xs font-bold text-primary">Imported</p>
             <p className="text-xl font-bold text-primary mt-0.5">{statusCounts.imported}</p>
           </div>
         </div>
@@ -270,7 +270,7 @@ export default function CtftimeAdmin() {
           {searchQuery || statusFilter !== 'all' ? (
             <>
               <Search size={48} className="mx-auto mb-4 text-gray-700" />
-              <p className="text-gray-400 font-mono text-sm mb-2">No matching events</p>
+              <p className="text-sm text-gray-400 mb-2">No matching events</p>
               <button
                 onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}
                 className="text-xs text-primary hover:underline"
@@ -281,7 +281,7 @@ export default function CtftimeAdmin() {
           ) : (
             <>
               <Globe className="mx-auto mb-4 text-gray-700" size={64} />
-              <p className="text-gray-500 font-mono uppercase tracking-widest text-sm">No events found from CTFtime</p>
+              <p className="text-sm text-gray-500">No events found from CTFtime</p>
             </>
           )}
         </div>
@@ -322,14 +322,14 @@ export default function CtftimeAdmin() {
                             {event.format}
                           </span>
                         )}
-                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-800/50 rounded-full text-gray-500 font-mono">
+                        <span className="text-[10px] px-1.5 py-0.5 bg-gray-800/50 rounded-full text-gray-500">
                           {duration}
                         </span>
                       </div>
                       <h3 className="text-base font-bold text-white truncate group-hover:text-primary transition-colors">
                         {event.title}
                       </h3>
-                      <div className="flex items-center gap-1.5 text-[11px] text-gray-500 font-mono mt-1">
+                      <div className="flex items-center gap-1.5 text-[11px] text-gray-500 mt-1">
                         <Calendar size={11} className="text-primary shrink-0" />
                         <span>{formatDateTime(event.start)}</span>
                         <span className="text-gray-700">—</span>
@@ -424,7 +424,7 @@ export default function CtftimeAdmin() {
 
       {/* Last fetched timestamp */}
       {lastFetched && !loading && (
-        <p className="text-[10px] text-gray-600 font-mono text-center">
+        <p className="text-[10px] text-gray-600 text-center">
           Last updated: {lastFetched.toLocaleString()}
         </p>
       )}

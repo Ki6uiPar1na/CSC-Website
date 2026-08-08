@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Calendar, Search } from "lucide-react";
 import { SearchBox } from "@/components/SearchBox";
 
 interface Contest {
@@ -77,7 +77,7 @@ export default function ContestsPage() {
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-900 to-black py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h1 className="text-5xl sm:text-6xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-4">
             Contests & Competitions
           </h1>
           <p className="text-gray-300 text-lg max-w-2xl mx-auto font-light">
@@ -146,14 +146,14 @@ export default function ContestsPage() {
                       <h3 className="text-lg sm:text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">
                         {contest.name}
                       </h3>
-                      <p className="text-primary text-xs sm:text-sm font-mono mb-2">
-                        📅 {formatDate(contest.event_date)}
+                      <p className="flex items-center gap-1.5 text-primary text-xs sm:text-sm mb-2">
+                        <Calendar size={14} /> {formatDate(contest.event_date)}
                       </p>
                       <p className="text-gray-300 text-sm line-clamp-1 sm:line-clamp-2">
                         {contest.description}
                       </p>
                       {contest.team_name && (
-                        <p className="text-xs text-primary font-mono mt-2 flex items-center gap-1">
+                        <p className="text-xs text-primary mt-2 flex items-center gap-1">
                           Team: {contest.team_name}
                         </p>
                       )}

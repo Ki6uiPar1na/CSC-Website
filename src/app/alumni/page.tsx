@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Star } from "lucide-react";
 import { SearchBox } from "@/components/SearchBox";
 
 interface Alumni {
@@ -172,9 +172,9 @@ export default function AlumniPage() {
         {/* Header */}
         <div className="text-center mb-20">
           <div className="inline-block mb-4">
-            <span className="text-primary font-mono text-sm tracking-widest uppercase">Our Legacy</span>
+            <span className="text-sm font-bold text-primary">Our Legacy</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-6">
             Meet Our Alumni
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto leading-relaxed">
@@ -198,7 +198,7 @@ export default function AlumniPage() {
         ) : alumni.length === 0 ? (
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg mb-6">No alumni found yet.</p>
-            <Link href="/" className="inline-block px-8 py-3 bg-gradient-to-r from-primary to-accent text-black font-semibold hover:shadow-lg hover:shadow-primary/50 transition-all duration-300 rounded-lg">
+            <Link href="/" className="btn-primary">
               Back to Home
             </Link>
           </div>
@@ -277,7 +277,7 @@ export default function AlumniPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-bold truncate">{alum.name}</h3>
-                        <p className="text-primary text-xs font-mono uppercase tracking-wide">
+                        <p className="text-xs font-semibold text-primary">
                           Session {alum.session}
                         </p>
                       </div>
@@ -294,8 +294,8 @@ export default function AlumniPage() {
                         View Details →
                       </button>
                       {alum.achievements && (
-                        <span className="text-xs text-gray-500 bg-secondary/50 px-3 py-1 rounded-full">
-                          ⭐ Achievements
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-secondary/50 px-3 py-1 rounded-full">
+                          <Star size={12} /> Achievements
                         </span>
                       )}
                     </div>
@@ -319,7 +319,7 @@ export default function AlumniPage() {
                           )}
                           <div className="flex-1">
                             <h2 className="text-3xl font-bold mb-2">{alum.name}</h2>
-                            <p className="text-primary text-sm font-mono uppercase tracking-widest mb-1">
+                            <p className="text-sm font-bold text-primary mb-1">
                               Session {alum.session}
                             </p>
                             <p className="text-accent text-lg font-semibold">
@@ -337,7 +337,7 @@ export default function AlumniPage() {
                         <div className="space-y-6">
                           {alum.bio && (
                             <div>
-                              <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-2">
+                              <h3 className="text-sm font-bold text-primary mb-2">
                                 About
                               </h3>
                               <p className="text-gray-300 leading-relaxed">
@@ -348,7 +348,7 @@ export default function AlumniPage() {
 
                           {alum.achievements && (
                             <div>
-                              <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-2">
+                              <h3 className="text-sm font-bold text-primary mb-2">
                                 Achievements
                               </h3>
                               <p className="text-gray-300 leading-relaxed">

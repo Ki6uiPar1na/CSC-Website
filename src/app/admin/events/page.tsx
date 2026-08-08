@@ -261,19 +261,19 @@ export default function EventsPage() {
       {/* Stats Bar */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="card bg-gray-900/40 border-gray-800 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Total Events</p>
+          <p className="text-xs font-bold text-gray-500 mb-1">Total Events</p>
           <p className="text-2xl font-bold">{events.length}</p>
         </div>
         <div className="card bg-gray-900/40 border-gray-800 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-green-500 font-bold mb-1">Active</p>
+          <p className="text-xs font-bold text-green-500 mb-1">Active</p>
           <p className="text-2xl font-bold text-green-400">{events.filter(e => e.is_active).length}</p>
         </div>
         <div className="card bg-gray-900/40 border-gray-800 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-yellow-500 font-bold mb-1">Premium</p>
+          <p className="text-xs font-bold text-yellow-500 mb-1">Premium</p>
           <p className="text-2xl font-bold text-yellow-400">{events.filter(e => e.is_premium).length}</p>
         </div>
         <div className="card bg-gray-900/40 border-gray-800 p-4">
-          <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Upcoming</p>
+          <p className="text-xs font-bold text-primary mb-1">Upcoming</p>
           <p className="text-2xl font-bold text-primary">{events.filter(e => !isEventFinished(e.event_date)).length}</p>
         </div>
       </div>
@@ -294,7 +294,7 @@ export default function EventsPage() {
           <select 
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="input h-10 text-xs font-bold uppercase tracking-wider bg-black/40"
+            className="input h-10 text-xs font-bold bg-black/40"
           >
             <option value="all">All Events</option>
             <option value="active">Active Only</option>
@@ -412,10 +412,10 @@ export default function EventsPage() {
 
                     {/* Badges */}
                     <div className="flex flex-wrap gap-2 pt-1">
-                      <span className="text-[9px] px-2 py-0.5 bg-black/40 border border-gray-700 rounded-full text-gray-400 uppercase font-bold tracking-widest">
+                      <span className="text-[9px] px-2 py-0.5 bg-black/40 border border-gray-700 rounded-full text-gray-400 uppercase font-bold">
                         {event.type}
                       </span>
-                      <span className={`text-[9px] px-2 py-0.5 border rounded-full uppercase font-bold tracking-widest ${
+                      <span className={`text-[9px] px-2 py-0.5 border rounded-full uppercase font-bold ${
                         event.target_audience === 'premium' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
                         event.target_audience === 'free' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                         'bg-gray-800 text-gray-400 border-gray-700'
@@ -423,7 +423,7 @@ export default function EventsPage() {
                         Audience: {event.target_audience}
                       </span>
                       {event.is_premium && (
-                        <span className="text-[9px] px-2 py-0.5 bg-yellow-500 text-black rounded-full uppercase font-bold tracking-widest flex items-center gap-1 shadow-lg shadow-yellow-500/10">
+                        <span className="text-[9px] px-2 py-0.5 bg-yellow-500 text-black rounded-full uppercase font-bold flex items-center gap-1 shadow-lg shadow-yellow-500/10">
                           <Lock size={8} /> Premium
                         </span>
                       )}
@@ -433,17 +433,17 @@ export default function EventsPage() {
                         </span>
                       )}
                       {event.convert_to_contest && !event.is_converted && !finished && (
-                        <span className="text-[9px] px-2 py-0.5 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full uppercase font-bold tracking-widest flex items-center gap-1">
+                        <span className="text-[9px] px-2 py-0.5 bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full uppercase font-bold flex items-center gap-1">
                           <Trophy size={8} /> Auto-Convert Pending
                         </span>
                       )}
                       {event.convert_to_contest && !event.is_converted && finished && (
-                        <span className="text-[9px] px-2 py-0.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full uppercase font-bold tracking-widest flex items-center gap-1">
+                        <span className="text-[9px] px-2 py-0.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full uppercase font-bold flex items-center gap-1">
                           <RefreshCw size={8} /> Ready to Convert
                         </span>
                       )}
                       {event.is_converted && (
-                        <span className="text-[9px] px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full uppercase font-bold tracking-widest flex items-center gap-1">
+                        <span className="text-[9px] px-2 py-0.5 bg-green-500/10 text-green-400 border border-green-500/20 rounded-full uppercase font-bold flex items-center gap-1">
                           <Trophy size={8} /> Converted
                         </span>
                       )}
@@ -454,7 +454,7 @@ export default function EventsPage() {
                         <button
                           onClick={() => handleConvertToContest(event)}
                           disabled={convertLoading}
-                          className="w-full py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
+                          className="w-full py-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 border border-orange-500/20 rounded-lg text-[10px] font-bold uppercase flex items-center justify-center gap-2 transition-all hover:scale-[1.01]"
                         >
                           {convertLoading ? <Loader2 size={12} className="animate-spin" /> : <Trophy size={12} />}
                           Convert to Contest & Achievement
@@ -482,7 +482,7 @@ export default function EventsPage() {
                   </div>
                   {editingEvent ? "Refine Event" : "Create Masterpiece"}
                 </h2>
-                <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">Configure your club event parameters</p>
+                <p className="text-xs text-gray-500 mt-1">Configure your club event parameters</p>
               </div>
               <button onClick={resetForm} className="p-2 hover:bg-gray-800 rounded-full transition-all text-gray-500 hover:text-white">
                 <X size={24} />
@@ -710,14 +710,14 @@ export default function EventsPage() {
               <div className="pt-8 border-t border-gray-800">
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-xs font-bold text-accent uppercase tracking-[0.2em]">Post-Event Coverage Gallery</h4>
-                  <span className="text-[10px] text-gray-500 uppercase font-bold">{JSON.parse(formData.gallery_images || "[]").length} Images Selected</span>
+                  <span className="text-[10px] text-gray-500 font-bold">{JSON.parse(formData.gallery_images || "[]").length} Images Selected</span>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
                   <label className="aspect-square rounded-2xl border-2 border-dashed border-gray-800 hover:border-accent/50 hover:bg-accent/5 cursor-pointer flex flex-col items-center justify-center text-gray-600 transition-all gap-2 group">
                     <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleImageChange(e, 'gallery')} />
                     <Plus size={24} className="group-hover:scale-110 transition-transform" />
-                    <span className="text-[8px] font-bold uppercase">Add Photos</span>
+                    <span className="text-[8px] font-bold">Add Photos</span>
                   </label>
 
                   {JSON.parse(formData.gallery_images || "[]").map((img: string, idx: number) => (
@@ -740,11 +740,11 @@ export default function EventsPage() {
 
             {/* Modal Footer */}
             <div className="p-6 border-t border-gray-800 bg-gray-900/50 flex justify-end gap-4 items-center">
-              <p className="text-[10px] text-gray-500 mr-auto uppercase font-bold tracking-tighter">Fields marked with * are required for synchronization</p>
+              <p className="text-[10px] text-gray-500 mr-auto font-bold">Fields marked with * are required for synchronization</p>
               <button 
                 type="button" 
                 onClick={resetForm}
-                className="px-6 py-2 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors"
+                className="px-6 py-2 text-xs font-bold text-gray-400 hover:text-white transition-colors"
               >
                 Discard
               </button>
@@ -752,7 +752,7 @@ export default function EventsPage() {
                 type="button"
                 onClick={handleSubmit}
                 disabled={formLoading || isCompressing}
-                className="px-8 py-3 bg-primary text-black font-bold uppercase text-xs tracking-widest rounded-xl flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+                className="px-8 py-3 bg-primary text-black font-bold text-xs rounded-xl flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
               >
                 {formLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                 {editingEvent ? "Sync Changes" : "Publish Event"}

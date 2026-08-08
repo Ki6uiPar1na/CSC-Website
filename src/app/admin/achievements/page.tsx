@@ -271,13 +271,13 @@ export default function AchievementsAdmin() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
-        <div className="text-sm text-gray-500 font-mono">
+        <div className="text-sm text-gray-500">
           {achievements.filter(a => {
             const q = searchQuery.toLowerCase();
             return a.competition_name.toLowerCase().includes(q) || 
                    (a.team_name && a.team_name.toLowerCase().includes(q)) ||
                    (a.team_members && a.team_members.toLowerCase().includes(q));
-          }).length} RESULTS
+          }).length} results
         </div>
       </div>
 
@@ -390,12 +390,12 @@ export default function AchievementsAdmin() {
 
             {/* Gallery Section */}
             <div className="md:col-span-2 pt-4 border-t border-gray-800">
-              <label className="block text-sm font-medium mb-2 uppercase tracking-wider font-mono text-accent">Achievement Gallery Images</label>
+              <label className="block text-sm font-medium mb-2 text-accent">Achievement Gallery Images</label>
               <div className="space-y-4">
                 <label className="block w-full cursor-pointer group">
                   <div className="border-2 border-dashed border-gray-800 group-hover:border-accent/50 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 transition-all">
                     {isCompressing ? <Loader2 className="animate-spin text-accent" size={32} /> : <ImageIcon className="text-gray-600 group-hover:text-accent" size={32} />}
-                    <p className="text-xs text-gray-500 uppercase font-bold tracking-tighter">
+                    <p className="text-xs text-gray-500 font-bold">
                       {isCompressing ? "Compressing images..." : "Click to add photos from the event"}
                     </p>
                   </div>
@@ -532,7 +532,7 @@ export default function AchievementsAdmin() {
                     </div>
 
                     {achievement.gallery_images && JSON.parse(achievement.gallery_images).length > 0 && (
-                      <div className="flex items-center gap-2 text-[10px] text-accent font-bold uppercase tracking-widest bg-accent/5 w-fit px-2 py-1 rounded border border-accent/10">
+                      <div className="flex items-center gap-2 text-[10px] text-accent font-bold bg-accent/5 w-fit px-2 py-1 rounded border border-accent/10">
                         <ImageIcon size={12} />
                         {JSON.parse(achievement.gallery_images).length} Gallery Images
                       </div>
@@ -557,7 +557,7 @@ export default function AchievementsAdmin() {
 
                     {achievement.team_members && (
                       <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700/50 overflow-hidden">
-                        <p className="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Members</p>
+                        <p className="text-xs font-semibold text-primary mb-1">Members</p>
                         <p className="text-sm text-gray-300 break-all">{achievement.team_members}</p>
                       </div>
                     )}

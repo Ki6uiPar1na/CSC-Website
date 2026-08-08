@@ -34,43 +34,46 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto py-12 px-4 sm:py-20">
-      <div className="card shadow-glow-primary border-primary/50">
-        <h2 className="text-2xl font-bold mb-8 text-center glitch-text tracking-widest uppercase">Member Login</h2>
+      <div className="card">
+        <h2 className="text-2xl font-bold text-center text-foreground">
+          Welcome <span className="text-primary">back</span>
+        </h2>
+        <p className="text-sm text-gray-500 text-center mt-2 mb-8">Sign in to continue your journey</p>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-mono uppercase text-gray-500 tracking-[0.2em] flex items-center gap-2">
+            <label className="text-xs font-semibold text-gray-400 flex items-center gap-2">
               <User size={12} className="text-primary" /> Username / Email
             </label>
-            <input 
-              type="text" 
-              value={username} 
-              onChange={(e) => setUsername(e.target.value)} 
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="bg-black/50 border-primary/20 focus:border-primary transition-all duration-300"
-              placeholder="USERNAME / EMAIL"
+              placeholder="username or email"
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <label className="text-[10px] font-mono uppercase text-gray-500 tracking-[0.2em] flex items-center gap-2">
+            <label className="text-xs font-semibold text-gray-400 flex items-center gap-2">
               <Lock size={12} className="text-primary" /> Password
             </label>
-            <input 
-              type="password" 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="bg-black/50 border-primary/20 focus:border-primary transition-all duration-300"
               placeholder="••••••••"
               required
             />
             <div className="flex justify-end">
-              <Link href="/forgot-password" className="text-[10px] font-mono text-gray-500 hover:text-primary transition-colors">
+              <Link href="/forgot-password" className="text-xs text-gray-500 hover:text-primary transition-colors">
                 Forgot password?
               </Link>
             </div>
           </div>
 
-          <CaptchaInput 
+          <CaptchaInput
             onVerify={(answer, token) => {
               setCaptchaAnswer(answer);
               setCaptchaToken(token);
@@ -78,19 +81,22 @@ export default function LoginPage() {
           />
 
           {error && (
-            <p className="text-error text-xs font-mono bg-error/10 p-3 rounded border border-error/20">
-              [!] ERROR: {error}
+            <p className="text-error text-sm bg-error/10 p-3 rounded-lg border border-error/20">
+              {error}
             </p>
           )}
 
-          <button type="submit" className="w-full py-3 font-bold text-lg tracking-[0.3em]">
-            INITIALIZE
+          <button type="submit" className="btn-primary w-full py-3 text-base">
+            Sign In
           </button>
         </form>
-        
-        <div className="mt-8 pt-8 border-t border-white/5 text-center">
+
+        <div className="mt-8 pt-6 border-t border-white/5 text-center">
           <p className="text-gray-500 text-sm">
-            New operative? <Link href="/register" className="text-primary font-bold hover:underline underline-offset-4 decoration-primary/50 ml-1 tracking-widest uppercase text-xs">Register</Link>
+            New here?{" "}
+            <Link href="/register" className="text-primary font-semibold hover:underline ml-1">
+              Create an account
+            </Link>
           </p>
         </div>
       </div>

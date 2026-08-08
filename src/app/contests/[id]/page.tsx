@@ -121,7 +121,7 @@ export default function ContestDetailPage() {
 
           <div className="p-8 sm:p-12">
             {/* Title */}
-            <h1 className="text-2xl sm:text-4xl font-black text-white mb-4 leading-tight break-words">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-4 leading-tight break-words">
               {contest.name}
             </h1>
 
@@ -148,7 +148,7 @@ export default function ContestDetailPage() {
             {/* Winners */}
             {winners.length > 0 && (
               <div className="bg-slate-800/50 border border-primary/20 rounded-xl p-6 mb-8">
-                <h2 className="text-xl font-bold text-accent mb-5 flex items-center gap-2">
+                <h2 className="text-2xl font-bold mb-8 text-center text-foreground flex items-center gap-2">
                   <Trophy size={20} /> Winners
                 </h2>
                 <ul className="space-y-4">
@@ -159,7 +159,7 @@ export default function ContestDetailPage() {
                       </span>
                       <div>
                         {w.label && (
-                          <p className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-0.5">
+                          <p className="text-sm font-bold text-primary mb-0.5">
                             {w.label}
                           </p>
                         )}

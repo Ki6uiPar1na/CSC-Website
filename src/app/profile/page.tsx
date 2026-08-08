@@ -56,7 +56,7 @@ export default function ProfilePage() {
     }
   }, [session]);
 
-  if (status === "loading" || loading) return <div className="p-8 text-center text-primary font-mono animate-pulse">Initializing Profile...</div>;
+  if (status === "loading" || loading) return <div className="p-8 text-center text-primary font-mono animate-pulse">Loading your profile...</div>;
   if (!session || !stats) return null;
 
   // Subscription Logic - Based on ACTIVE upgrade codes
@@ -105,7 +105,7 @@ export default function ProfilePage() {
             </span>
             {!neverSubscribed && (
               <span className={`badge flex items-center gap-1.5 px-2 py-0.5 ${isSubscribed ? 'badge-primary' : 'bg-error/10 text-error border border-error/20'}`}>
-                <Shield size={12} /> {isSubscribed ? "PREMIUM" : "EXPIRED"}
+                <Shield size={12} /> {isSubscribed ? "Premium" : "Expired"}
               </span>
             )}
           </div>
@@ -143,7 +143,7 @@ export default function ProfilePage() {
             )}
             <button 
               onClick={() => setIsUpgradeModalOpen(true)}
-              className="primary flex-1 sm:flex-none px-4 py-1.5 text-xs"
+              className="flex-1 sm:flex-none px-4 py-1.5 text-xs"
             >
               {neverSubscribed ? "Use Code" : "Use Code"}
             </button>
@@ -242,7 +242,7 @@ export default function ProfilePage() {
             })}
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 mt-2 text-[8px] font-mono text-gray-500 uppercase tracking-tighter">
+        <div className="flex items-center justify-end gap-2 mt-2 text-xs text-gray-500">
           <span>Less</span>
           <div className="w-2 h-2 bg-gray-800/20 border border-white/5 rounded-sm"></div>
           <div className="w-2 h-2 bg-primary/10 border border-primary/20 rounded-sm"></div>
@@ -262,10 +262,10 @@ export default function ProfilePage() {
               <li key={mod.moduleId} className="flex justify-between items-center py-1.5 border-b border-border-color/30 last:border-0">
                 <span className={`text-xs ${mod.isCompleted ? "text-foreground font-medium" : "text-gray-500"}`}>{mod.title}</span>
                 <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${mod.isCompleted ? "bg-accent/10 text-accent border border-accent/20" : "bg-gray-800 text-gray-600"}`}>
-                  {mod.isCompleted ? "COMPLETED" : "IN PROGRESS"}
+                  {mod.isCompleted ? "Completed" : "In Progress"}
                 </span>
               </li>
-            )) : <p className="text-xs text-gray-500 italic font-mono">No modules started.</p>}
+            )) : <p className="text-sm text-gray-500">No modules started.</p>}
           </ul>
         </div>
 
@@ -280,7 +280,7 @@ export default function ProfilePage() {
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-gray-500 italic font-mono">No solves detected.</p>
+            <p className="text-sm text-gray-500">No solves detected.</p>
           )}
         </div>
       </div>

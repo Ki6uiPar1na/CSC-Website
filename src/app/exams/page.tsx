@@ -84,7 +84,7 @@ export default function ExamsPage() {
         <div className="mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-4">
             <BookOpen size={24} className="text-primary shrink-0" />
-            <h1 className="text-2xl sm:text-4xl font-bold">Exams</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary">Exams</h1>
           </div>
           <p className="text-gray-400">Take exams to test your knowledge and earn points</p>
         </div>
@@ -172,7 +172,7 @@ export default function ExamsPage() {
                 {exam.user_attempted && (
                   <div className="mb-4 p-3 rounded bg-gray-800/50 border border-gray-700">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400 uppercase font-semibold">Your Score</span>
+                      <span className="text-xs font-semibold text-gray-400">Your Score</span>
                       <span
                         className={`text-lg font-bold ${
                           exam.user_passed ? "text-green-400" : "text-red-400"

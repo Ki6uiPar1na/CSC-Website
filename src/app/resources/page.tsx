@@ -66,7 +66,7 @@ export default function ResourcesPage() {
   }, [status]);
 
   if (status === "loading" || (status === "authenticated" && isLoading)) {
-    return <div className="p-12 text-center text-primary font-mono animate-pulse">Loading categories...</div>;
+    return <div className="p-12 text-center text-primary animate-pulse">Loading categories...</div>;
   }
   if (status === "unauthenticated") return null;
 
@@ -75,7 +75,7 @@ export default function ResourcesPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4">
-      <h1 className="glitch-text text-3xl sm:text-4xl md:text-5xl mb-8 tracking-tight">Hacker's Toolkit</h1>
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-8">Hacker's Toolkit</h1>
       <p className="text-gray-400 text-sm sm:text-base mb-8 max-w-2xl leading-relaxed">
         Curated resources and learning materials hand-picked by JKKNIU-CSC for your journey in cyber security.
       </p>

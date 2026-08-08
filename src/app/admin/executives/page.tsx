@@ -161,7 +161,7 @@ export default function ExecutivesAdmin() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin text-primary mb-4" size={48} />
-        <p className="text-gray-400 font-mono tracking-widest">LOADING EXECUTIVE ROSTER...</p>
+        <p className="text-gray-400">Loading executive roster...</p>
       </div>
     );
   }
@@ -190,7 +190,7 @@ export default function ExecutivesAdmin() {
           
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Full Name</label>
+              <label className="text-sm font-medium text-gray-400">Full Name</label>
               <input
                 type="text"
                 placeholder="e.g. John Doe"
@@ -202,7 +202,7 @@ export default function ExecutivesAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Role / Designation</label>
+              <label className="text-sm font-medium text-gray-400">Role / Designation</label>
               <input
                 type="text"
                 placeholder="e.g. President, Vice President"
@@ -214,7 +214,7 @@ export default function ExecutivesAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Executive Session</label>
+              <label className="text-sm font-medium text-gray-400">Executive Session</label>
               <input
                 type="text"
                 placeholder="e.g. 2026-2027"
@@ -226,7 +226,7 @@ export default function ExecutivesAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Profile Photo</label>
+              <label className="text-sm font-medium text-gray-400">Profile Photo</label>
               <input
                 type="file"
                 accept="image/*"
@@ -243,7 +243,7 @@ export default function ExecutivesAdmin() {
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Biography / Short Intro</label>
+              <label className="text-sm font-medium text-gray-400">Biography / Short Intro</label>
               <textarea
                 placeholder="Tell us a bit about this member..."
                 value={formData.bio}
@@ -253,7 +253,7 @@ export default function ExecutivesAdmin() {
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Social Media (JSON format)</label>
+              <label className="text-sm font-medium text-gray-400">Social Media (JSON format)</label>
               <textarea
                 placeholder='e.g. {"linkedin": "url", "github": "url"}'
                 value={formData.social_links}
@@ -287,13 +287,13 @@ export default function ExecutivesAdmin() {
         {sortedSessions.length === 0 ? (
           <div className="text-center py-24 bg-gray-900/30 border-2 border-dashed border-gray-800 rounded-3xl">
             <Users className="mx-auto mb-4 text-gray-700" size={64} />
-            <p className="text-gray-500 font-mono uppercase tracking-widest text-sm">No executive records found</p>
+            <p className="text-sm text-gray-500">No executive records found</p>
           </div>
         ) : (
           sortedSessions.map((session) => (
             <div key={session} className="space-y-6">
               <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Session {session}</h2>
+                <h2 className="text-2xl font-black text-white">Session {session}</h2>
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-primary/30 to-transparent"></div>
               </div>
               
@@ -319,7 +319,7 @@ export default function ExecutivesAdmin() {
                     </div>
 
                     <h3 className="text-xl font-bold text-white mb-1">{executive.name}</h3>
-                    <p className="text-primary font-mono text-xs uppercase tracking-widest mb-4">{executive.role}</p>
+                    <p className="text-primary text-xs font-bold mb-4">{executive.role}</p>
                     
                     {executive.bio && (
                       <p className="text-gray-400 text-sm line-clamp-2 italic mb-6">

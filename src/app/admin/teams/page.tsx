@@ -265,7 +265,7 @@ export default function TeamsAdmin() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin text-primary mb-4" size={48} />
-        <p className="text-gray-400 font-mono tracking-widest">LOADING TEAMS...</p>
+        <p className="text-gray-400">Loading teams...</p>
       </div>
     );
   }
@@ -295,7 +295,7 @@ export default function TeamsAdmin() {
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Team Name</label>
+              <label className="text-sm font-medium text-gray-400">Team Name</label>
               <input
                 type="text"
                 placeholder="e.g. Team-A, Team-B"
@@ -307,7 +307,7 @@ export default function TeamsAdmin() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Description (optional)</label>
+              <label className="text-sm font-medium text-gray-400">Description (optional)</label>
               <input
                 type="text"
                 placeholder="Brief description of the team"
@@ -318,7 +318,7 @@ export default function TeamsAdmin() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">CTFtime Team ID</label>
+              <label className="text-sm font-medium text-gray-400">CTFtime Team ID</label>
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -337,7 +337,7 @@ export default function TeamsAdmin() {
                   Fetch
                 </button>
               </div>
-              <p className="text-[10px] text-gray-500 font-mono">Enter a CTFtime team ID to auto-fill name & description</p>
+              <p className="text-[10px] text-gray-500">Enter a CTFtime team ID to auto-fill name & description</p>
             </div>
 
             {ctftimeData && (
@@ -354,7 +354,7 @@ export default function TeamsAdmin() {
 
                 {Object.keys(ctftimeData.rating).length > 0 && (
                   <div>
-                    <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mb-1.5">Country Rank by Year</p>
+                    <p className="text-[10px] text-gray-500 mb-1.5">Country Rank by Year</p>
                     <div className="flex flex-wrap gap-1.5">
                       {Object.entries(ctftimeData.rating)
                         .filter(([_, v]: any) => v?.country_place)
@@ -371,7 +371,7 @@ export default function TeamsAdmin() {
 
                 {ctftimeData.participated_events.length > 0 && (
                   <div>
-                    <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mb-1.5">
+                    <p className="text-[10px] text-gray-500 mb-1.5">
                       Recent CTF Participations ({ctftimeData.participated_events.length} total)
                     </p>
                     <div className="space-y-1 max-h-32 overflow-y-auto">
@@ -385,7 +385,7 @@ export default function TeamsAdmin() {
                     </div>
               {ctftimeData.members && ctftimeData.members.length > 0 && (
                 <div>
-                  <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mb-1.5">
+                  <p className="text-[10px] text-gray-500 mb-1.5">
                     CTFtime Members ({ctftimeData.members.length})
                   </p>
                   <div className="space-y-1 max-h-32 overflow-y-auto">
@@ -438,7 +438,7 @@ export default function TeamsAdmin() {
         {teams.length === 0 ? (
           <div className="text-center py-24 bg-gray-900/30 border-2 border-dashed border-gray-800 rounded-3xl">
             <Users className="mx-auto mb-4 text-gray-700" size={64} />
-            <p className="text-gray-500 font-mono uppercase tracking-widest text-sm">No teams found</p>
+            <p className="text-sm text-gray-500">No teams found</p>
             <button
               onClick={() => setShowForm(true)}
               className="btn btn-primary mt-6 inline-flex items-center gap-2"
@@ -506,7 +506,7 @@ export default function TeamsAdmin() {
                 <div className="border-t border-gray-800 p-5 animate-in slide-in-from-top-2 duration-200">
                   <div className="flex items-end gap-3 mb-6">
                     <div className="flex-1">
-                      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider font-mono mb-1 block">
+                      <label className="text-xs font-medium text-gray-400 mb-1 block">
                         Add Member
                       </label>
                       <select
@@ -538,7 +538,7 @@ export default function TeamsAdmin() {
                   ) : (teamMembers[team.id]?.length || 0) === 0 ? (
                     <div className="text-center py-8 bg-gray-800/20 rounded-xl border border-dashed border-gray-700">
                       <UserPlus className="mx-auto mb-2 text-gray-600" size={32} />
-                      <p className="text-gray-500 text-sm font-mono">No members in this team yet</p>
+                      <p className="text-gray-500 text-sm">No members in this team yet</p>
                     </div>
                   ) : (
                     <div className="space-y-2">

@@ -111,7 +111,7 @@ export default function ExamTakerPage() {
   };
 
   if (status === "loading" || loading) {
-    return <div className="p-8 text-center text-primary font-mono animate-pulse">Loading Exam...</div>;
+    return <div className="p-8 text-center text-primary animate-pulse">Loading Exam...</div>;
   }
 
   if (error && !result) {
@@ -152,13 +152,13 @@ export default function ExamTakerPage() {
           <div className="grid gap-4 mb-10 max-w-md mx-auto">
             {result.results.map((r: any, idx: number) => (
               <div key={idx} className={`flex items-center justify-between p-3 rounded border ${r.isCorrect ? 'bg-green-500/5 border-green-500/20' : 'bg-error/5 border-error/20'}`}>
-                <span className="text-sm text-gray-400 font-mono">Question {idx + 1}</span>
+                  <span className="text-sm text-gray-400">Question {idx + 1}</span>
                 {r.isCorrect ? (
-                  <span className="text-green-500 flex items-center gap-1 text-sm font-bold uppercase tracking-wider">
+                  <span className="text-green-500 flex items-center gap-1 text-sm font-bold">
                     <Check size={16} /> Correct
                   </span>
                 ) : (
-                  <span className="text-error flex items-center gap-1 text-sm font-bold uppercase tracking-wider">
+                  <span className="text-error flex items-center gap-1 text-sm font-bold">
                     <XCircle size={16} /> Incorrect
                   </span>
                 )}
@@ -194,11 +194,11 @@ export default function ExamTakerPage() {
       <div className="mb-10">
         <Link 
           href="/resources"
-          className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-mono text-sm mb-4"
+          className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors text-sm mb-4"
         >
-          <ChevronLeft size={16} /> EXIT EXAM
+          <ChevronLeft size={16} /> Exit Exam
         </Link>
-        <h1 className="text-3xl font-bold text-white mb-2">{exam.title}</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-2">{exam.title}</h1>
         <p className="text-gray-400">{exam.description}</p>
       </div>
 
@@ -212,8 +212,8 @@ export default function ExamTakerPage() {
                 </span>
                 <h3 className="text-lg font-semibold text-white leading-relaxed">{q.question_text}</h3>
               </div>
-              <span className="text-[10px] font-mono font-bold tracking-tighter text-gray-500 py-1 px-2 bg-gray-800 rounded uppercase">
-                {q.points} PTS
+              <span className="text-[10px] font-bold text-gray-500 py-1 px-2 bg-gray-800 rounded">
+                {q.points} pts
               </span>
             </div>
 
@@ -245,13 +245,13 @@ export default function ExamTakerPage() {
                         </span>
                       </div>
                       {isSelected && (
-                        <div className="text-[10px] font-bold text-primary uppercase tracking-widest hidden sm:block">Selected</div>
+                        <div className="text-[10px] font-bold text-primary hidden sm:block">Selected</div>
                       )}
                     </div>
                   );
                 })}
                 {q.question_type === 'checkbox' && (
-                  <p className="text-[10px] text-gray-500 italic mt-2 uppercase tracking-widest">
+                  <p className="text-xs text-gray-500 italic mt-2">
                     * Multiple answers may be correct. Select all that apply.
                   </p>
                 )}
@@ -294,8 +294,8 @@ export default function ExamTakerPage() {
                     ) : (
                       <CheckCircle2 size={20} />
                     )}
-                    <span className="font-bold text-sm tracking-wider uppercase">
-                      {solvedChallengeIds.includes(q.challenge_id!) ? 'Challenge Solved ✓' : 'Challenge Verification'}
+                    <span className="font-bold text-sm tracking-wider">
+                      {solvedChallengeIds.includes(q.challenge_id!) ? 'Challenge Solved' : 'Challenge Verification'}
                     </span>
                   </div>
                   <p className="text-sm text-gray-400 mb-6 max-w-lg leading-relaxed">
@@ -324,8 +324,8 @@ export default function ExamTakerPage() {
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-xl border-t border-border-color z-50">
           <div className="max-w-4xl mx-auto flex justify-between items-center">
             <div className="hidden sm:block">
-              <span className="text-xs text-gray-500 uppercase tracking-widest">Progress</span>
-              <p className="text-sm text-white font-mono">
+              <span className="text-xs font-semibold text-gray-500">Progress</span>
+              <p className="text-sm text-white">
                 {exam.questions.reduce((count, q) => {
                   if (q.question_type === 'challenge') {
                     return count + (solvedChallengeIds.includes(q.challenge_id!) ? 1 : 0);

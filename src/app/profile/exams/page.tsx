@@ -93,7 +93,7 @@ export default function ExamResultsPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded mb-6">
+          <div className="bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-6">
             <p className="text-sm">{error}</p>
           </div>
         )}

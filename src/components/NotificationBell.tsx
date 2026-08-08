@@ -121,7 +121,7 @@ export default function NotificationBell() {
             <div className="absolute right-0 top-full mt-2 w-96 max-h-96 overflow-y-auto bg-secondary border border-border-color rounded-lg shadow-xl z-50 backdrop-blur-xl custom-scrollbar">
           {/* Header */}
           <div className="sticky top-0 bg-secondary border-b border-border-color p-4 flex justify-between items-center">
-            <h3 className="text-sm font-bold text-primary uppercase tracking-widest">
+            <h3 className="text-sm font-bold text-primary">
               Notifications {unreadCount > 0 && `(${unreadCount})`}
             </h3>
             <button
@@ -165,7 +165,7 @@ export default function NotificationBell() {
                       {!notification.read && (
                         <button
                           onClick={() => markAsRead(notification.id)}
-                          className="text-[10px] px-2 py-1 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors border-none cursor-pointer font-mono uppercase"
+                          className="text-[10px] px-2 py-1 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors border-none cursor-pointer"
                           title="Mark as read"
                         >
                           Read
@@ -186,7 +186,7 @@ export default function NotificationBell() {
           ) : (
             <div className="p-8 text-center">
               <Bell size={24} className="text-gray-600 mx-auto mb-2" />
-              <p className="text-xs text-gray-500 font-mono uppercase">
+              <p className="text-sm text-gray-500">
                 No notifications yet
               </p>
             </div>
@@ -200,7 +200,7 @@ export default function NotificationBell() {
                   setNotifications([]);
                   setUnreadCount(0);
                 }}
-                className="text-xs text-gray-400 hover:text-gray-300 transition-colors bg-transparent border-none cursor-pointer uppercase font-mono"
+                className="text-xs text-gray-400 hover:text-gray-300 transition-colors bg-transparent border-none cursor-pointer"
               >
                 Clear All
               </button>

@@ -295,7 +295,7 @@ export default function UpgradeCodesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-800/50 text-gray-400 text-xs uppercase tracking-wider">
+                <tr className="bg-gray-800/50 text-gray-400 text-xs">
                   <th className="px-6 py-4 font-semibold w-12">
                     <input
                       type="checkbox"
@@ -409,7 +409,7 @@ export default function UpgradeCodesPage() {
 
             <form onSubmit={handleGenerateCodes} className="space-y-5">
               <div>
-                <label className="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">Special Offer / Custom Code</label>
+                <label className="block text-xs font-bold text-gray-500 mb-2">Special Offer / Custom Code</label>
                 <input
                   type="text"
                   placeholder="e.g. EID2026, RAMADAN-SPECIAL"
@@ -424,7 +424,7 @@ export default function UpgradeCodesPage() {
               <div className="grid grid-cols-2 gap-4">
                 {!formData.custom_code && (
                   <div>
-                    <label className="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">Quantity</label>
+                    <label className="block text-xs font-bold text-gray-500 mb-2">Quantity</label>
                     <input
                       type="number"
                       value={formData.count}
@@ -438,7 +438,7 @@ export default function UpgradeCodesPage() {
                 )}
 
                 <div className={formData.custom_code ? "col-span-2" : ""}>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">Usage Limit</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-2">Usage Limit</label>
                   <input
                     type="number"
                     value={formData.usage_limit}
@@ -453,7 +453,7 @@ export default function UpgradeCodesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">Duration (Mo)</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-2">Duration (Mo)</label>
                   <input
                     type="number"
                     value={formData.validity_months}
@@ -467,7 +467,7 @@ export default function UpgradeCodesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">Expiration (Days)</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-2">Expiration (Days)</label>
                   <input
                     type="number"
                     value={formData.expires_in_days}
@@ -482,7 +482,7 @@ export default function UpgradeCodesPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">Payment Source</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-2">Payment Source</label>
                   <select
                     value={formData.payment_method}
                     onChange={(e) => setFormData({ ...formData, payment_method: e.target.value })}
@@ -496,7 +496,7 @@ export default function UpgradeCodesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-wider text-gray-500 font-bold mb-2">Price (TK)</label>
+                  <label className="block text-xs font-bold text-gray-500 mb-2">Price (TK)</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">৳</span>
                     <input

@@ -86,13 +86,13 @@ export default function AchievementsHighlight() {
   return (
     <div className="mt-8 w-full">
       <div className="text-center mb-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.2em] mb-4">
+        <span className="section-badge mb-4">
           <Trophy size={14} /> Victories
-        </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
+        </span>
+        <h2 className="mt-4 text-2xl sm:text-3xl md:text-4xl font-bold">
           Club <span className="text-primary">Achievements</span>
         </h2>
-        <p className="text-gray-400 text-sm sm:text-base">
+        <p className="text-gray-400 text-sm sm:text-base mt-2">
           Celebrating our victories
         </p>
       </div>
@@ -114,10 +114,10 @@ export default function AchievementsHighlight() {
             return (
             <div
               key={achievement.id}
-              className="card text-left overflow-hidden hover:border-primary/60 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
+              className="card text-left overflow-hidden hover:border-primary/60 hover:shadow-xl hover:shadow-primary/10 transition-all duration-300"
             >
               {coverImage && (
-                <div className="relative -mx-3 -mt-3 sm:-mx-6 sm:-mt-6 mb-3 aspect-[16/9] overflow-hidden rounded-t-sm bg-secondary">
+                <div className="relative -mx-3 -mt-3 sm:-mx-6 sm:-mt-6 mb-3 aspect-[16/9] overflow-hidden rounded-t-xl bg-secondary">
                   <img
                     src={coverImage}
                     alt={achievement.competition_name}
@@ -128,7 +128,7 @@ export default function AchievementsHighlight() {
                     }}
                   />
                   {galleryImages.length > 1 && (
-                    <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm border border-primary/30 text-primary text-[10px] font-mono font-bold rounded-sm">
+                    <span className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/70 backdrop-blur-sm border border-primary/30 text-primary text-[10px] font-mono font-bold rounded-full">
                       +{galleryImages.length - 1} photos
                     </span>
                   )}

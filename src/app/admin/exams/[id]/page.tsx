@@ -179,7 +179,7 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
     return (
       <div className="flex flex-col items-center justify-center min-h-75">
         <Loader2 className="animate-spin text-primary mb-4" size={48} />
-        <p className="text-gray-400 font-mono">Loading exam...</p>
+        <p className="text-gray-400">Loading exam...</p>
       </div>
     );
   }
@@ -227,7 +227,7 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
                   <div className="flex justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono bg-gray-800 px-2 py-0.5 rounded text-gray-400 uppercase">{q.question_type}</span>
+                        <span className="text-xs bg-gray-800 px-2 py-0.5 rounded text-gray-400 uppercase">{q.question_type}</span>
                         <span className="text-xs font-mono bg-primary/10 px-2 py-0.5 rounded text-primary">{q.points} pts</span>
                       </div>
                       <p className="text-white font-medium">{q.question_text}</p>

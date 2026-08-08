@@ -198,78 +198,23 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Navigation - Centered */}
-        <nav className="hidden lg:flex justify-center gap-2 items-center flex-wrap px-4 sm:px-6 lg:px-8">
-          {/* Main Platform Section */}
-          <div className="flex gap-2">
-            {navItems
-              .filter(item => item.category === "main")
-              .map((item) => {
-                const active = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`px-4 py-2 rounded-lg border transition-all text-sm font-semibold uppercase tracking-wide ${
-                      active 
-                        ? "bg-primary text-black border-primary shadow-lg shadow-primary/20" 
-                        : "border-primary/50 text-foreground hover:text-primary hover:bg-primary/10"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-          </div>
-
-          {/* Divider */}
-          <div className="w-px h-6 bg-primary/30" />
-
-          {/* Explore Section */}
-          <div className="flex gap-2">
-            {navItems
-              .filter(item => item.category === "explore")
-              .map((item) => {
-                const active = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium uppercase tracking-wide ${
-                      active
-                        ? "bg-primary text-black border-primary shadow-lg shadow-primary/20"
-                        : "border-primary/30 text-foreground/80 hover:text-foreground hover:bg-primary/5"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-          </div>
-
-          {/* Divider */}
-          <div className="w-px h-6 bg-primary/30" />
-
-          {/* About & Community Section */}
-          <div className="flex gap-2">
-            {navItems
-              .filter(item => item.category === "about")
-              .map((item) => {
-                const active = pathname === item.href;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`px-4 py-2 rounded-lg border transition-all text-sm font-medium uppercase tracking-wide ${
-                      active
-                        ? "bg-primary text-black border-primary shadow-lg shadow-primary/20"
-                        : "border-primary/20 text-foreground/70 hover:text-foreground hover:bg-primary/5"
-                    }`}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-          </div>
+        <nav className="hidden lg:flex justify-center gap-1 items-center flex-wrap px-4 sm:px-6 lg:px-8">
+          {navItems.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`px-4 py-2 rounded-lg transition-all text-sm font-semibold ${
+                  active
+                    ? "bg-primary text-background shadow-lg shadow-primary/20"
+                    : "text-foreground/75 hover:text-foreground hover:bg-white/5"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
@@ -289,10 +234,10 @@ export default function Navbar() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center px-4 py-3 rounded-lg border transition-all font-semibold uppercase tracking-wide ${
+                        className={`flex items-center px-4 py-3 rounded-xl transition-all font-semibold ${
                           active
-                            ? "bg-primary text-black border-primary"
-                            : "border-primary/50 text-foreground hover:border-primary hover:bg-primary/10"
+                            ? "bg-primary text-background"
+                            : "text-foreground/80 hover:bg-white/5"
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
@@ -303,7 +248,7 @@ export default function Navbar() {
               </div>
             </div>
 
-            <div className="h-px bg-primary/20" />
+            <div className="h-px bg-white/10" />
 
             {/* Explore Section */}
             <div>
@@ -317,10 +262,10 @@ export default function Navbar() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center px-4 py-3 rounded-lg border transition-all font-medium uppercase tracking-wide ${
+                        className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium ${
                           active
-                            ? "bg-primary text-black border-primary"
-                            : "border-primary/30 text-foreground/80 hover:border-primary hover:bg-primary/5"
+                            ? "bg-primary text-background"
+                            : "text-foreground/75 hover:bg-white/5"
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
@@ -331,7 +276,7 @@ export default function Navbar() {
               </div>
             </div>
 
-            <div className="h-px bg-primary/20" />
+            <div className="h-px bg-white/10" />
 
             {/* About & Community Section */}
             <div>
@@ -345,10 +290,10 @@ export default function Navbar() {
                       <Link
                         key={item.href}
                         href={item.href}
-                        className={`flex items-center px-4 py-3 rounded-lg border transition-all font-medium uppercase tracking-wide ${
+                        className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium ${
                           active
-                            ? "bg-primary text-black border-primary"
-                            : "border-primary/20 text-foreground/70 hover:border-primary hover:bg-primary/5"
+                            ? "bg-primary text-background"
+                            : "text-foreground/70 hover:bg-white/5"
                         }`}
                         onClick={() => setIsOpen(false)}
                       >
@@ -359,7 +304,7 @@ export default function Navbar() {
               </div>
             </div>
 
-            <div className="h-px bg-primary/20" />
+            <div className="h-px bg-white/10" />
 
             {/* Account Section */}
             {session ? (
@@ -368,7 +313,7 @@ export default function Navbar() {
                 <div className="space-y-2">
                   <Link
                     href="/notifications"
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg border border-primary/40 hover:border-primary hover:bg-primary/10 transition-all text-foreground font-semibold uppercase tracking-wide"
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-foreground font-semibold"
                     onClick={() => setIsOpen(false)}
                   >
                     <Bell size={18} className="text-primary" />
@@ -385,7 +330,7 @@ export default function Navbar() {
                       router.push("/profile");
                       setIsOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-primary/40 hover:border-primary hover:bg-primary/10 transition-all text-foreground font-semibold uppercase tracking-wide"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all text-foreground font-semibold"
                   >
                     <User size={18} className="text-primary" />
                     <span>{session.user?.name}</span>
@@ -427,7 +372,7 @@ export default function Navbar() {
                       signOut();
                       setIsOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-error/40 hover:border-error hover:bg-error/10 transition-all text-error font-semibold uppercase tracking-wide"
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-error/10 transition-all text-error font-semibold"
                   >
                     <LogOut size={18} />
                     <span>Logout</span>

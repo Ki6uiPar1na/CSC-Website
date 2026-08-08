@@ -547,7 +547,7 @@ export default function UsersPage() {
                 <>
                   {roleToUpdate.step === 1 ? (
                     <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
-                      <p className="text-red-400 font-bold mb-2 uppercase tracking-wider text-xs flex items-center gap-2">
+                      <p className="text-red-400 font-bold mb-2 text-xs flex items-center gap-2">
                         ⚠️ Security Warning
                       </p>
                       <p className="text-sm text-gray-300 leading-relaxed">

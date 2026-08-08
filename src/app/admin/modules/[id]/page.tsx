@@ -339,7 +339,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin text-primary mb-4" size={48} />
-        <p className="text-gray-400 font-mono">RETRIEVING MODULE DATA...</p>
+        <p className="text-gray-400">Retrieving module data...</p>
       </div>
     );
   }
@@ -373,16 +373,16 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
             </h2>
             <div className="space-y-4">
               <div>
-                <label className="text-xs text-gray-500 uppercase font-mono">Description</label>
+                <label className="text-xs text-gray-500">Description</label>
                 <p className="text-gray-300">{module.description}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-500 uppercase font-mono">Lessons</label>
+                  <label className="text-xs text-gray-500">Lessons</label>
                   <p className="text-xl font-bold text-white">{lessons.length}</p>
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 uppercase font-mono">Bonus Points</label>
+                  <label className="text-xs text-gray-500">Bonus Points</label>
                   <p className="text-xl font-bold text-primary">{module.completion_bonus_points} pts</p>
                 </div>
               </div>
@@ -614,7 +614,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
                       <div className="flex justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs font-mono bg-gray-800 px-2 py-0.5 rounded text-gray-400 uppercase">{q.question_type}</span>
+                            <span className="text-xs bg-gray-800 px-2 py-0.5 rounded text-gray-400 uppercase">{q.question_type}</span>
                             <span className="text-xs font-mono bg-primary/10 px-2 py-0.5 rounded text-primary">{q.points} pts</span>
                           </div>
                           <p className="text-white font-medium">{q.question_text}</p>

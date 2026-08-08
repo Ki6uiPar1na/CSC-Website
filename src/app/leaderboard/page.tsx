@@ -38,14 +38,14 @@ export default function LeaderboardPage() {
     }
   }, [status, router, currentPage]);
 
-  if (status === "loading" || loading) return <div className="p-12 text-center text-primary font-mono animate-pulse">Retrieving Rankings...</div>;
+  if (status === "loading" || loading) return <div className="p-12 text-center text-primary animate-pulse">Loading rankings...</div>;
   if (status === "unauthenticated") return null;
 
   return (
     <div className="max-w-4xl mx-auto px-4">
       <div className="flex items-center gap-3 sm:gap-4 mb-8">
         <Trophy className="text-primary shrink-0" size={24} />
-        <h1 className="glitch-text text-2xl sm:text-4xl md:text-5xl uppercase tracking-tight break-words">Leaderboard</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary break-words">Leaderboard</h1>
       </div>
 
       <div className="card p-0 overflow-hidden border-border-color shadow-xl">
@@ -53,16 +53,16 @@ export default function LeaderboardPage() {
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-black/50 border-b-2 border-border-color">
-                <th className="px-6 py-5 text-[10px] sm:text-xs font-mono text-primary uppercase tracking-widest">Rank</th>
-                <th className="px-6 py-5 text-[10px] sm:text-xs font-mono text-primary uppercase tracking-widest">Operative</th>
-                <th className="px-6 py-5 text-[10px] sm:text-xs font-mono text-primary uppercase tracking-widest">Persistence</th>
-                <th className="px-6 py-5 text-[10px] sm:text-xs font-mono text-primary uppercase tracking-widest">Points</th>
+                <th className="px-6 py-5 text-sm font-bold text-primary">Rank</th>
+                <th className="px-6 py-5 text-sm font-bold text-primary">Member</th>
+                <th className="px-6 py-5 text-sm font-bold text-primary">Streak</th>
+                <th className="px-6 py-5 text-sm font-bold text-primary">Points</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-color/30">
               {leaderboard.map((user, index) => (
                 <tr key={user.id} className="hover:bg-primary/5 transition-colors duration-150">
-                  <td className="px-6 py-5 font-mono text-sm sm:text-base">
+                  <td className="px-6 py-5 text-sm sm:text-base">
                     <span className={`inline-flex items-center justify-center w-8 h-8 rounded shrink-0 ${index === 0 ? 'bg-primary text-black font-bold' : (index === 1 ? 'bg-gray-400 text-black' : (index === 2 ? 'bg-orange-600 text-black' : 'text-gray-500'))}`}>
                       {index + 1}
                     </span>
@@ -74,9 +74,9 @@ export default function LeaderboardPage() {
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-accent text-sm sm:text-base font-mono">
+                    <div className="flex items-center gap-2 text-accent text-sm sm:text-base">
                       <Flame size={16} />
-                      {user.current_streak} <span className="text-[10px] opacity-50 uppercase tracking-tighter">days</span>
+                      {user.current_streak} <span className="text-[10px] opacity-50">days</span>
                     </div>
                   </td>
                   <td className="px-6 py-5">

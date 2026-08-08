@@ -196,7 +196,7 @@ export default function ContestsAdmin() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin text-primary mb-4" size={48} />
-        <p className="text-gray-400 font-mono tracking-widest">INITIALIZING CONTESTS...</p>
+        <p className="text-gray-400">Initializing contests...</p>
       </div>
     );
   }
@@ -225,7 +225,7 @@ export default function ContestsAdmin() {
           
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Contest Name</label>
+              <label className="text-sm font-medium text-gray-400">Contest Name</label>
               <input
                 type="text"
                 placeholder="e.g. Inter-University Programming Contest 2025"
@@ -237,7 +237,7 @@ export default function ContestsAdmin() {
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Description (Short)</label>
+              <label className="text-sm font-medium text-gray-400">Description (Short)</label>
               <textarea
                 placeholder="Briefly describe the contest..."
                 required
@@ -248,7 +248,7 @@ export default function ContestsAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Event Date & Time</label>
+              <label className="text-sm font-medium text-gray-400">Event Date & Time</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                 <input
@@ -262,7 +262,7 @@ export default function ContestsAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Contest Poster / Image</label>
+              <label className="text-sm font-medium text-gray-400">Contest Poster / Image</label>
               <input
                 type="file"
                 accept="image/*"
@@ -273,13 +273,13 @@ export default function ContestsAdmin() {
               {formData.photo_url && !isCompressing && (
                 <div className="mt-2 flex items-center gap-3 bg-primary/10 p-2 rounded border border-primary/20">
                   <img src={formData.photo_url} alt="Preview" className="h-12 w-12 object-cover rounded shadow-lg" />
-                  <p className="text-primary text-[10px] font-bold uppercase tracking-tighter">Image Optimized</p>
+                  <p className="text-primary text-[10px] font-bold">Image Optimized</p>
                 </div>
               )}
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Assign Team</label>
+              <label className="text-sm font-medium text-gray-400">Assign Team</label>
               <select
                 value={formData.team_id}
                 onChange={(e) => setFormData({ ...formData, team_id: e.target.value })}
@@ -293,7 +293,7 @@ export default function ContestsAdmin() {
             </div>
 
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Full Contest Details (Markdown)</label>
+              <label className="text-sm font-medium text-gray-400">Full Contest Details (Markdown)</label>
               <textarea
                 placeholder="Detailed information, rules, and eligibility..."
                 value={formData.details}
@@ -303,7 +303,7 @@ export default function ContestsAdmin() {
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Winners (JSON format or Text)</label>
+              <label className="text-sm font-medium text-gray-400">Winners (JSON format or Text)</label>
               <textarea
                 placeholder='e.g. [{"rank": 1, "name": "Team X"}, ...]'
                 value={formData.winners}
@@ -337,7 +337,7 @@ export default function ContestsAdmin() {
         {contests.length === 0 ? (
           <div className="text-center py-24 bg-gray-900/30 border-2 border-dashed border-gray-800 rounded-3xl">
             <Trophy className="mx-auto mb-4 text-gray-700" size={64} />
-            <p className="text-gray-500 font-mono uppercase tracking-widest text-sm">No historical contests recorded</p>
+            <p className="text-sm text-gray-500">No historical contests recorded</p>
           </div>
         ) : (
           contests.map((contest) => (
@@ -359,7 +359,7 @@ export default function ContestsAdmin() {
                   <div className="flex justify-between items-start gap-4">
                     <div>
                       <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">{contest.name}</h3>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 font-mono">
+                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                         <span className="flex items-center gap-1.5"><Calendar size={14} className="text-primary" /> {new Date(contest.event_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                         {contest.winners && <span className="flex items-center gap-1.5"><Users size={14} className="text-green-500" /> Results Declared</span>}
                       </div>
@@ -389,16 +389,16 @@ export default function ContestsAdmin() {
 
                   <div className="flex flex-wrap gap-2 pt-2">
                     {contest.details && (
-                      <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider rounded-full border border-blue-500/20">
+                      <span className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-full border border-blue-500/20">
                         <FileText size={12} /> Rich Details
                       </span>
                     )}
                     {contest.team_name && (
-                      <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-full border border-primary/20">
+                      <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full border border-primary/20">
                         <Users size={12} /> {contest.team_name}
                       </span>
                     )}
-                    <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-full border border-primary/20">
+                    <span className="flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full border border-primary/20">
                       ID: {contest.id}
                     </span>
                   </div>

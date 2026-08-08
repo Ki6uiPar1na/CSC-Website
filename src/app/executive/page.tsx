@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, User } from "lucide-react";
 import { SearchBox } from "@/components/SearchBox";
 
 interface Executive {
@@ -151,12 +151,12 @@ export default function ExecutiveBody() {
           {/* Header */}
           <div className="text-center space-y-6">
             <div className="inline-block">
-              <span className="inline-block px-4 py-1.5 bg-primary/10 border border-primary/30 text-primary rounded-full text-xs uppercase tracking-widest font-bold">
+              <span className="inline-block px-4 py-1.5 bg-primary/10 border border-primary/30 text-primary rounded-full text-sm font-semibold">
                 Leadership Team
               </span>
             </div>
             <div className="space-y-3">
-              <h1 className="text-5xl sm:text-6xl font-black text-foreground">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary">
                 Executive Body
               </h1>
               <p className="text-lg text-foreground/60 max-w-3xl mx-auto leading-relaxed">
@@ -177,7 +177,7 @@ export default function ExecutiveBody() {
           ) : executives.length === 0 ? (
             <div className="text-center py-20 space-y-6">
               <p className="text-foreground/60 text-lg">No executives found. Check back soon!</p>
-              <Link href="/" className="inline-block px-6 py-2 border border-primary text-primary rounded-sm hover:bg-primary hover:text-black transition-colors duration-300">
+              <Link href="/" className="inline-block px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-black transition-colors duration-300">
                 Back to Home
               </Link>
             </div>
@@ -235,7 +235,7 @@ export default function ExecutiveBody() {
                        </div>
                        <div className="flex items-center gap-8">
                          <div className="text-right">
-                           <p className="text-xs text-foreground/50 uppercase font-bold tracking-wider">Total Members</p>
+                           <p className="text-xs font-semibold text-foreground/50">Total Members</p>
                            <p className="text-2xl font-black text-primary">{group.executives.length}</p>
                          </div>
                          <span className={`text-2xl text-primary/60 group-hover:text-primary transition-all duration-300 ${expandedSessions[group.session] ? "rotate-180" : ""}`}>
@@ -270,16 +270,16 @@ export default function ExecutiveBody() {
                                      />
                                    </div>
                                  ) : (
-                                   <div className="w-28 h-28 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/30">
-                                     <span className="text-4xl">👤</span>
-                                   </div>
+                                    <div className="w-28 h-28 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 border border-primary/30">
+                                      <User size={36} className="text-primary/60" />
+                                    </div>
                                  )}
                                  {/* Info */}
                                  <div className="flex-1 flex flex-col justify-center gap-2">
                                    <div>
-                                     <p className="text-xs uppercase text-primary font-black tracking-wider opacity-70">
-                                       {executive.role}
-                                     </p>
+                                      <p className="text-xs font-bold text-primary opacity-70">
+                                        {executive.role}
+                                      </p>
                                      <h3 className="text-xl font-black text-foreground mt-1">
                                        {executive.name}
                                      </h3>
@@ -301,7 +301,7 @@ export default function ExecutiveBody() {
                        {/* Other Members Grid */}
                        {group.executives.length > 2 && (
                          <div className="space-y-3">
-                           <h3 className="text-sm uppercase font-bold text-foreground/70 tracking-wider">Committee Members</h3>
+                            <h3 className="text-sm font-bold text-primary">Committee Members</h3>
                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                              {group.executives
                                .filter((e) => e.role !== "President" && e.role !== "Vice President")
@@ -322,14 +322,14 @@ export default function ExecutiveBody() {
                                          />
                                        </div>
                                      ) : (
-                                       <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                         <span className="text-xl">👤</span>
-                                       </div>
+                                        <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                          <User size={20} className="text-primary/60" />
+                                        </div>
                                      )}
                                      <div className="flex-1 flex flex-col justify-center gap-1">
-                                       <p className="text-xs uppercase text-primary/70 font-bold">
-                                         {executive.role}
-                                       </p>
+                                        <p className="text-xs font-semibold text-primary">
+                                          {executive.role}
+                                        </p>
                                        <h4 className="text-sm font-bold text-foreground line-clamp-1">
                                          {executive.name}
                                        </h4>
@@ -344,11 +344,11 @@ export default function ExecutiveBody() {
                        {/* Full Committee Button */}
                        {group.executives.length > 5 && (
                          <div className="pt-2">
-                           <Link
-                             href={`/executive/${encodeURIComponent(group.session)}`}
-                             className="inline-block w-full text-center px-6 py-3 bg-gradient-to-r from-primary to-accent text-black font-bold rounded-xl text-sm hover:shadow-lg hover:shadow-primary/40 transition-all duration-300 uppercase tracking-wider">
-                             View Full Committee ({group.executives.length} Members)
-                           </Link>
+                            <Link
+                              href={`/executive/${encodeURIComponent(group.session)}`}
+                              className="btn-primary w-full text-sm">
+                              View Full Committee ({group.executives.length} Members)
+                            </Link>
                          </div>
                        )}
                      </div>
@@ -398,7 +398,7 @@ export default function ExecutiveBody() {
                     <h2 className="text-3xl font-black text-foreground">
                       {selectedExecutive.name}
                     </h2>
-                    <p className="text-lg text-primary font-black uppercase tracking-wider mt-1">
+                    <p className="text-lg font-bold text-primary mt-1">
                       {selectedExecutive.role}
                     </p>
                     <div className="w-12 h-1 bg-gradient-to-r from-primary to-accent rounded-full mt-3"></div>
@@ -408,13 +408,13 @@ export default function ExecutiveBody() {
                   <div className="grid grid-cols-2 gap-3">
                     {selectedExecutive.year_joined && (
                       <div className="bg-primary/10 border border-primary/25 rounded-lg p-3">
-                        <p className="text-xs uppercase text-primary/70 font-bold">Joined</p>
+                        <p className="text-xs font-semibold text-gray-400">Joined</p>
                         <p className="text-lg font-bold text-primary">{selectedExecutive.year_joined}</p>
                       </div>
                     )}
                     {selectedExecutive.session && (
                       <div className="bg-accent/10 border border-accent/25 rounded-lg p-3">
-                        <p className="text-xs uppercase text-accent/70 font-bold">Session</p>
+                        <p className="text-xs font-semibold text-gray-400">Session</p>
                         <p className="text-lg font-bold text-accent">{selectedExecutive.session}</p>
                       </div>
                     )}
@@ -425,7 +425,7 @@ export default function ExecutiveBody() {
               {/* Bio Section */}
               {selectedExecutive.bio && (
                 <div className="space-y-3">
-                  <p className="text-xs uppercase font-bold text-primary/70 tracking-wide">About</p>
+                  <p className="text-xs font-semibold text-gray-400">About</p>
                   <div className="bg-secondary/50 border border-primary/20 rounded-lg p-4">
                     <p className="text-foreground/75 leading-relaxed text-base">
                       {selectedExecutive.bio}
@@ -437,7 +437,7 @@ export default function ExecutiveBody() {
               {/* Social Links */}
               {selectedExecutive.social_links && Object.keys(parseSocialLinks(selectedExecutive.social_links)).length > 0 && (
                 <div className="space-y-3">
-                  <p className="text-xs uppercase font-bold text-primary/70 tracking-wide">Connect</p>
+                  <p className="text-xs font-semibold text-gray-400">Connect</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(parseSocialLinks(selectedExecutive.social_links)).map(
                       ([platform, link]: [string, any]) => (

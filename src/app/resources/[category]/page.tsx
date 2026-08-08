@@ -75,7 +75,7 @@ export default function CategoryResourcesPage() {
   };
 
   if (status === "loading" || (status === "authenticated" && isLoading)) {
-    return <div className="p-12 text-center text-primary font-mono animate-pulse">Loading resources...</div>;
+    return <div className="p-12 text-center text-primary animate-pulse">Loading resources...</div>;
   }
   if (status === "unauthenticated") return null;
 
@@ -89,12 +89,12 @@ export default function CategoryResourcesPage() {
     <div className="max-w-5xl mx-auto px-4">
       <button
         onClick={() => router.push("/resources")}
-        className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-mono text-sm mb-6"
+        className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors text-sm mb-6"
       >
-        <ChevronLeft size={16} /> BACK TO ALL RESOURCES
+        <ChevronLeft size={16} /> Back to All Resources
       </button>
 
-      <h1 className="glitch-text text-3xl sm:text-4xl md:text-5xl mb-2 tracking-tight">{category}</h1>
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-2">{category}</h1>
       <p className="text-gray-400 text-sm mb-8 max-w-2xl leading-relaxed">
         Resources in the {category} category.
       </p>
@@ -118,7 +118,7 @@ export default function CategoryResourcesPage() {
           <div className="min-w-[500px] sm:min-w-0 px-4 sm:px-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border-color text-gray-500 uppercase tracking-wider text-xs">
+              <tr className="border-b border-border-color text-gray-500 text-xs font-semibold">
                 <th className="text-left py-3 px-3 sm:px-4 font-medium">Material</th>
                 <th className="text-center py-3 px-2 sm:px-4 font-medium w-20 sm:w-24">Action</th>
                 <th className="text-center py-3 px-2 sm:px-4 font-medium w-14 sm:w-20">Done</th>
@@ -156,7 +156,7 @@ export default function CategoryResourcesPage() {
                     )}
                   </td>
                   <td className="py-3 px-2 sm:px-4 text-center align-top">
-                    <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${
+                    <span className={`inline-block px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-bold ${
                       link.action === "Watch" ? "bg-red-500/10 text-red-400" :
                       link.action === "Tools" ? "bg-orange-500/10 text-orange-400" :
                       link.action === "Practice" ? "bg-purple-500/10 text-purple-400" :

@@ -112,7 +112,7 @@ function ChallengesContent() {
     }
   };
 
-  if (status === "loading" || loading) return <div className="p-8 text-center text-primary font-mono animate-pulse">Scanning for challenges...</div>;
+  if (status === "loading" || loading) return <div className="p-8 text-center text-primary animate-pulse">Loading challenges...</div>;
   if (status === "unauthenticated") return null;
 
   return (
@@ -120,7 +120,7 @@ function ChallengesContent() {
       {/* 
         DEBUG: The flag for 'Inspect Me' is: flag{welcome_to_ctf} 
       */}
-        <h1 className="text-2xl sm:text-4xl md:text-5xl mb-8 font-bold tracking-tight uppercase break-words">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl mb-8 font-bold tracking-tight text-primary break-words">
         {challengeId ? "Challenge" : "Challenges"}
       </h1>
 
@@ -162,12 +162,12 @@ function ChallengesContent() {
 
               <div className="flex flex-col sm:flex-row justify-between items-start gap-3 mb-4">
                 <div className="pr-[120px] sm:pr-0 w-full">
-                  <span className="text-[10px] sm:text-xs font-mono text-primary uppercase tracking-wider">{challenge.module_title}</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-primary">{challenge.module_title}</span>
                   <h3 className="text-lg sm:text-2xl font-bold mt-1 break-words">{challenge.title}</h3>
                 </div>
                 <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1 w-full sm:w-auto">
                   <div className="text-lg sm:text-xl font-bold text-primary shrink-0">{challenge.current_points} <span className="text-[10px] text-gray-500 font-normal">pts</span></div>
-                  <div className="text-[10px] text-gray-500 uppercase font-mono">{challenge.solve_count} solves</div>
+                  <div className="text-[10px] text-gray-500 font-semibold">{challenge.solve_count} solves</div>
                 </div>
               </div>
               
@@ -195,10 +195,10 @@ function ChallengesContent() {
                 </div>
               ) : isSolved ? (
                 <div className="mt-4 flex flex-col sm:flex-row gap-3">
-                  <div className="flex-grow bg-accent/10 border border-accent/30 text-accent font-mono text-center py-2.5 rounded text-sm sm:text-base flex items-center justify-center gap-2">
-                    <CheckCircle size={16} /> CHALLENGE COMPLETED
+                  <div className="flex-grow bg-accent/10 border border-accent/30 text-accent text-center py-2.5 rounded text-sm sm:text-base flex items-center justify-center gap-2">
+                    <CheckCircle size={16} /> Challenge Completed
                   </div>
-                  <button disabled className="opacity-40 cursor-not-allowed sm:w-32">SUBMITTED</button>
+                  <button disabled className="opacity-40 cursor-not-allowed sm:w-32">Submitted</button>
                 </div>
               ) : (
                 <div className="mt-4">
@@ -208,7 +208,7 @@ function ChallengesContent() {
                   >
                     <input
                       type="text"
-                      placeholder="CTF{flag_here}"
+                      placeholder="Enter the flag here..."
                       value={flags[challenge.id] || ""}
                       onChange={(e) => setFlags({ ...flags, [challenge.id]: e.target.value })}
                       className="flex-grow mb-0 py-2.5"
@@ -216,8 +216,8 @@ function ChallengesContent() {
                     <button type="submit" className="sm:w-32 py-2.5">Submit</button>
                   </form>
                   {messages[challenge.id] && (
-                    <p className={`mt-3 text-sm font-mono p-2 rounded ${messages[challenge.id].includes("Correct") ? "bg-accent/10 text-accent" : "bg-error/10 text-error"}`}>
-                      {messages[challenge.id].includes("Correct") ? "> OK: " : "> ERR: "} {messages[challenge.id]}
+                    <p className={`mt-3 text-sm p-2 rounded ${messages[challenge.id].includes("Correct") ? "bg-accent/10 text-accent" : "bg-error/10 text-error"}`}>
+                      {messages[challenge.id]}
                     </p>
                   )}
                 </div>
@@ -253,7 +253,7 @@ function ChallengesContent() {
         </p>
         <div className="max-w-md mx-auto p-6 bg-black/40 border border-border-color rounded-lg">
           <h4 className="text-accent text-sm font-bold mb-2">Want more modules?</h4>
-          <p className="text-[11px] text-gray-500 mb-6 font-mono">Explore our comprehensive library of specialized security materials.</p>
+          <p className="text-xs text-gray-500 mb-6">Explore our comprehensive library of specialized security materials.</p>
           <button 
             className="accent w-full"
             onClick={() => router.push("/resources")}
@@ -289,7 +289,7 @@ function ChallengesContent() {
 
 export default function ChallengesPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-primary font-mono animate-pulse">Loading challenges...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-primary animate-pulse">Loading challenges...</div>}>
       <ChallengesContent />
     </Suspense>
   );

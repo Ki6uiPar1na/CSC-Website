@@ -64,7 +64,7 @@ export default function LessonPlayerPage() {
   }, [session, id]);
 
   if (status === "loading" || loading) {
-    return <div className="p-8 text-center text-primary font-mono animate-pulse">Loading Lesson...</div>;
+    return <div className="p-8 text-center text-primary animate-pulse">Loading Lesson...</div>;
   }
 
   if (error) {
@@ -111,9 +111,9 @@ export default function LessonPlayerPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
         <Link 
           href={`/modules/${lesson.module_id}`}
-          className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors font-mono text-sm"
+          className="flex items-center gap-2 text-gray-500 hover:text-primary transition-colors text-sm"
         >
-          <ChevronLeft size={16} /> BACK TO {lesson.module_title.toUpperCase()}
+          <ChevronLeft size={16} /> Back to {lesson.module_title.toUpperCase()}
         </Link>
         
         <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export default function LessonPlayerPage() {
 
       {/* Lesson Title */}
       <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{lesson.title}</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-2">{lesson.title}</h1>
         <div className="h-1 w-20 bg-primary"></div>
       </div>
 
@@ -221,7 +221,7 @@ export default function LessonPlayerPage() {
             onClick={() => router.push(`/lessons/${lesson.prev_lesson_id}`)}
             className="flex flex-col items-start group"
           >
-            <span className="text-xs text-gray-500 font-mono mb-1">PREVIOUS LESSON</span>
+            <span className="text-xs font-semibold text-gray-500 mb-1">Previous Lesson</span>
             <span className="text-lg font-bold text-gray-300 group-hover:text-primary transition-colors flex items-center gap-1">
               <ChevronLeft size={18} /> Previous
             </span>
@@ -233,7 +233,7 @@ export default function LessonPlayerPage() {
             onClick={() => router.push(`/lessons/${lesson.next_lesson_id}`)}
             className="flex flex-col items-end group text-right"
           >
-            <span className="text-xs text-gray-500 font-mono mb-1">NEXT LESSON</span>
+            <span className="text-xs font-semibold text-gray-500 mb-1">Next Lesson</span>
             <span className="text-lg font-bold text-gray-300 group-hover:text-primary transition-colors flex items-center gap-1">
               Next <ChevronRight size={18} />
             </span>
@@ -243,7 +243,7 @@ export default function LessonPlayerPage() {
             onClick={() => router.push(`/exams/${lesson.exam_id}`)}
             className="flex flex-col items-end group text-right"
           >
-            <span className="text-xs text-yellow-500 font-mono mb-1">PRACTICE PROBLEMS</span>
+            <span className="text-xs font-semibold text-yellow-500 mb-1">Practice Problems</span>
             <span className="text-lg font-bold text-yellow-500 group-hover:text-yellow-400 transition-colors flex items-center gap-1">
               Complete Challenges <FileText size={18} />
             </span>

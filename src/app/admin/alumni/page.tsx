@@ -170,7 +170,7 @@ export default function AlumniAdmin() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px]">
         <Loader2 className="animate-spin text-primary mb-4" size={48} />
-        <p className="text-gray-400 font-mono tracking-widest">GATHERING ALUMNI DATA...</p>
+        <p className="text-gray-400">Gathering alumni data...</p>
       </div>
     );
   }
@@ -199,7 +199,7 @@ export default function AlumniAdmin() {
           
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Full Name</label>
+              <label className="text-sm font-medium text-gray-400">Full Name</label>
               <input
                 type="text"
                 placeholder="e.g. Jane Smith"
@@ -211,7 +211,7 @@ export default function AlumniAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Graduation Year</label>
+              <label className="text-sm font-medium text-gray-400">Graduation Year</label>
               <input
                 type="number"
                 placeholder="e.g. 2024"
@@ -223,7 +223,7 @@ export default function AlumniAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Academic Session</label>
+              <label className="text-sm font-medium text-gray-400">Academic Session</label>
               <input
                 type="text"
                 placeholder="e.g. 2020-2021"
@@ -234,7 +234,7 @@ export default function AlumniAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Current Role / Title</label>
+              <label className="text-sm font-medium text-gray-400">Current Role / Title</label>
               <input
                 type="text"
                 placeholder="e.g. Software Engineer at Google"
@@ -245,14 +245,14 @@ export default function AlumniAdmin() {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Profile Photo</label>
+              <label className="text-sm font-medium text-gray-400">Profile Photo</label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
                 className="input w-full p-2 text-xs"
               />
-              {isCompressing && <p className="text-primary text-[10px] animate-pulse font-mono uppercase tracking-tighter">Compressing for cloud optimization...</p>}
+              {isCompressing && <p className="text-primary text-[10px] animate-pulse">Compressing for cloud optimization...</p>}
               {formData.photo_url && !isCompressing && (
                 <div className="mt-2 flex items-center gap-2 bg-primary/10 px-2 py-1 rounded max-w-fit">
                   <CheckCircle size={14} className="text-primary" />
@@ -262,7 +262,7 @@ export default function AlumniAdmin() {
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Biography</label>
+              <label className="text-sm font-medium text-gray-400">Biography</label>
               <textarea
                 placeholder="Short bio about the alumni's journey..."
                 value={formData.bio}
@@ -272,7 +272,7 @@ export default function AlumniAdmin() {
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Achievements</label>
+              <label className="text-sm font-medium text-gray-400">Achievements</label>
               <textarea
                 placeholder="Major achievements, awards, or projects..."
                 value={formData.achievements}
@@ -282,7 +282,7 @@ export default function AlumniAdmin() {
             </div>
             
             <div className="md:col-span-2 space-y-2">
-              <label className="text-sm font-medium text-gray-400 uppercase tracking-wider font-mono">Social Links (JSON format)</label>
+              <label className="text-sm font-medium text-gray-400">Social Links (JSON format)</label>
               <textarea
                 placeholder='e.g. {"linkedin": "url", "github": "url"}'
                 value={formData.social_links}
@@ -316,13 +316,13 @@ export default function AlumniAdmin() {
         {sortedYears.length === 0 ? (
           <div className="text-center py-24 bg-gray-900/30 border-2 border-dashed border-gray-800 rounded-3xl">
             <Users className="mx-auto mb-4 text-gray-700" size={64} />
-            <p className="text-gray-500 font-mono uppercase tracking-widest text-sm">No alumni records found</p>
+            <p className="text-sm text-gray-500">No alumni records found</p>
           </div>
         ) : (
           sortedYears.map((year) => (
             <div key={year} className="space-y-6">
               <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Batch {year}</h2>
+                <h2 className="text-2xl font-black text-white">Batch {year}</h2>
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-primary/30 to-transparent"></div>
               </div>
               
@@ -344,7 +344,7 @@ export default function AlumniAdmin() {
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-bold text-white truncate">{alum.name}</h3>
-                        <p className="text-primary text-[10px] font-mono uppercase tracking-widest truncate">{alum.role_title || 'Alumni'}</p>
+                        <p className="text-primary text-[10px] font-bold truncate">{alum.role_title || 'Alumni'}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className="text-[10px] text-gray-500 flex items-center gap-1"><Calendar size={10} /> {alum.session}</span>
                         </div>
@@ -360,7 +360,7 @@ export default function AlumniAdmin() {
                     <div className="flex items-center gap-2 pt-4 border-t border-gray-800/50">
                       <button
                         onClick={() => handleEdit(alum)}
-                        className="flex-1 py-1.5 bg-gray-800 hover:bg-primary hover:text-background text-gray-400 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all"
+                        className="flex-1 py-1.5 bg-gray-800 hover:bg-primary hover:text-background text-gray-400 text-[10px] font-bold rounded-lg transition-all"
                       >
                         Edit
                       </button>

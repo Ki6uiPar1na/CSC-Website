@@ -49,11 +49,11 @@ export default function CaptchaInput({ onVerify, error }: CaptchaInputProps) {
 
   return (
     <div className="space-y-2">
-      <label className="text-[10px] font-mono uppercase text-gray-500 tracking-[0.2em] flex items-center gap-2">
+      <label className="text-xs font-semibold text-gray-400 flex items-center gap-2">
         Verification Required
       </label>
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 bg-black/40 border border-border-color p-2 rounded-sm h-14 overflow-hidden relative">
+        <div className="flex items-center gap-2 bg-black/40 border border-border-color p-2 rounded-lg h-14 overflow-hidden relative">
           {loading ? (
             <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
               <RefreshCw size={20} className="animate-spin text-primary" />
@@ -78,7 +78,7 @@ export default function CaptchaInput({ onVerify, error }: CaptchaInputProps) {
           type="text"
           value={userAnswer}
           onChange={handleInputChange}
-          placeholder="ENTER CAPTCHA"
+          placeholder="Enter the code shown above"
           className={`py-2.5 ${error ? "border-error focus:border-error" : ""}`}
           required
         />

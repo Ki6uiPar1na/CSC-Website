@@ -117,7 +117,7 @@ export default function EventsPage() {
         <div className="mb-8">
           <div className="flex items-center gap-2 sm:gap-3 mb-4">
             <Calendar size={24} className="text-primary shrink-0" />
-            <h1 className="text-2xl sm:text-4xl font-bold">Events & News Update</h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary">Events & News Update</h1>
             {isPremium && (
               <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-semibold">
                 <Crown size={14} />
@@ -269,7 +269,7 @@ export default function EventsPage() {
                           <>
                             <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
                             <div>
-                              <p className="text-xs text-gray-400 uppercase font-semibold">
+                              <p className="text-xs font-semibold text-gray-400">
                                 {event.event_type}
                               </p>
                               {event.location && (
@@ -281,7 +281,7 @@ export default function EventsPage() {
                           <>
                             <LinkIcon size={16} className="text-primary mt-0.5 shrink-0" />
                             <div>
-                              <p className="text-xs text-gray-400 uppercase font-semibold">
+                              <p className="text-xs font-semibold text-gray-400">
                                 {event.platform_name || "Online"}
                               </p>
                               {event.meeting_link && (
@@ -295,7 +295,7 @@ export default function EventsPage() {
                           <>
                             <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
                             <div>
-                              <p className="text-xs text-gray-400 uppercase font-semibold">
+                              <p className="text-xs font-semibold text-gray-400">
                                 Hybrid
                               </p>
                               {event.location && (

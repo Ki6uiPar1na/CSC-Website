@@ -57,7 +57,7 @@ function SearchResults() {
     <div className="min-h-screen py-20 bg-black">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="mb-8 sm:mb-12">
-          <h1 className="text-2xl sm:text-4xl font-bold mb-4 flex items-center gap-3 sm:gap-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-4 flex items-center gap-3 sm:gap-4">
             <Search size={24} className="text-primary shrink-0" />
             <span className="break-words">Search Results</span>
           </h1>
@@ -69,7 +69,7 @@ function SearchResults() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="animate-spin text-primary mb-4" size={48} />
-            <p className="text-gray-400 font-mono animate-pulse">SEARCHING THE MATRIX...</p>
+            <p className="text-gray-400 animate-pulse">Searching...</p>
           </div>
         ) : results.length === 0 ? (
           <div className="text-center py-20 bg-gray-900/30 border border-dashed border-gray-800 rounded-3xl">
@@ -79,7 +79,7 @@ function SearchResults() {
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500 font-mono mb-6">{results.length} RESULTS FOUND</p>
+            <p className="text-sm text-gray-500 mb-6">{results.length} results found</p>
             {results.map((result, idx) => (
               <Link 
                 key={`${result.type}-${result.id}-${idx}`}
@@ -105,7 +105,7 @@ function SearchResults() {
                         {result.description}
                       </p>
                       <div className="mt-3 sm:mt-4 flex items-center gap-2 text-xs font-bold text-gray-500 group-hover:text-primary transition-colors">
-                        GO TO {result.type.toUpperCase()} <ArrowRight size={14} />
+                        Go to {result.type} <ArrowRight size={14} />
                       </div>
                     </div>
                   </div>

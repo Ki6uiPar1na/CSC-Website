@@ -61,7 +61,7 @@ export default function UpgradeModal({ isOpen, onClose, onSuccess }: UpgradeModa
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-background border border-primary/30 rounded-lg p-6 max-w-md w-full mx-4 shadow-glow-primary">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-primary glitch-text tracking-widest uppercase">Upgrade Account</h2>
+          <h2 className="text-xl font-bold text-foreground">Upgrade Account</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-300 transition-colors"
@@ -70,14 +70,14 @@ export default function UpgradeModal({ isOpen, onClose, onSuccess }: UpgradeModa
           </button>
         </div>
 
-        <p className="text-gray-400 text-xs sm:text-sm mb-4 font-mono uppercase tracking-tight">
+        <p className="text-gray-400 text-xs sm:text-sm mb-4">
           Enter your transaction ID or upgrade code provided by the club authority.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="CSC-XXXXXX"
+            placeholder="Enter your upgrade code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             className="w-full px-4 py-2 bg-black/40 border border-border-color rounded text-white placeholder-gray-600 focus:outline-none focus:border-primary"
@@ -86,7 +86,7 @@ export default function UpgradeModal({ isOpen, onClose, onSuccess }: UpgradeModa
 
           {message && (
             <div
-              className={`flex items-center gap-2 p-3 rounded text-[10px] font-mono uppercase ${
+              className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
                 message.type === "success"
                   ? "bg-accent/10 border border-accent/30 text-accent"
                   : "bg-error/10 border border-error/30 text-error"

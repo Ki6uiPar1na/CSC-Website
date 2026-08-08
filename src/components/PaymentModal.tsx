@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Loader2, CheckCircle, AlertCircle, CreditCard, Edit2 } from "lucide-react";
+import { X, Loader2, CheckCircle, AlertCircle, CreditCard, Edit2, Lightbulb, AlertTriangle } from "lucide-react";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -122,7 +122,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-background border border-primary/30 rounded-lg max-w-md w-full shadow-glow-primary">
         <div className="flex justify-between items-center p-6 border-b border-primary/20">
-          <h2 className="text-xl font-bold text-primary glitch-text tracking-widest uppercase">
+          <h2 className="text-xl font-bold text-foreground">
             {step === "plan" ? "Premium Plan" : "Complete Payment"}
           </h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-300 transition-colors">
@@ -183,7 +183,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
                   </div>
 
                   <div className="bg-blue-900/20 border border-blue-500/30 rounded p-3 text-xs text-blue-300">
-                    💡 Pay using bKash, Nagad, or Rocket. Admin will review and approve your payment.
+                    <Lightbulb size={14} className="inline-block mr-1" /> Pay using bKash, Nagad, or Rocket. Admin will review and approve your payment.
                   </div>
                 </>
               )}
@@ -231,7 +231,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-300 uppercase mb-2 block">Select Payment Method</label>
+                <label className="text-xs font-semibold text-gray-400 mb-2 block">Select Payment Method</label>
                 <div className="grid grid-cols-3 gap-2">
                   {["bkash", "nagad", "rocket"].map((method) => (
                     <button
@@ -241,7 +241,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
                         setPaymentMethod(method as "bkash" | "nagad" | "rocket");
                         setMessage(null);
                       }}
-                      className={`py-2 px-3 rounded border text-xs font-bold uppercase transition-all ${
+                      className={`py-2 px-3 rounded border text-xs font-bold transition-all ${
                         paymentMethod === method
                           ? "border-primary bg-primary/20 text-primary"
                           : "border-border-color text-gray-400 hover:border-primary/50"
@@ -254,7 +254,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-300 uppercase mb-2 block">Transaction ID</label>
+                <label className="text-xs font-semibold text-gray-400 mb-2 block">Transaction ID</label>
                 <input
                   type="text"
                   placeholder="Enter your transaction ID"
@@ -283,12 +283,12 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
               </div>
 
               <div className="bg-yellow-900/20 border border-yellow-500/30 rounded p-3 text-xs text-yellow-300">
-                ⚠️ {pendingRequest ? "Updated payment request will be sent to admin for review." : "Payment request will be sent to admin for review."} You will be notified once approved.
+                <AlertTriangle size={14} className="inline-block mr-1" /> {pendingRequest ? "Updated payment request will be sent to admin for review." : "Payment request will be sent to admin for review."} You will be notified once approved.
               </div>
 
               {message && (
                 <div
-                  className={`flex items-center gap-2 p-3 rounded text-xs font-mono uppercase ${
+                  className={`flex items-center gap-2 p-3 rounded-lg text-sm ${
                     message.type === "success"
                       ? "bg-accent/10 border border-accent/30 text-accent"
                       : "bg-error/10 border border-error/30 text-error"

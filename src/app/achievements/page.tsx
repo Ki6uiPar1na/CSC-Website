@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SearchBox } from "@/components/SearchBox";
-import { Image as ImageIcon, X, Calendar } from "lucide-react";
+import { Image as ImageIcon, X, Calendar, Trophy, User, BarChart3 } from "lucide-react";
 
 interface Achievement {
   id: number;
@@ -159,7 +159,7 @@ export default function AchievementsPage() {
       <div className="flex flex-col items-center justify-center w-full">
         {/* Header */}
         <div className="text-center mb-16 w-full px-4">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-3">
             Club Achievements
           </h1>
           <p className="text-gray-400 text-lg">Celebrating our victories</p>
@@ -181,7 +181,7 @@ export default function AchievementsPage() {
         ) : Object.keys(groupedAchievements).length === 0 ? (
           <div className="text-center py-20">
             <p className="text-gray-400 text-lg mb-6">No achievements yet.</p>
-            <Link href="/" className="inline-block px-6 py-2 border border-primary text-primary rounded-sm">
+            <Link href="/" className="inline-block px-6 py-2 border border-primary text-primary rounded-lg">
               Back to Home
             </Link>
           </div>
@@ -205,10 +205,10 @@ export default function AchievementsPage() {
                     <h2 className="text-2xl font-bold text-primary mb-2">
                       {contestName}
                     </h2>
-                    <div className="flex gap-6 text-xs text-foreground/60 uppercase tracking-widest">
-                      <span>🏆 {teamCount} {teamCount === 1 ? "Team" : "Teams"}</span>
-                      <span>👤 {soloCount} {soloCount === 1 ? "Participant" : "Participants"}</span>
-                      <span>📊 {items.length} Total</span>
+                    <div className="flex gap-6 text-sm text-foreground/70">
+                      <span className="flex items-center gap-1.5"><Trophy size={14} className="text-accent" /> {teamCount} {teamCount === 1 ? "Team" : "Teams"}</span>
+                      <span className="flex items-center gap-1.5"><User size={14} className="text-accent" /> {soloCount} {soloCount === 1 ? "Participant" : "Participants"}</span>
+                      <span className="flex items-center gap-1.5"><BarChart3 size={14} className="text-accent" /> {items.length} Total</span>
                     </div>
                   </div>
 
@@ -235,10 +235,10 @@ export default function AchievementsPage() {
 
                           {/* Competition Badge & Date */}
                           <div className="flex items-center justify-between gap-2 mb-3">
-                            <p className="text-xs font-semibold text-accent truncate">
-                              {achievement.is_team_contest ? "🏆 Team" : "👤 Solo"}
+                            <p className="text-xs font-semibold text-accent truncate flex items-center gap-1">
+                              {achievement.is_team_contest ? <><Trophy size={12} /> Team</> : <><User size={12} /> Solo</>}
                             </p>
-                            <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono">
+                            <div className="flex items-center gap-1.5 text-xs text-gray-400">
                               <Calendar size={10} className="text-primary" />
                               {formatDate(achievement.achievement_date)}
                             </div>
@@ -307,7 +307,7 @@ export default function AchievementsPage() {
 
                 {/* Team/Participant Section */}
                 <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 space-y-2">
-                  <p className="text-xs uppercase tracking-widest text-primary/70 font-bold">
+                  <p className="text-sm font-bold text-primary">
                     {selectedAchievement.is_team_contest ? "Team Members" : "Participant"}
                   </p>
                   <p className="text-lg font-bold text-foreground mb-2 break-words">
@@ -328,7 +328,7 @@ export default function AchievementsPage() {
                   {/* Position */}
                   {selectedAchievement.position && (
                     <div className="bg-primary/10 border border-primary/30 rounded-lg p-3 text-center">
-                      <p className="text-xs uppercase text-primary/60 font-bold mb-1">Position</p>
+                      <p className="text-xs font-semibold text-gray-400 mb-1">Position</p>
                       <p className="text-lg font-bold text-primary">
                         {getPositionBadge(selectedAchievement.position)}
                       </p>
@@ -338,7 +338,7 @@ export default function AchievementsPage() {
                   {/* Prize Money */}
                   {selectedAchievement.prize_money && (
                     <div className="bg-accent/10 border border-accent/30 rounded-lg p-3 text-center">
-                      <p className="text-xs uppercase text-accent/60 font-bold mb-1">Prize Money</p>
+                      <p className="text-xs font-semibold text-gray-400 mb-1">Prize Money</p>
                       <p className="text-lg font-bold text-accent">
                         ৳{selectedAchievement.prize_money.toLocaleString()}
                       </p>
@@ -347,8 +347,8 @@ export default function AchievementsPage() {
 
                   {/* Date */}
                   <div className="bg-primary/5 border border-primary/30 rounded-lg p-3 text-center">
-                    <p className="text-xs uppercase text-primary/60 font-bold mb-1">Date</p>
-                    <p className="text-xs font-mono text-primary/80">
+                    <p className="text-xs font-semibold text-gray-400 mb-1">Date</p>
+                    <p className="text-xs text-primary/80">
                       {formatDate(selectedAchievement.achievement_date)}
                     </p>
                   </div>
@@ -359,7 +359,7 @@ export default function AchievementsPage() {
                 {/* Description */}
                 {selectedAchievement.description && (
                   <div className="bg-secondary/50 border border-primary/30 rounded-lg p-4">
-                    <p className="text-xs uppercase text-primary/60 font-bold mb-2">About</p>
+                    <p className="text-xs font-semibold text-gray-400 mb-2">About</p>
                     <p className="text-xs text-foreground/80 leading-relaxed text-justify whitespace-pre-wrap break-all overflow-hidden">
                       {selectedAchievement.description}
                     </p>
@@ -375,7 +375,7 @@ export default function AchievementsPage() {
                         : selectedAchievement.gallery_images;
                       return Array.isArray(images) && images.length > 0 ? (
                         <div className="bg-secondary/50 border border-primary/30 rounded-lg p-4">
-                          <p className="text-xs uppercase text-primary/60 font-bold mb-3 flex items-center gap-2">
+                          <p className="text-sm font-bold text-primary mb-3 flex items-center gap-2">
                             <ImageIcon size={14} /> Gallery
                           </p>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -451,7 +451,7 @@ export default function AchievementsPage() {
               <p className="text-gray-400 text-base mb-8 transition-all duration-300">
                 Be part of the next achievement. Compete with us!
               </p>
-              <button className="accent px-8 py-3 font-bold uppercase tracking-widest text-sm rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent/30">
+              <button className="accent px-8 py-3 font-bold text-sm rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-accent/30">
                 Join Competition Team
               </button>
             </div>

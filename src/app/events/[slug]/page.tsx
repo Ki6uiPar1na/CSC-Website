@@ -128,7 +128,7 @@ export default function EventDetailPage() {
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
             <Loader className="animate-spin mx-auto mb-4" size={32} />
-            <p className="text-primary font-mono">Loading event...</p>
+            <p className="text-primary">Loading event...</p>
           </div>
         </div>
       </div>
@@ -140,11 +140,11 @@ export default function EventDetailPage() {
       <div className="min-h-screen bg-black">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="card bg-error/10 border border-error/30 p-8 text-center">
-            <h1 className="text-2xl font-bold text-error mb-2">Event Not Found</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-error mb-2">Event Not Found</h1>
             <p className="text-gray-400 mb-6">{error || "This event could not be loaded."}</p>
             <button
               onClick={() => router.push("/events")}
-              className="primary px-6 py-2 font-mono"
+              className="px-6 py-2"
             >
               Back to Events & News Update
             </button>
@@ -186,7 +186,7 @@ export default function EventDetailPage() {
         <div className="mb-8">
           <div className="flex items-start justify-between mb-4 gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl sm:text-4xl font-bold mb-2 break-words">{event.title}</h1>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-2 break-words">{event.title}</h1>
               <div className="flex gap-2 flex-wrap">
                 {event.target_audience && event.target_audience !== 'all' && (
                   <span className="badge bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase text-[10px] tracking-widest font-bold">
@@ -216,13 +216,13 @@ export default function EventDetailPage() {
           {/* Event Details */}
           <div className="lg:col-span-2">
             <div className="card mb-6">
-              <h2 className="text-xl font-bold mb-4">About This Event</h2>
+              <h2 className="text-2xl font-bold mb-8 text-center text-foreground">About This Event</h2>
               <p className="text-gray-400 whitespace-pre-wrap">{event.description}</p>
             </div>
 
             {/* Event Information */}
             <div className="card">
-              <h2 className="text-xl font-bold mb-4">Event Details</h2>
+              <h2 className="text-2xl font-bold mb-8 text-center text-foreground">Event Details</h2>
               <div className="space-y-4">
                 {/* Date & Time */}
                 <div className="flex gap-3">
@@ -302,7 +302,7 @@ export default function EventDetailPage() {
                       This event has already taken place or registration has been closed.
                     </p>
                     <div className="p-3 bg-black/40 border border-gray-800 rounded-lg text-center">
-                      <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Event Completed</p>
+                      <p className="text-sm text-gray-500">Event Completed</p>
                     </div>
                   </div>
                 );
@@ -329,7 +329,7 @@ export default function EventDetailPage() {
                         <Check size={18} />
                         <span>Going</span>
                       </div>
-                      {rsvpStatus === 'going' && <span className="text-[10px] uppercase tracking-tighter">Selected</span>}
+                      {rsvpStatus === 'going' && <span className="text-[10px] font-bold">Selected</span>}
                     </button>
 
                     <button
@@ -345,7 +345,7 @@ export default function EventDetailPage() {
                         <HelpCircle size={18} />
                         <span>Maybe</span>
                       </div>
-                      {rsvpStatus === 'maybe' && <span className="text-[10px] uppercase tracking-tighter">Selected</span>}
+                      {rsvpStatus === 'maybe' && <span className="text-[10px] font-bold">Selected</span>}
                     </button>
 
                     <button
@@ -361,14 +361,14 @@ export default function EventDetailPage() {
                         <Star size={18} />
                         <span>Interested</span>
                       </div>
-                      {rsvpStatus === 'interested' && <span className="text-[10px] uppercase tracking-tighter">Selected</span>}
+                      {rsvpStatus === 'interested' && <span className="text-[10px] font-bold">Selected</span>}
                     </button>
                   </div>
 
                   {event.capacity && (
                     <div className="mt-4 pt-4 border-t border-gray-800">
                       <div className="flex justify-between items-center text-xs mb-1">
-                        <span className="text-gray-500 uppercase tracking-widest font-bold">Capacity</span>
+                        <span className="text-sm font-bold text-primary">Capacity</span>
                         <span className={event.registered_count >= event.capacity ? "text-red-500 font-bold" : "text-primary font-bold"}>
                           {event.registered_count} / {event.capacity}
                         </span>
@@ -380,7 +380,7 @@ export default function EventDetailPage() {
                         ></div>
                       </div>
                       {event.registered_count >= event.capacity && (
-                        <p className="text-[10px] text-red-500 mt-2 text-center uppercase font-bold animate-pulse">Event is Full</p>
+                        <p className="text-xs text-red-500 mt-2 text-center font-bold animate-pulse">Event is Full</p>
                       )}
                     </div>
                   )}
@@ -455,7 +455,7 @@ export default function EventDetailPage() {
         <div className="mt-8">
           <button
             onClick={() => router.push("/events")}
-            className="text-primary hover:text-primary/80 font-mono text-sm uppercase"
+            className="text-primary hover:text-primary/80 text-sm"
           >
             ← Back to Events & News Update
           </button>

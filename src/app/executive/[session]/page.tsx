@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { User } from "lucide-react";
 
 interface Executive {
   id: number;
@@ -72,7 +73,7 @@ export default function CommitteeDetail() {
               ← Back to Sessions
             </Link>
             <div className="space-y-3">
-              <h1 className="text-5xl sm:text-6xl font-bold text-foreground">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary">
                 {session} Committee
               </h1>
               <p className="text-lg text-foreground/70">
@@ -93,7 +94,7 @@ export default function CommitteeDetail() {
           ) : executives.length === 0 ? (
             <div className="text-center py-20 space-y-6">
               <p className="text-foreground/60 text-lg">No committee members found for this session.</p>
-              <Link href="/executive" className="inline-block px-6 py-2 border border-primary text-primary rounded-sm hover:bg-primary hover:text-black transition-colors duration-300">
+              <Link href="/executive" className="inline-block px-6 py-2 border border-primary text-primary rounded-lg hover:bg-primary hover:text-black transition-colors duration-300">
                 Back to Sessions
               </Link>
             </div>
@@ -119,12 +120,12 @@ export default function CommitteeDetail() {
                         </div>
                       ) : (
                         <div className="w-full h-48 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <span className="text-5xl">👤</span>
+                          <User size={48} className="text-primary/60" />
                         </div>
                       )}
                       {/* Info */}
                       <div>
-                        <p className="text-xs uppercase text-primary/60 font-bold tracking-wide">
+                        <p className="text-xs font-semibold text-primary">
                           {executive.role}
                         </p>
                         <h3 className="text-xl font-bold text-foreground line-clamp-2 mt-1">
@@ -185,7 +186,7 @@ export default function CommitteeDetail() {
                     <h2 className="text-3xl font-bold text-foreground mb-2">
                       {selectedExecutive.name}
                     </h2>
-                    <p className="text-lg text-primary font-bold uppercase tracking-wide">
+                    <p className="text-lg font-bold text-primary">
                       {selectedExecutive.role}
                     </p>
                     <div className="w-12 h-1 bg-gradient-to-r from-primary to-accent rounded-full mt-2"></div>
@@ -195,13 +196,13 @@ export default function CommitteeDetail() {
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     {selectedExecutive.year_joined && (
                       <div className="bg-primary/10 border border-primary/30 rounded-lg p-3">
-                        <p className="text-xs uppercase text-primary/70 font-bold">Joined</p>
+                        <p className="text-xs font-semibold text-gray-400">Joined</p>
                         <p className="text-lg font-bold text-primary">{selectedExecutive.year_joined}</p>
                       </div>
                     )}
                     {selectedExecutive.session && (
                       <div className="bg-accent/10 border border-accent/30 rounded-lg p-3">
-                        <p className="text-xs uppercase text-accent/70 font-bold">Session</p>
+                        <p className="text-xs font-semibold text-gray-400">Session</p>
                         <p className="text-lg font-bold text-accent">{selectedExecutive.session}</p>
                       </div>
                     )}
@@ -212,7 +213,7 @@ export default function CommitteeDetail() {
               {/* Bio Section */}
               {selectedExecutive.bio && (
                 <div className="space-y-2">
-                  <p className="text-xs uppercase font-bold text-primary/70 tracking-wide">About</p>
+                  <p className="text-xs font-semibold text-gray-400">About</p>
                   <div className="bg-secondary/50 border border-primary/20 rounded-lg p-4">
                     <p className="text-foreground/80 leading-relaxed text-sm">
                       {selectedExecutive.bio}
@@ -224,7 +225,7 @@ export default function CommitteeDetail() {
               {/* Social Links */}
               {selectedExecutive.social_links && Object.keys(parseSocialLinks(selectedExecutive.social_links)).length > 0 && (
                 <div className="space-y-3">
-                  <p className="text-xs uppercase font-bold text-primary/70 tracking-wide">Connect</p>
+                  <p className="text-xs font-semibold text-gray-400">Connect</p>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(parseSocialLinks(selectedExecutive.social_links)).map(
                       ([platform, link]: [string, any]) => (

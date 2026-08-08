@@ -240,7 +240,7 @@ export default function NotificationsPage() {
   };
 
   if (status === "loading" || isLoading) {
-    return <div className="p-8 text-center text-primary font-mono animate-pulse">Loading notifications...</div>;
+    return <div className="p-8 text-center text-primary animate-pulse">Loading notifications...</div>;
   }
 
   if (!session) return null;
@@ -249,7 +249,7 @@ export default function NotificationsPage() {
     <div className="max-w-4xl mx-auto px-2 sm:px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Notifications</h1>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary mb-2">Notifications</h1>
         <p className="text-gray-400 text-sm">
           {notifications.length === 0 
             ? "No notifications yet" 
@@ -263,14 +263,14 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="primary px-4 py-2 text-xs uppercase font-mono"
+              className="primary px-4 py-2 text-xs font-semibold"
             >
               Mark All as Read
             </button>
           )}
           <button
             onClick={deleteAllNotifications}
-            className="bg-error/10 border border-error/30 text-error px-4 py-2 text-xs uppercase font-mono hover:bg-error/20 transition-colors"
+            className="bg-error/10 border border-error/30 text-error px-4 py-2 text-xs font-semibold hover:bg-error/20 transition-colors"
           >
             Delete All
           </button>
@@ -302,7 +302,7 @@ export default function NotificationsPage() {
                       {notification.title}
                     </h3>
                     {notification.targetAudience && (
-                      <span className={`text-xs px-2 py-0.5 rounded font-mono uppercase tracking-wider ${
+                      <span className={`text-xs px-2 py-0.5 rounded font-semibold ${
                         notification.targetAudience === "premium_users" ? "bg-purple-500/20 text-purple-400 border border-purple-500/30" :
                         notification.targetAudience === "non_premium_users" ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" :
                         notification.targetAudience === "all_users" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" :
@@ -318,7 +318,7 @@ export default function NotificationsPage() {
                   <p className="text-sm text-gray-400 mb-2">
                     {notification.message}
                   </p>
-                  <p className="text-xs text-gray-500 font-mono">
+                  <p className="text-xs text-gray-500">
                     {new Date(notification.timestamp).toLocaleDateString(undefined, {
                       month: "short",
                       day: "numeric",
@@ -341,7 +341,7 @@ export default function NotificationsPage() {
                   {!notification.read && (
                     <button
                       onClick={() => markAsRead(notification.id)}
-                      className="text-xs px-2 sm:px-3 py-1 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors border-none cursor-pointer font-mono uppercase whitespace-nowrap"
+                      className="text-xs px-2 sm:px-3 py-1 bg-primary/20 text-primary rounded hover:bg-primary/30 transition-colors border-none cursor-pointer font-semibold whitespace-nowrap"
                       title="Mark as read"
                     >
                       Read
@@ -362,7 +362,7 @@ export default function NotificationsPage() {
       ) : (
         <div className="card text-center py-12">
           <Bell size={32} className="text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-500 font-mono uppercase tracking-widest">
+          <p className="text-sm text-gray-500">
             No notifications yet
           </p>
           <p className="text-xs text-gray-600 mt-2">

@@ -52,10 +52,10 @@ export default function GalleryPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.2em] animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold animate-in fade-in slide-in-from-top-4 duration-700">
             <Camera size={14} /> Visual Archives
           </div>
-          <h1 className="text-5xl sm:text-6xl font-black tracking-tight animate-in fade-in slide-in-from-top-6 duration-1000">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary animate-in fade-in slide-in-from-top-6 duration-1000">
             Club <span className="text-primary">Gallery</span>
           </h1>
           <p className="text-gray-400 max-w-2xl mx-auto text-sm sm:text-base animate-in fade-in duration-1000 delay-300">
@@ -67,7 +67,7 @@ export default function GalleryPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 gap-4">
             <Loader2 className="animate-spin text-primary" size={48} />
-            <p className="text-gray-500 font-mono text-sm tracking-widest animate-pulse">Initializing Visual Assets...</p>
+            <p className="text-gray-500 text-sm animate-pulse">Loading gallery...</p>
           </div>
         ) : images.length === 0 ? (
           <div className="text-center py-32 card border-dashed border-2 border-white/10">
@@ -93,13 +93,13 @@ export default function GalleryPage() {
                 {/* Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
                   <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2 block">
+                    <span className="text-xs font-bold text-primary mb-2 block">
                       {img.source}
                     </span>
                     <h3 className="text-sm font-bold text-white mb-2 leading-tight">
                       {img.title}
                     </h3>
-                    <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
                       <Calendar size={12} />
                       {new Date(img.date).toLocaleDateString()}
                     </div>
@@ -108,7 +108,7 @@ export default function GalleryPage() {
 
                 {/* Badge (Source) */}
                 <div className="absolute top-4 left-4 p-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 opacity-100 group-hover:opacity-0 transition-opacity duration-300">
-                   <span className="text-[8px] font-bold uppercase tracking-widest text-gray-300">{img.source}</span>
+                   <span className="text-[10px] font-bold text-gray-300">{img.source}</span>
                 </div>
               </div>
             ))}
@@ -140,10 +140,10 @@ export default function GalleryPage() {
               <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in slide-in-from-bottom-4 duration-500">
                 <div className="space-y-1">
                   <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 bg-primary text-black text-[10px] font-black uppercase tracking-widest rounded-full">
+                    <span className="px-3 py-1 bg-primary text-black text-xs font-bold rounded-full">
                       {selectedImage.source}
                     </span>
-                    <span className="text-[10px] text-gray-500 font-mono">
+                    <span className="text-xs text-gray-500">
                       {new Date(selectedImage.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </span>
                   </div>
@@ -167,7 +167,7 @@ export default function GalleryPage() {
         {/* Footer CTA */}
         {!loading && images.length > 0 && (
           <div className="mt-24 text-center border-t border-white/5 pt-12">
-            <p className="text-gray-500 text-xs font-bold uppercase tracking-[0.3em] mb-4">Capturing moments that define excellence</p>
+            <p className="text-gray-500 text-sm font-semibold mb-4">Capturing moments that define excellence</p>
             <div className="h-1 w-12 bg-primary mx-auto rounded-full"></div>
           </div>
         )}

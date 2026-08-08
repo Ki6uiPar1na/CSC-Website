@@ -73,19 +73,19 @@ export default function EventRSVPsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="card bg-primary/10 border-primary/20">
-          <p className="text-xs uppercase tracking-widest text-primary font-bold mb-1">Total</p>
+          <p className="text-xs font-bold text-primary mb-1">Total</p>
           <p className="text-3xl font-bold">{rsvps.length}</p>
         </div>
         <div className="card bg-green-900/20 border-green-700/30">
-          <p className="text-xs uppercase tracking-widest text-green-400 font-bold mb-1">Going</p>
+          <p className="text-xs font-bold text-green-400 mb-1">Going</p>
           <p className="text-3xl font-bold text-green-400">{goingCount}</p>
         </div>
         <div className="card bg-accent/20 border-accent/30">
-          <p className="text-xs uppercase tracking-widest text-accent font-bold mb-1">Maybe</p>
+          <p className="text-xs font-bold text-accent mb-1">Maybe</p>
           <p className="text-3xl font-bold text-accent">{maybeCount}</p>
         </div>
         <div className="card bg-blue-900/20 border-blue-700/30">
-          <p className="text-xs uppercase tracking-widest text-blue-400 font-bold mb-1">Interested</p>
+          <p className="text-xs font-bold text-blue-400 mb-1">Interested</p>
           <p className="text-3xl font-bold text-blue-400">{interestedCount}</p>
         </div>
       </div>
@@ -95,9 +95,9 @@ export default function EventRSVPsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-900/50 border-b border-gray-800">
-                <th className="p-4 text-xs uppercase tracking-widest font-bold text-gray-400">User</th>
-                <th className="p-4 text-xs uppercase tracking-widest font-bold text-gray-400">Status</th>
-                <th className="p-4 text-xs uppercase tracking-widest font-bold text-gray-400">RSVP Date</th>
+                <th className="p-4 text-xs font-bold text-gray-400">User</th>
+                <th className="p-4 text-xs font-bold text-gray-400">Status</th>
+                <th className="p-4 text-xs font-bold text-gray-400">RSVP Date</th>
               </tr>
             </thead>
             <tbody>
