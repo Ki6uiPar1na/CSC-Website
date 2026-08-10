@@ -9,7 +9,8 @@ import {
   Trophy, RefreshCw
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { Event } from "@/lib/admin-types";
 import { formatDate } from "@/lib/admin-utils";
 import { compressImage } from "@/lib/image-utils";
@@ -50,7 +51,7 @@ export default function EventsPage() {
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
   const { loading: formLoading, setLoading: setFormLoading } = useLoading();
   const { loading: convertLoading, setLoading: setConvertLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
 
   useEffect(() => {
     fetchEventsData();
@@ -85,7 +86,7 @@ export default function EventsPage() {
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
@@ -134,7 +135,7 @@ export default function EventsPage() {
         setFormData({ ...formData, gallery_images: JSON.stringify([...currentGallery, ...newImages]) });
       }
     } catch (error: any) {
-      alert(error.message || "Error compressing image");
+      toast.error(error.message || "Error compressing image");
     } finally {
       setIsCompressing(false);
     }
@@ -150,7 +151,7 @@ export default function EventsPage() {
     e.preventDefault();
 
     if (!formData.title.trim() || !formData.event_date) {
-      showMessage("error", "Title and date are required");
+      toast.error("Title and date are required");
       return;
     }
 
@@ -166,11 +167,11 @@ export default function EventsPage() {
       });
 
       if (!res.ok) throw new Error("Failed to save event");
-      showMessage("success", editingEvent ? "Event updated" : "Event created");
+      toast.success(editingEvent ? "Event updated" : "Event created");
       resetForm();
       fetchEventsData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFormLoading(false);
     }
@@ -201,22 +202,22 @@ export default function EventsPage() {
   };
 
   const handleDelete = async (event: Event) => {
-    if (!confirm(`Delete "${event.title}"?`)) return;
+    if (!(await confirm({ message: `Delete "${event.title}"?`, danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch(`/api/admin/events/${event.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
-      showMessage("success", "Event deleted");
+      toast.success("Event deleted");
       fetchEventsData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleConvertToContest = async (event: Event) => {
-    if (!confirm(`Convert "${event.title}" to contest and competition achievement?\n\nThis will create entries in the Contests and Competition Achievements tables.`)) return;
+    if (!(await confirm({ message: `Convert "${event.title}" to contest and competition achievement? This will create entries in the Contests and Competition Achievements tables.`, confirmLabel: "Convert" }))) return;
     setConvertLoading(true);
     try {
       const res = await fetch("/api/admin/events/convert", {
@@ -226,10 +227,10 @@ export default function EventsPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to convert");
-      showMessage("success", `"${event.title}" converted to contest successfully`);
+      toast.success(`"${event.title}" converted to contest successfully`);
       fetchEventsData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setConvertLoading(false);
     }
@@ -255,7 +256,6 @@ export default function EventsPage() {
             setShowForm(true);
           },
         }}
-        message={message}
       />
 
       {/* Stats Bar */}

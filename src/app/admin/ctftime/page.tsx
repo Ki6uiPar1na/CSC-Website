@@ -9,6 +9,7 @@ import {
   Filter, BarChart3
 } from 'lucide-react';
 import { AdminPageHeader } from '@/components/AdminPageHeader';
+import { useToast } from '@/components/ToastProvider';
 
 interface CtfEventContest {
   contest_id: number;
@@ -73,6 +74,7 @@ function SkeletonCard() {
 export default function CtftimeAdmin() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { toast } = useToast();
   const [events, setEvents] = useState<CtfEvent[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +115,7 @@ export default function CtftimeAdmin() {
   const handleImport = async (event: CtfEvent) => {
     const teamId = teamAssignments[event.ctftime_id];
     if (!teamId) {
-      alert('Please select a team first');
+      toast.error('Please select a team first');
       return;
     }
 
@@ -134,12 +136,13 @@ export default function CtftimeAdmin() {
 
       const data = await res.json();
       if (res.ok) {
+        toast.success(`Imported "${event.title}"`);
         fetchEvents();
       } else {
-        alert(data.error || 'Failed to import');
+        toast.error(data.error || 'Failed to import');
       }
     } catch (error) {
-      console.error('Error importing event:', error);
+      toast.error('Failed to import event');
     } finally {
       setImportingId(null);
     }

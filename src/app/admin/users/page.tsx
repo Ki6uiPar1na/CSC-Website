@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { KeyRound, Trash2, Loader2, Crown, User } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { UserWithPremium, Message, PaginationInfo } from "@/lib/admin-types";
-import { useMessage, useLoading, usePagination } from "@/lib/admin-hooks";
+import { UserWithPremium, PaginationInfo } from "@/lib/admin-types";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading, usePagination } from "@/lib/admin-hooks";
 
 export default function UsersPage() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function UsersPage() {
   const { loading: isResettingPassword, setLoading: setIsResettingPassword } = useLoading();
   const { loading: isUpdatingRole, setLoading: setIsUpdatingRole } = useLoading();
   const { currentPage, setCurrentPage, pagination, updatePagination } = usePagination(1, 10);
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
   const [resetPasswordUserId, setResetPasswordUserId] = useState<number | null>(null);
   const [resetPasswordValue, setResetPasswordValue] = useState("");
   const [rejectUser, setRejectUser] = useState<{ userId: number; username: string } | null>(null);
@@ -59,7 +60,7 @@ export default function UsersPage() {
         updatePagination(data.pagination);
       }
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -94,10 +95,10 @@ export default function UsersPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to update role");
       }
-      showMessage("success", `Role updated for ${username}`);
+      toast.success(`Role updated for ${username}`);
       fetchUsers();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setIsUpdatingRole(false);
     }
@@ -115,10 +116,10 @@ export default function UsersPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to approve user");
       }
-      showMessage("success", "User approved successfully");
+      toast.success("User approved successfully");
       fetchUsers();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -137,19 +138,19 @@ export default function UsersPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to reject user");
       }
-      showMessage("success", "User rejected successfully");
+      toast.success("User rejected successfully");
       setRejectUser(null);
       setRejectionReason("");
       fetchUsers();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleRevokePremium = async (userId: number) => {
-    if (!confirm("Revoke premium access for this user?")) return;
+    if (!(await confirm({ message: "Revoke premium access for this user?", danger: true, confirmLabel: "Revoke" }))) return;
     setIsRevokingPremium(true);
     try {
       const res = await fetch("/api/admin/users", {
@@ -160,9 +161,9 @@ export default function UsersPage() {
       if (!res.ok) throw new Error("Failed to revoke premium");
       const data = await res.json();
       setUsers(data.users || []);
-      showMessage("success", "Premium access revoked");
+      toast.success("Premium access revoked");
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setIsRevokingPremium(false);
     }
@@ -170,7 +171,7 @@ export default function UsersPage() {
 
   const handleResetPassword = async (userId: number) => {
     if (!resetPasswordValue.trim()) {
-      showMessage("error", "Password cannot be empty");
+      toast.error("Password cannot be empty");
       return;
     }
     setIsResettingPassword(true);
@@ -181,27 +182,27 @@ export default function UsersPage() {
         body: JSON.stringify({ password: resetPasswordValue }),
       });
       if (!res.ok) throw new Error("Failed to reset password");
-      showMessage("success", "Password reset successfully");
+      toast.success("Password reset successfully");
       setResetPasswordUserId(null);
       setResetPasswordValue("");
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setIsResettingPassword(false);
     }
   };
 
   const handleDeleteUser = async (userId: number, username: string) => {
-    if (!confirm(`Delete user "${username}"? This cannot be undone.`)) return;
+    if (!(await confirm({ message: `Delete user "${username}"? This cannot be undone.`, danger: true, confirmLabel: "Delete" }))) return;
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete user");
       setUsers(users.filter((u) => u.id !== userId));
-      showMessage("success", "User deleted successfully");
+      toast.success("User deleted successfully");
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     }
   };
 
@@ -258,19 +259,6 @@ export default function UsersPage() {
           </select>
         </div>
       </div>
-
-      {message && (
-        <div
-          className={`p-4 rounded-lg mb-6 flex items-center gap-3 ${
-            message.type === "success"
-              ? "bg-green-500/10 text-green-400 border border-green-500/20"
-              : "bg-red-500/10 text-red-400 border border-red-500/20"
-          }`}
-        >
-          <span className="text-lg">{message.type === "success" ? "✓" : "✕"}</span>
-          {message.text}
-        </div>
-      )}
 
       {/* Users table */}
       {mainLoading ? (

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Send, PenSquare, Trash2, Loader2, Bell, X, Plus } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 
 type Notification = {
   id: number;
@@ -26,7 +27,7 @@ export default function NotificationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { loading, setLoading } = useLoading(true);
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createForm, setCreateForm] = useState({
@@ -60,7 +61,7 @@ export default function NotificationsPage() {
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -93,7 +94,7 @@ export default function NotificationsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.title.trim() || !createForm.message.trim()) {
-      showMessage("error", "Title and message are required");
+      toast.error("Title and message are required");
       return;
     }
 
@@ -111,12 +112,12 @@ export default function NotificationsPage() {
       });
       if (!res.ok) throw new Error("Failed to send notification");
       const data = await res.json();
-      showMessage("success", `Notification sent (${data.recipients_count} recipients)`);
+      toast.success(`Notification sent (${data.recipients_count} recipients)`);
       setCreateForm({ type: "broadcast", title: "", message: "", recipients: "all" });
       setShowCreateForm(false);
       fetchNotifications();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setCreateLoading(false);
     }
@@ -135,7 +136,7 @@ export default function NotificationsPage() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editForm.title.trim() || !editForm.message.trim()) {
-      showMessage("error", "Title and message are required");
+      toast.error("Title and message are required");
       return;
     }
 
@@ -147,18 +148,18 @@ export default function NotificationsPage() {
         body: JSON.stringify(editForm),
       });
       if (!res.ok) throw new Error("Failed to update notification");
-      showMessage("success", "Notification updated");
+      toast.success("Notification updated");
       setEditNotification(null);
       fetchNotifications();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setEditLoading(false);
     }
   };
 
   const handleDelete = async (notif: Notification) => {
-    if (!confirm(`Delete notification "${notif.title}"?`)) return;
+    if (!(await confirm({ message: `Delete notification "${notif.title}"?`, danger: true, confirmLabel: "Delete" }))) return;
     try {
       const res = await fetch(`/api/admin/notifications/${notif.id}`, {
         method: "DELETE",
@@ -166,9 +167,9 @@ export default function NotificationsPage() {
       if (!res.ok) throw new Error("Failed to delete notification");
       setNotifications(notifications.filter((n) => n.id !== notif.id));
       setTotal((t) => t - 1);
-      showMessage("success", "Notification deleted");
+      toast.success("Notification deleted");
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     }
   };
 
@@ -189,7 +190,7 @@ export default function NotificationsPage() {
           onClick: () => setShowCreateForm(!showCreateForm),
           icon: showCreateForm ? <X size={16} /> : <Plus size={16} />,
         }}
-        message={message}
+        
       />
 
       {/* Create Broadcast Form */}

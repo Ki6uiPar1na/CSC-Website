@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Plus, Edit2, Trash2, Loader2 } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { Event as AdminEvent } from "@/lib/admin-types"; // reuse Event type for basic fields
 
 interface Exam {
@@ -22,7 +23,7 @@ export default function AdminExamsPage() {
   const [form, setForm] = useState({ title: "", description: "", lesson_id: 0, pass_marks: 50, total_marks: 100 });
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
 
   useEffect(() => {
     fetchExams();
@@ -35,7 +36,7 @@ export default function AdminExamsPage() {
       const data = await res.json();
       setExams(data.exams || []);
     } catch (err: any) {
-      showMessage("error", err.message || "Failed to fetch exams");
+      toast.error(err.message || "Failed to fetch exams");
     } finally {
       setFetchLoading(false);
     }
@@ -51,26 +52,26 @@ export default function AdminExamsPage() {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Failed to create exam");
-      showMessage("success", "Exam created");
+      toast.success("Exam created");
       setShowForm(false);
       fetchExams();
     } catch (err: any) {
-      showMessage("error", err.message || "Failed to create exam");
+      toast.error(err.message || "Failed to create exam");
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDelete = async (exam: Exam) => {
-    if (!confirm("Delete this exam?")) return;
+    if (!(await confirm({ message: "Delete this exam?", danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch(`/api/admin/exams/${exam.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete exam");
-      showMessage("success", "Exam deleted");
+      toast.success("Exam deleted");
       fetchExams();
     } catch (err: any) {
-      showMessage("error", err.message || "Failed to delete exam");
+      toast.error(err.message || "Failed to delete exam");
     } finally {
       setActionLoading(false);
     }
@@ -83,7 +84,6 @@ export default function AdminExamsPage() {
         icon={<span>📝</span>}
         count={exams.length}
         actionButton={{ label: "Create Exam", onClick: () => setShowForm(true) }}
-        message={message}
       />
 
       {fetchLoading ? (

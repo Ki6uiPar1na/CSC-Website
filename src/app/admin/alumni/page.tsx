@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { compressImage } from '@/lib/image-utils';
 import { GraduationCap, Plus, X, Edit2, Trash2, Users, Save, Loader2, User, Calendar, CheckCircle } from 'lucide-react';
 import { AdminPageHeader } from '@/components/AdminPageHeader';
+import { useToast } from '@/components/ToastProvider';
 
 interface Alumni {
   id: number;
@@ -31,6 +32,7 @@ export default function AlumniAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const { toast, confirm } = useToast();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -86,11 +88,15 @@ export default function AlumniAdmin() {
       });
       
       if (res.ok) {
+        toast.success(editingId ? 'Alumni profile updated' : 'Alumni added successfully');
         resetForm();
         fetchAlumni();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || 'Failed to save alumni');
       }
-    } catch (error) {
-      console.error('Error saving alumni:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save alumni');
     } finally {
       setActionLoading(false);
     }
@@ -136,22 +142,23 @@ export default function AlumniAdmin() {
       const base64 = await compressImage(file, 1.5, 1.0);
       setFormData({ ...formData, photo_url: base64 });
     } catch (error: any) {
-      alert(error.message || 'Error compressing image');
+      toast.error(error.message || 'Error compressing image');
     } finally {
       setIsCompressing(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this alumni member?')) return;
+    if (!(await confirm({ message: 'Are you sure you want to delete this alumni member?', danger: true, confirmLabel: 'Delete' }))) return;
     
     try {
       const res = await fetch(`/api/alumni/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        toast.success('Alumni member deleted');
         fetchAlumni();
       }
-    } catch (error) {
-      console.error('Error deleting alumni:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete alumni');
     }
   };
 

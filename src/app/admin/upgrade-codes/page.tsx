@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Plus, Copy, Trash2, Loader2, AlertCircle, Search, Filter, CheckCircle2, XCircle, Clock, CreditCard as CardIcon } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { UpgradeCode, CodeStats } from "@/lib/admin-types";
 import { formatDate, copyToClipboard } from "@/lib/admin-utils";
 
@@ -33,7 +34,7 @@ export default function UpgradeCodesPage() {
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
   const { loading: formLoading, setLoading: setFormLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
   const [selectedCodes, setSelectedCodes] = useState<Set<number>>(new Set());
 
   const userRole = session?.user ? (session.user as any).role : null;
@@ -59,7 +60,7 @@ export default function UpgradeCodesPage() {
       setTotalPages(data.totalPages || 1);
       setStats(data.stats || null);
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
@@ -93,7 +94,7 @@ export default function UpgradeCodesPage() {
     e.preventDefault();
 
     if (!formData.custom_code && formData.count < 1) {
-      showMessage("error", "Count must be at least 1");
+      toast.error("Count must be at least 1");
       return;
     }
 
@@ -118,26 +119,26 @@ export default function UpgradeCodesPage() {
         throw new Error(data.error || "Failed to generate codes");
       }
 
-      showMessage("success", formData.custom_code ? "Custom code added" : `${formData.count} codes generated successfully`);
+      toast.success(formData.custom_code ? "Custom code added" : `${formData.count} codes generated successfully`);
       resetForm();
       fetchCodesData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDeleteCode = async (code: UpgradeCode) => {
-    if (!confirm(`Delete code ${code.code}?`)) return;
+    if (!(await confirm({ message: `Delete code ${code.code}?`, danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch(`/api/admin/upgrade-codes/${code.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
-      showMessage("success", "Code deleted");
+      toast.success("Code deleted");
       fetchCodesData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -163,10 +164,10 @@ export default function UpgradeCodesPage() {
 
   const handleBulkDelete = async () => {
     if (selectedCodes.size === 0) {
-      showMessage("error", "No codes selected");
+      toast.error("No codes selected");
       return;
     }
-    if (!confirm(`Delete ${selectedCodes.size} codes?`)) return;
+    if (!(await confirm({ message: `Delete ${selectedCodes.size} codes?`, danger: true, confirmLabel: "Delete" }))) return;
 
     setActionLoading(true);
     try {
@@ -176,11 +177,11 @@ export default function UpgradeCodesPage() {
       for (const id of ids) {
         await fetch(`/api/admin/upgrade-codes/${id}`, { method: "DELETE" });
       }
-      showMessage("success", `${ids.length} codes deleted`);
+      toast.success(`${ids.length} codes deleted`);
       setSelectedCodes(new Set());
       fetchCodesData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -199,7 +200,6 @@ export default function UpgradeCodesPage() {
             setShowForm(true);
           },
         }}
-        message={message}
       />
 
       {/* Stats Cards */}
@@ -334,7 +334,7 @@ export default function UpgradeCodesPage() {
                         <button
                           onClick={() => {
                             copyToClipboard(code.code);
-                            showMessage("success", "Code copied to clipboard");
+                            toast.success("Code copied to clipboard");
                           }}
                           className="p-1.5 text-gray-500 hover:text-primary hover:bg-gray-800 rounded-md transition-all opacity-0 group-hover:opacity-100"
                           title="Copy Code"

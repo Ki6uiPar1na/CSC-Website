@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Users, Plus, X, Edit2, Trash2, UserPlus, UserMinus, Save, Loader2, ChevronDown, ChevronRight, Globe } from 'lucide-react';
 import { AdminPageHeader } from '@/components/AdminPageHeader';
+import { useToast } from '@/components/ToastProvider';
 
 interface Team {
   id: number;
@@ -46,6 +47,7 @@ export default function TeamsAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const { toast, confirm } = useToast();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -141,7 +143,7 @@ export default function TeamsAdmin() {
         members: data.members || [],
       });
     } catch (err: any) {
-      alert(err.message || 'Failed to fetch from CTFtime');
+      toast.error(err.message || 'Failed to fetch from CTFtime');
     } finally {
       setFetchingCtftime(false);
     }
@@ -172,14 +174,15 @@ export default function TeamsAdmin() {
       });
 
       if (res.ok) {
+        toast.success(editingId ? 'Team updated' : 'Team created');
         resetForm();
         fetchTeams();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to save team');
+        toast.error(data.error || 'Failed to save team');
       }
-    } catch (error) {
-      console.error('Error saving team:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save team');
     } finally {
       setActionLoading(false);
     }
@@ -203,16 +206,17 @@ export default function TeamsAdmin() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this team? Members will be removed.')) return;
+    if (!(await confirm({ message: 'Are you sure you want to delete this team? Members will be removed.', danger: true, confirmLabel: 'Delete' }))) return;
 
     try {
       const res = await fetch(`/api/admin/teams/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        toast.success('Team deleted');
         setExpandedTeam(null);
         fetchTeams();
       }
-    } catch (error) {
-      console.error('Error deleting team:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete team');
     }
   };
 
@@ -227,20 +231,21 @@ export default function TeamsAdmin() {
       });
 
       if (res.ok) {
+        toast.success('Member added to team');
         setSelectedUserId('');
         fetchTeamMembers(teamId);
         fetchTeams();
       } else {
         const data = await res.json();
-        alert(data.error || 'Failed to add member');
+        toast.error(data.error || 'Failed to add member');
       }
-    } catch (error) {
-      console.error('Error adding member:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add member');
     }
   };
 
   const handleRemoveMember = async (teamId: number, userId: number) => {
-    if (!confirm('Remove this member from the team?')) return;
+    if (!(await confirm({ message: 'Remove this member from the team?', danger: true, confirmLabel: 'Remove' }))) return;
 
     try {
       const res = await fetch(`/api/admin/teams/${teamId}/members/${userId}`, {
@@ -248,11 +253,12 @@ export default function TeamsAdmin() {
       });
 
       if (res.ok) {
+        toast.success('Member removed from team');
         fetchTeamMembers(teamId);
         fetchTeams();
       }
-    } catch (error) {
-      console.error('Error removing member:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to remove member');
     }
   };
 

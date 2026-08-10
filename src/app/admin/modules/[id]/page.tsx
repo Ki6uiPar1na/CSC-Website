@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { Module, Lesson, Exam, ExamQuestion, Challenge } from "@/lib/admin-types";
 import { formatDate } from "@/lib/admin-utils";
 import { compressImage } from "@/lib/image-utils";
@@ -55,7 +56,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
 
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
 
   useEffect(() => {
     fetchModuleData();
@@ -86,7 +87,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
       const fetchedExams = examResults.map(r => r.exam).filter(Boolean);
       setExams(fetchedExams);
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
@@ -120,12 +121,12 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
       });
 
       if (!res.ok) throw new Error("Failed to save lesson");
-      showMessage("success", editingLesson ? "Lesson updated" : "Lesson created");
+      toast.success(editingLesson ? "Lesson updated" : "Lesson created");
       setShowLessonForm(false);
       setEditingLesson(null);
       fetchModuleData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -140,7 +141,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
       const base64 = await compressImage(file, 1.5, 1.0);
       setLessonFormData({ ...lessonFormData, image_url: base64 });
     } catch (error: any) {
-      alert(error.message || "Error compressing image");
+      toast.error(error.message || "Error compressing image");
     } finally {
       setIsCompressing(false);
     }
@@ -160,7 +161,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
   };
 
   const handleDeleteLesson = async (lessonId: number) => {
-    if (!confirm("Are you sure you want to delete this lesson?")) return;
+    if (!(await confirm({ message: "Are you sure you want to delete this lesson?", danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch("/api/admin/lessons", {
@@ -169,10 +170,10 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
         body: JSON.stringify({ lessonId }),
       });
       if (!res.ok) throw new Error("Failed to delete lesson");
-      showMessage("success", "Lesson deleted");
+      toast.success("Lesson deleted");
       fetchModuleData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -213,7 +214,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
       }
       setIsExamModalOpen(true);
     } catch (error: any) {
-      showMessage("error", "Failed to load practice problems");
+      toast.error("Failed to load practice problems");
     } finally {
       setActionLoading(false);
     }
@@ -267,7 +268,7 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
       });
 
       if (!res.ok) throw new Error("Failed to save question");
-      showMessage("success", "Question saved");
+      toast.success("Question saved");
       setIsQuestionModalOpen(false);
       
       // Refresh exam data
@@ -277,14 +278,14 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
         setExamQuestions(refreshData.exam.questions || []);
       }
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeleteQuestion = async (questionId: number) => {
-    if (!confirm("Delete this question?")) return;
+    if (!(await confirm({ message: "Delete this question?", danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch('/api/admin/exams', {
@@ -294,9 +295,9 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
       });
       if (!res.ok) throw new Error("Failed to delete question");
       setExamQuestions(prev => prev.filter(q => q.id !== questionId));
-      showMessage("success", "Question deleted");
+      toast.success("Question deleted");
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -360,7 +361,6 @@ export default function AdminModuleDetailPage({ params }: { params: Promise<{ id
               setShowLessonForm(true);
             },
           }}
-          message={message}
         />
       </div>
 

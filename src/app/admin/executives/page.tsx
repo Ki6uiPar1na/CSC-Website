@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { compressImage } from '@/lib/image-utils';
 import { Briefcase, Plus, X, Edit2, Trash2, Users, Save, Loader2, Link as LinkIcon, User } from 'lucide-react';
 import { AdminPageHeader } from '@/components/AdminPageHeader';
+import { useToast } from '@/components/ToastProvider';
 
 interface Executive {
   id: number;
@@ -29,6 +30,7 @@ export default function ExecutivesAdmin() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const { toast, confirm } = useToast();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -82,11 +84,15 @@ export default function ExecutivesAdmin() {
       });
       
       if (res.ok) {
+        toast.success(editingId ? 'Executive updated' : 'Executive saved');
         resetForm();
         fetchExecutives();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || 'Failed to save executive');
       }
-    } catch (error) {
-      console.error('Error saving executive:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save executive');
     } finally {
       setActionLoading(false);
     }
@@ -120,15 +126,16 @@ export default function ExecutivesAdmin() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this executive?')) return;
+    if (!(await confirm({ message: 'Are you sure you want to delete this executive?', danger: true, confirmLabel: 'Delete' }))) return;
     
     try {
       const res = await fetch(`/api/executives/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        toast.success('Executive deleted');
         fetchExecutives();
       }
-    } catch (error) {
-      console.error('Error deleting executive:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete executive');
     }
   };
 
@@ -141,7 +148,7 @@ export default function ExecutivesAdmin() {
       const base64 = await compressImage(file, 1.5, 1.0);
       setFormData({ ...formData, photo_url: base64 });
     } catch (error: any) {
-      alert(error.message || 'Error compressing image');
+      toast.error(error.message || 'Error compressing image');
     } finally {
       setIsCompressing(false);
     }

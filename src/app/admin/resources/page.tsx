@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Link as LinkIcon, Loader2, AlertCircle } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { Resource } from "@/lib/admin-types";
 import { formatDate } from "@/lib/admin-utils";
 
@@ -22,7 +23,7 @@ export default function ResourcesPage() {
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
   const { loading: formLoading, setLoading: setFormLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -40,7 +41,7 @@ export default function ResourcesPage() {
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
@@ -56,12 +57,12 @@ export default function ResourcesPage() {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      showMessage("error", "Title is required");
+      toast.error("Title is required");
       return;
     }
 
     if (formData.urls.every((u) => !u.url.trim())) {
-      showMessage("error", "At least one URL is required");
+      toast.error("At least one URL is required");
       return;
     }
 
@@ -83,11 +84,11 @@ export default function ResourcesPage() {
       });
 
       if (!res.ok) throw new Error("Failed to save resource");
-      showMessage("success", editingResource ? "Resource updated" : "Resource created");
+      toast.success(editingResource ? "Resource updated" : "Resource created");
       resetForm();
       fetchResourcesData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFormLoading(false);
     }
@@ -106,7 +107,7 @@ export default function ResourcesPage() {
   };
 
   const handleDelete = async (resource: Resource) => {
-    if (!confirm(`Delete "${resource.title}"?`)) return;
+    if (!(await confirm({ message: `Delete "${resource.title}"?`, danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch("/api/admin/resources", {
@@ -115,10 +116,10 @@ export default function ResourcesPage() {
         body: JSON.stringify({ resourceId: resource.id }),
       });
       if (!res.ok) throw new Error("Failed to delete");
-      showMessage("success", "Resource deleted");
+      toast.success("Resource deleted");
       fetchResourcesData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -140,7 +141,7 @@ export default function ResourcesPage() {
             setShowForm(true);
           },
         }}
-        message={message}
+        
       />
 
       {fetchLoading ? (

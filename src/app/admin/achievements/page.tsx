@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Trophy, Users, User, Calendar, DollarSign, Trash2, Edit2, Plus, X, Save, Upload, Loader2, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { AdminPageHeader } from '@/components/AdminPageHeader';
+import { useToast } from '@/components/ToastProvider';
 import { compressImage } from "@/lib/image-utils";
 
 interface Achievement {
@@ -47,6 +48,7 @@ export default function AchievementsAdmin() {
   });
 
   const [isCompressing, setIsCompressing] = useState(false);
+  const { toast, confirm } = useToast();
 
   useEffect(() => {
     if (!session) {
@@ -68,8 +70,8 @@ export default function AchievementsAdmin() {
       setAchievements(data.achievements || []);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
-    } catch (error) {
-      console.error('Error fetching achievements:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Error fetching achievements');
       setAchievements([]);
     } finally {
       setLoading(false);
@@ -95,11 +97,15 @@ export default function AchievementsAdmin() {
       });
       
       if (res.ok) {
+        toast.success(editingId ? 'Achievement updated' : 'Achievement saved');
         resetForm();
         fetchAchievements();
+      } else {
+        const err = await res.json();
+        toast.error(err.error || 'Failed to save achievement');
       }
-    } catch (error) {
-      console.error('Error saving achievement:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to save achievement');
     }
   };
 
@@ -133,7 +139,7 @@ export default function AchievementsAdmin() {
       }
       setFormData({ ...formData, gallery_images: JSON.stringify([...currentGallery, ...newImages]) });
     } catch (error: any) {
-      alert(error.message || "Error compressing image");
+      toast.error(error.message || "Error compressing image");
     } finally {
       setIsCompressing(false);
     }
@@ -162,15 +168,16 @@ export default function AchievementsAdmin() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this achievement?')) return;
+    if (!(await confirm({ message: 'Are you sure you want to delete this achievement?', danger: true, confirmLabel: 'Delete' }))) return;
     
     try {
       const res = await fetch(`/api/admin/achievements/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        toast.success('Achievement deleted');
         fetchAchievements();
       }
-    } catch (error) {
-      console.error('Error deleting achievement:', error);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete achievement');
     }
   };
 
@@ -208,7 +215,7 @@ export default function AchievementsAdmin() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} achievement${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`)) return;
+    if (!(await confirm({ message: `Delete ${selectedIds.size} achievement${selectedIds.size > 1 ? 's' : ''}? This action cannot be undone.`, danger: true, confirmLabel: 'Delete' }))) return;
     
     setIsBulkDeleting(true);
     try {
@@ -218,15 +225,15 @@ export default function AchievementsAdmin() {
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
       if (res.ok) {
+        toast.success(`${selectedIds.size} achievement${selectedIds.size > 1 ? 's' : ''} deleted`);
         setSelectedIds(new Set());
         fetchAchievements();
       } else {
         const err = await res.json();
-        alert(err.error || 'Failed to delete achievements');
+        toast.error(err.error || 'Failed to delete achievements');
       }
-    } catch (error) {
-      console.error('Error bulk deleting:', error);
-      alert('Failed to delete achievements');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete achievements');
     } finally {
       setIsBulkDeleting(false);
     }

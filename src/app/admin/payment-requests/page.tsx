@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Check, X, Loader2, AlertCircle } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { PaymentRequest } from "@/lib/admin-types";
 import { formatDate, formatPrice } from "@/lib/admin-utils";
 
@@ -21,7 +22,7 @@ export default function PaymentRequestsPage() {
 
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
 
   const userRole = session?.user ? (session.user as any).role : null;
 
@@ -47,14 +48,14 @@ export default function PaymentRequestsPage() {
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
   };
 
   const handleApprove = async (id: number) => {
-    if (!confirm("Approve this payment?")) return;
+    if (!(await confirm({ message: "Approve this payment?", confirmLabel: "Approve" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch(`/api/admin/payment-requests/${id}`, {
@@ -63,10 +64,10 @@ export default function PaymentRequestsPage() {
         body: JSON.stringify({ status: "approved" }),
       });
       if (!res.ok) throw new Error("Failed to approve");
-      showMessage("success", "Payment approved");
+      toast.success("Payment approved");
       fetchRequests();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -74,7 +75,7 @@ export default function PaymentRequestsPage() {
 
   const handleReject = async (id: number) => {
     if (!rejectionReason.trim()) {
-      showMessage("error", "Please provide a rejection reason");
+      toast.error("Please provide a rejection reason");
       return;
     }
     setActionLoading(true);
@@ -85,12 +86,12 @@ export default function PaymentRequestsPage() {
         body: JSON.stringify({ status: "rejected", rejection_reason: rejectionReason }),
       });
       if (!res.ok) throw new Error("Failed to reject");
-      showMessage("success", "Payment rejected");
+      toast.success("Payment rejected");
       setShowRejectionReason(null);
       setRejectionReason("");
       fetchRequests();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -104,7 +105,7 @@ export default function PaymentRequestsPage() {
         title="Payment Requests"
         icon={<span>💰</span>}
         count={pendingRequests.length}
-        message={message}
+        
       />
 
       {fetchLoading ? (

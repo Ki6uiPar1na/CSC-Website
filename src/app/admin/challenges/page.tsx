@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Loader2, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { Challenge, Module, ChallengeFlag, ChallengeUrl } from "@/lib/admin-types";
 import { formatDate } from "@/lib/admin-utils";
 
@@ -29,7 +30,7 @@ export default function ChallengesPage() {
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
   const { loading: formLoading, setLoading: setFormLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -52,7 +53,7 @@ export default function ChallengesPage() {
       setTotalPages(challengesData.totalPages || 1);
       setModules(modulesData.modules || []);
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
@@ -96,12 +97,12 @@ export default function ChallengesPage() {
     e.preventDefault();
 
     if (!formData.title.trim() || formData.module_id === 0) {
-      showMessage("error", "Title and module are required");
+      toast.error("Title and module are required");
       return;
     }
 
     if (formData.flags.every((f) => !f.flag.trim())) {
-      showMessage("error", "At least one flag is required");
+      toast.error("At least one flag is required");
       return;
     }
 
@@ -121,26 +122,26 @@ export default function ChallengesPage() {
       });
 
       if (!res.ok) throw new Error("Failed to save challenge");
-      showMessage("success", editingChallenge ? "Challenge updated" : "Challenge created");
+      toast.success(editingChallenge ? "Challenge updated" : "Challenge created");
       resetForm();
       fetchData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDelete = async (challenge: Challenge) => {
-    if (!confirm(`Delete "${challenge.title}"?`)) return;
+    if (!(await confirm({ message: `Delete "${challenge.title}"?`, danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch(`/api/admin/challenges/${challenge.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
-      showMessage("success", "Challenge deleted");
+      toast.success("Challenge deleted");
       fetchData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -159,7 +160,7 @@ export default function ChallengesPage() {
             setShowForm(true);
           },
         }}
-        message={message}
+        
       />
 
       {fetchLoading ? (

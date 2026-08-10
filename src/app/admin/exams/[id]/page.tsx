@@ -4,7 +4,8 @@ import { useState, useEffect, use } from "react";
 import { Plus, Edit2, Trash2, Loader2, Save, X, HelpCircle, Check, Trash, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { Exam, ExamQuestion, Challenge } from "@/lib/admin-types";
 
 export default function AdminExamDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -30,7 +31,7 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
 
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
 
   useEffect(() => {
     fetchExamData();
@@ -44,7 +45,7 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
       const data = await res.json();
       const found = (data.exams || []).find((e: any) => String(e.id) === String(id));
       if (!found) {
-        showMessage('error', 'Exam not found');
+        toast.error('Exam not found');
         setCurrentExam(null);
         setQuestions([]);
         return;
@@ -64,7 +65,7 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
         setQuestions([]);
       }
     } catch (err: any) {
-      showMessage('error', err.message || 'Failed to load exam');
+      toast.error(err.message || 'Failed to load exam');
     } finally {
       setFetchLoading(false);
     }
@@ -122,18 +123,18 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
         body: JSON.stringify(body)
       });
       if (!res.ok) throw new Error('Failed to save question');
-      showMessage('success', 'Question saved');
+      toast.success('Question saved');
       setIsQuestionModalOpen(false);
       fetchExamData();
     } catch (err: any) {
-      showMessage('error', err.message || 'Failed to save question');
+      toast.error(err.message || 'Failed to save question');
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeleteQuestion = async (questionId: number) => {
-    if (!confirm('Delete this question?')) return;
+    if (!(await confirm({ message: 'Delete this question?', danger: true, confirmLabel: 'Delete' }))) return;
     setActionLoading(true);
     try {
       const res = await fetch('/api/admin/exams', {
@@ -142,10 +143,10 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
         body: JSON.stringify({ questionId })
       });
       if (!res.ok) throw new Error('Failed to delete question');
-      showMessage('success', 'Question deleted');
+      toast.success('Question deleted');
       setQuestions(prev => prev.filter(q => q.id !== questionId));
     } catch (err: any) {
-      showMessage('error', err.message || 'Failed to delete');
+      toast.error(err.message || 'Failed to delete');
     } finally {
       setActionLoading(false);
     }
@@ -195,7 +196,7 @@ export default function AdminExamDetailPage({ params }: { params: Promise<{ id: 
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader title={currentExam.title || 'Exam'} icon={<span>📝</span>} actionButton={{ label: 'Add Question', onClick: handleAddQuestion }} message={message} />
+      <AdminPageHeader title={currentExam.title || 'Exam'} icon={<span>📝</span>} actionButton={{ label: 'Add Question', onClick: handleAddQuestion }} />
 
       <div className="card">
         <div className="flex items-center justify-between mb-4">

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Edit2, Trash2, AlertCircle, Loader2, ChevronRight } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 import { Module } from "@/lib/admin-types";
 import { formatDate } from "@/lib/admin-utils";
 
@@ -22,7 +23,7 @@ export default function ModulesPage() {
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: actionLoading, setLoading: setActionLoading } = useLoading();
   const { loading: formLoading, setLoading: setFormLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast, confirm } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -51,7 +52,7 @@ export default function ModulesPage() {
         }
       }
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
@@ -67,7 +68,7 @@ export default function ModulesPage() {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      showMessage("error", "Module title is required");
+      toast.error("Module title is required");
       return;
     }
 
@@ -84,11 +85,11 @@ export default function ModulesPage() {
       });
 
       if (!res.ok) throw new Error("Failed to save module");
-      showMessage("success", editingModule ? "Module updated" : "Module created");
+      toast.success(editingModule ? "Module updated" : "Module created");
       resetForm();
       fetchModulesData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFormLoading(false);
     }
@@ -106,15 +107,15 @@ export default function ModulesPage() {
   };
 
   const handleDelete = async (module: Module) => {
-    if (!confirm(`Delete "${module.title}"?`)) return;
+    if (!(await confirm({ message: `Delete "${module.title}"?`, danger: true, confirmLabel: "Delete" }))) return;
     setActionLoading(true);
     try {
       const res = await fetch(`/api/admin/modules/${module.id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to delete");
-      showMessage("success", "Module deleted");
+      toast.success("Module deleted");
       fetchModulesData();
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setActionLoading(false);
     }
@@ -133,7 +134,7 @@ export default function ModulesPage() {
             setShowForm(true);
           },
         }}
-        message={message}
+        
       />
 
       {fetchLoading ? (

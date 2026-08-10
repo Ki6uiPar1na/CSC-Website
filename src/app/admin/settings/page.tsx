@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Save, Loader2 } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
-import { useMessage, useLoading } from "@/lib/admin-hooks";
+import { useToast } from "@/components/ToastProvider";
+import { useLoading } from "@/lib/admin-hooks";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function SettingsPage() {
 
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: saveLoading, setLoading: setSaveLoading } = useLoading();
-  const { message, showMessage } = useMessage();
+  const { toast } = useToast();
 
   const userRole = session?.user ? (session.user as any).role : null;
 
@@ -51,7 +52,7 @@ export default function SettingsPage() {
         setSettings(parsedSettings);
       }
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
@@ -68,9 +69,9 @@ export default function SettingsPage() {
       });
 
       if (!res.ok) throw new Error("Failed to save settings");
-      showMessage("success", "Settings saved successfully");
+      toast.success("Settings saved successfully");
     } catch (error: any) {
-      showMessage("error", error.message);
+      toast.error(error.message);
     } finally {
       setSaveLoading(false);
     }
@@ -79,7 +80,7 @@ export default function SettingsPage() {
   if (fetchLoading) {
     return (
       <div>
-        <AdminPageHeader title="Settings" icon={<span>⚙️</span>} message={message} />
+        <AdminPageHeader title="Settings" icon={<span>⚙️</span>} />
         <div className="text-center py-12">
           <Loader2 className="animate-spin mx-auto mb-4" size={32} />
           <p className="text-gray-400">Loading settings...</p>
@@ -90,7 +91,7 @@ export default function SettingsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Settings" icon={<span>⚙️</span>} message={message} />
+      <AdminPageHeader title="Settings" icon={<span>⚙️</span>} />
 
       <div className="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-6">
