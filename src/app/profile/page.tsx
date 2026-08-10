@@ -63,10 +63,10 @@ export default function ProfilePage() {
   const isSubscribed = stats.isPremium === true;
   const neverSubscribed = !stats.isPremium;
 
-  let membershipStatus = "Free Tier";
+  let membershipStatus = "Not a Member";
   let statusTextColor = "text-gray-500";
   if (isSubscribed) {
-    membershipStatus = "Premium Member";
+    membershipStatus = "Club Members";
     statusTextColor = "text-accent";
   }
 
@@ -103,11 +103,9 @@ export default function ProfilePage() {
             <span className="badge-accent badge flex items-center gap-1.5 px-2 py-0.5">
               <Flame size={12} /> {stats.streak} Day Streak
             </span>
-            {!neverSubscribed && (
-              <span className={`badge flex items-center gap-1.5 px-2 py-0.5 ${isSubscribed ? 'badge-primary' : 'bg-error/10 text-error border border-error/20'}`}>
-                <Shield size={12} /> {isSubscribed ? "Premium" : "Expired"}
-              </span>
-            )}
+            <span className={`badge flex items-center gap-1.5 px-2 py-0.5 ${isSubscribed ? 'badge-primary' : 'bg-error/10 text-error border border-error/20'}`}>
+              <Shield size={12} /> {isSubscribed ? "Club Members" : "Not a Member"}
+            </span>
           </div>
         </div>
       </div>
@@ -128,7 +126,7 @@ export default function ProfilePage() {
               </p>
             )}
             {neverSubscribed && (
-              <p className="mt-1 text-[10px] sm:text-xs text-gray-400">Join premium for exclusive modules and challenges.</p>
+              <p className="mt-1 text-[10px] sm:text-xs text-gray-400">Join as a club member for exclusive modules and challenges.</p>
             )}
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
