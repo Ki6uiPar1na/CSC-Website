@@ -585,6 +585,66 @@ async function migrate() {
     console.log('action column migration error:', err.message);
   }
 
+  // 29. Create recruitment_settings table for the New Member Recruitment feature
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS recruitment_settings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL DEFAULT 'New Member Recruitment',
+        description TEXT,
+        is_open BOOLEAN DEFAULT TRUE,
+        deadline TIMESTAMP NULL,
+        fields_json LONGTEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Created recruitment_settings table');
+  } catch (err) {
+    console.log('recruitment_settings table creation error:', err.message);
+  }
+
+  // 29b. Create recruitment_submissions table
+  try {
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS recruitment_submissions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        data LONGTEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_created_at (created_at)
+      )
+    `);
+    console.log('Created recruitment_submissions table');
+  } catch (err) {
+    console.log('recruitment_submissions table creation error:', err.message);
+  }
+
+  // 29c. Seed default recruitment settings (row id=1) if missing
+  try {
+    const [settings] = await connection.query(
+      `SELECT id FROM recruitment_settings WHERE id = 1`
+    );
+    if (settings.length === 0) {
+      await connection.query(
+        `INSERT INTO recruitment_settings (id, title, description, is_open, fields_json) VALUES
+         (1, 'New Member Recruitment', 'Join JKKNIU Cyber Security Club and start your journey in cybersecurity!', 1, ?)`,
+        [JSON.stringify([
+          { key: 'full_name', label: 'Full Name', type: 'text', required: true, placeholder: 'Your full name', width: 'full' },
+          { key: 'student_id', label: 'Student ID', type: 'text', required: true, placeholder: 'e.g. 221-XXXX', width: 'half' },
+          { key: 'department', label: 'Department', type: 'select', required: true, options: ['CSE', 'EEE', 'ICT', 'Physics', 'Math', 'Others'], placeholder: 'Select your department', width: 'half' },
+          { key: 'batch', label: 'Batch', type: 'text', required: false, placeholder: 'e.g. 22', width: 'half' },
+          { key: 'email', label: 'Email', type: 'email', required: true, placeholder: 'you@example.com', width: 'half' },
+          { key: 'phone', label: 'Phone', type: 'phone', required: true, placeholder: '01XXXXXXXXX', width: 'half' },
+          { key: 'why_join', label: 'Why do you want to join?', type: 'textarea', required: true, placeholder: 'Tell us about your interest in cybersecurity...', width: 'full' },
+          { key: 'skills', label: 'Skills / Experience', type: 'checkbox', required: false, options: ['Networking', 'Web Security', 'Cryptography', 'Reverse Engineering', 'Forensics', 'Competitive Programming', 'None'], placeholder: 'Select all that apply', width: 'full' },
+        ])]
+      );
+      console.log('Seeded default recruitment settings');
+    }
+  } catch (err) {
+    console.log('recruitment settings seed error:', err.message);
+  }
+
   console.log('Migration synchronized successfully');
   await connection.end();
 }

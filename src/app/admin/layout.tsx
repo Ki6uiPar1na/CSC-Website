@@ -26,7 +26,8 @@ export default function AdminLayout({
     "/admin/contests",
     "/admin/executives",
     "/admin/achievements",
-    "/admin/teams"
+    "/admin/teams",
+    "/admin/recruitment"
   ];
 
   const userRole = session?.user ? (session.user as any).role : null;

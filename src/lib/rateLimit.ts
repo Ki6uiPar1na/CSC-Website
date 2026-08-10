@@ -44,7 +44,10 @@ export const RATE_LIMIT_CONFIG = {
   
   // Search
   SEARCH: { maxRequests: 30, windowMs: 60 * 1000 }, // 30 per minute
-  
+
+  // Recruitment
+  RECRUITMENT_SUBMIT: { maxRequests: 5, windowMs: 60 * 60 * 1000 }, // 5 per hour per IP
+
   // Admin Operations
   ADMIN_CREATE: { maxRequests: 100, windowMs: 60 * 60 * 1000 }, // 100 per hour
   ADMIN_UPDATE: { maxRequests: 100, windowMs: 60 * 60 * 1000 }, // 100 per hour
