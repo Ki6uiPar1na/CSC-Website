@@ -1,8 +1,14 @@
 import { NextResponse, NextRequest } from "next/server";
 import { checkAdminRole } from "@/lib/admin-auth";
 import pool from "@/models/db";
-import { RowDataPacket } from "mysql2";
-import { parseFields, RecruitmentField } from "@/app/api/recruitment/route";
+import { RowDataPacket, ResultSetHeader } from "mysql2";
+import {
+  RecruitmentField,
+  getAllForms,
+  getFormById,
+  isSlugAvailable,
+  slugify,
+} from "@/lib/recruitment";
 
 const ALLOWED_TYPES = new Set([
   "text", "email", "phone", "number", "textarea", "select", "radio", "checkbox", "date",
@@ -64,80 +70,48 @@ function sanitizeFields(fields: any[]): { ok: boolean; error?: string; fields?: 
   return { ok: true, fields: cleaned };
 }
 
-export async function GET(request: NextRequest) {
+async function resolveUniqueSlug(base: string, excludeId?: number): Promise<string> {
+  const candidate = slugify(base);
+  if (await isSlugAvailable(candidate, excludeId)) return candidate;
+  for (let i = 2; i < 100; i++) {
+    const next = `${candidate}-${i}`;
+    if (await isSlugAvailable(next, excludeId)) return next;
+  }
+  return `${candidate}-${Date.now()}`;
+}
+
+export async function GET() {
   try {
     const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response;
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "15");
-    const offset = (page - 1) * limit;
-
-    const [settingsRows] = await pool.query<RowDataPacket[]>(
-      `SELECT * FROM recruitment_settings WHERE id = 1 LIMIT 1`
-    );
-
-    let settings = null;
-    if (settingsRows.length > 0) {
-      const row = settingsRows[0] as any;
-      settings = {
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        is_open: !!row.is_open,
-        deadline: row.deadline,
-        fields: parseFields(row.fields_json),
-      };
-    }
-
-    const [countRows] = await pool.query<RowDataPacket[]>(
-      `SELECT COUNT(*) as total FROM recruitment_submissions`
-    );
-    const total = (countRows[0] as any).total;
-
-    const [submissionRows] = await pool.query<RowDataPacket[]>(
-      `SELECT id, data, created_at FROM recruitment_submissions
-       ORDER BY created_at DESC, id DESC
-       LIMIT ? OFFSET ?`,
-      [limit, offset]
-    );
-
-    const submissions = submissionRows.map((row: any) => ({
-      id: row.id,
-      data: (() => {
-        try {
-          return JSON.parse(row.data);
-        } catch {
-          return {};
-        }
-      })(),
-      created_at: row.created_at,
-    }));
-
+    const forms = await getAllForms(true);
     return NextResponse.json({
-      settings,
-      submissions,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
+      forms: forms.map((f) => ({
+        id: f.id,
+        slug: f.slug,
+        title: f.title,
+        description: f.description,
+        is_open: !!f.is_open,
+        deadline: f.deadline,
+        submission_count: f.submission_count ?? 0,
+      })),
     });
   } catch (error: any) {
-    console.error("Get Recruitment Admin Error:", error);
+    console.error("Get Apply Forms Admin Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to fetch recruitment data" },
+      { error: error.message || "Failed to fetch application forms" },
       { status: 500 }
     );
   }
 }
 
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const auth = await checkAdminRole([1]);
     if (!auth.authorized) return auth.response;
 
-    const { title, description, is_open, deadline, fields } = await request.json();
+    const { title, description, is_open, deadline, fields, slug } = await request.json();
 
     if (!title || !String(title).trim()) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -148,19 +122,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: validated.error }, { status: 400 });
     }
 
+    const formSlug = await resolveUniqueSlug(String(slug || title).trim());
     const deadlineValue = deadline ? new Date(deadline).toISOString() : null;
 
-    await pool.query(
-      `INSERT INTO recruitment_settings (id, title, description, is_open, deadline, fields_json)
-       VALUES (1, ?, ?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE
-         title = VALUES(title),
-         description = VALUES(description),
-         is_open = VALUES(is_open),
-         deadline = VALUES(deadline),
-         fields_json = VALUES(fields_json),
-         updated_at = CURRENT_TIMESTAMP`,
+    const [result] = await pool.query<ResultSetHeader>(
+      `INSERT INTO recruitment_settings (slug, title, description, is_open, deadline, fields_json)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
+        formSlug,
         String(title).trim(),
         String(description || ""),
         !!is_open ? 1 : 0,
@@ -171,12 +140,85 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Recruitment form settings updated",
+      message: "Application form created",
+      form: { id: result.insertId, slug: formSlug },
     });
   } catch (error: any) {
-    console.error("Update Recruitment Admin Error:", error);
+    console.error("Create Apply Form Admin Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to update recruitment settings" },
+      { error: error.message || "Failed to create application form" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const auth = await checkAdminRole([1]);
+    if (!auth.authorized) return auth.response;
+
+    const { id, title, description, is_open, deadline, fields, slug } = await request.json();
+    const formId = parseInt(id, 10);
+    if (!Number.isFinite(formId)) {
+      return NextResponse.json({ error: "Invalid form ID" }, { status: 400 });
+    }
+
+    const existing = await getFormById(formId);
+    if (!existing) {
+      return NextResponse.json({ error: "Application form not found" }, { status: 404 });
+    }
+
+    if (!title || !String(title).trim()) {
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    }
+
+    const validated = sanitizeFields(fields);
+    if (!validated.ok) {
+      return NextResponse.json({ error: validated.error }, { status: 400 });
+    }
+
+    let formSlug = existing.slug;
+    const requestedSlug = String(slug || "").trim();
+    if (requestedSlug && requestedSlug !== existing.slug) {
+      const candidate = slugify(requestedSlug);
+      if (!(await isSlugAvailable(candidate, formId))) {
+        return NextResponse.json({ error: "That slug is already in use." }, { status: 400 });
+      }
+      formSlug = candidate;
+    }
+
+    const deadlineValue = deadline ? new Date(deadline).toISOString() : null;
+
+    await pool.query(
+      `UPDATE recruitment_settings SET
+         slug = ?,
+         title = ?,
+         description = ?,
+         is_open = ?,
+         deadline = ?,
+         fields_json = ?,
+         updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+      [
+        formSlug,
+        String(title).trim(),
+        String(description || ""),
+        !!is_open ? 1 : 0,
+        deadlineValue,
+        JSON.stringify(validated.fields),
+        formId,
+      ]
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: "Application form updated",
+      form: { id: formId, slug: formSlug },
+    });
+  } catch (error: any) {
+    console.error("Update Apply Form Admin Error:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to update application form" },
       { status: 500 }
     );
   }

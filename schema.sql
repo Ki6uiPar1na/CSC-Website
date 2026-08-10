@@ -503,30 +503,37 @@ CREATE TABLE IF NOT EXISTS event_rsvps (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Recruitment Settings Table (singleton config, row id=1)
+-- Recruitment Settings Table (one row per application form)
+-- slug uniquely identifies each form and its public URL (/apply/<slug>)
 -- fields_json stores an array of field definitions:
 -- [{ key, label, type, required, options, placeholder, width }]
 CREATE TABLE IF NOT EXISTS recruitment_settings (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  slug VARCHAR(255) NULL,
   title VARCHAR(255) NOT NULL DEFAULT 'New Member Recruitment',
   description TEXT,
   is_open BOOLEAN DEFAULT TRUE,
   deadline TIMESTAMP NULL,
   fields_json LONGTEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY unique_recruitment_slug (slug)
 );
 
 -- Recruitment Submissions Table
 -- data stores a JSON object mapping field key -> value
+-- form_id links each submission to the form it was submitted to
 CREATE TABLE IF NOT EXISTS recruitment_submissions (
   id INT AUTO_INCREMENT PRIMARY KEY,
+  form_id INT NULL,
   data LONGTEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_created_at (created_at)
+  INDEX idx_created_at (created_at),
+  INDEX idx_form_id (form_id),
+  FOREIGN KEY (form_id) REFERENCES recruitment_settings(id) ON DELETE SET NULL
 );
 
 -- Seed default recruitment settings row (id=1) with starter fields
-INSERT IGNORE INTO recruitment_settings (id, title, description, is_open, fields_json) VALUES
-(1, 'New Member Recruitment', 'Join JKKNIU Cyber Security Club and start your journey in cybersecurity!', 1, '[{"key":"full_name","label":"Full Name","type":"text","required":true,"placeholder":"Your full name","width":"full"},{"key":"student_id","label":"Student ID","type":"text","required":true,"placeholder":"e.g. 221-XXXX","width":"half"},{"key":"department","label":"Department","type":"select","required":true,"options":["CSE","EEE","ICT","Physics","Math","Others"],"placeholder":"Select your department","width":"half"},{"key":"batch","label":"Batch","type":"text","required":false,"placeholder":"e.g. 22","width":"half"},{"key":"email","label":"Email","type":"email","required":true,"placeholder":"you@example.com","width":"half"},{"key":"phone","label":"Phone","type":"phone","required":true,"placeholder":"01XXXXXXXXX","width":"half"},{"key":"why_join","label":"Why do you want to join?","type":"textarea","required":true,"placeholder":"Tell us about your interest in cybersecurity...","width":"full"},{"key":"skills","label":"Skills / Experience","type":"checkbox","required":false,"options":["Networking","Web Security","Cryptography","Reverse Engineering","Forensics","Competitive Programming","None"],"placeholder":"Select all that apply","width":"full"}]');
+INSERT IGNORE INTO recruitment_settings (id, slug, title, description, is_open, fields_json) VALUES
+(1, 'new-member-recruitment', 'New Member Recruitment', 'Join JKKNIU Cyber Security Club and start your journey in cybersecurity!', 1, '[{"key":"full_name","label":"Full Name","type":"text","required":true,"placeholder":"Your full name","width":"full"},{"key":"student_id","label":"Student ID","type":"text","required":true,"placeholder":"e.g. 221-XXXX","width":"half"},{"key":"department","label":"Department","type":"select","required":true,"options":["CSE","EEE","ICT","Physics","Math","Others"],"placeholder":"Select your department","width":"half"},{"key":"batch","label":"Batch","type":"text","required":false,"placeholder":"e.g. 22","width":"half"},{"key":"email","label":"Email","type":"email","required":true,"placeholder":"you@example.com","width":"half"},{"key":"phone","label":"Phone","type":"phone","required":true,"placeholder":"01XXXXXXXXX","width":"half"},{"key":"why_join","label":"Why do you want to join?","type":"textarea","required":true,"placeholder":"Tell us about your interest in cybersecurity...","width":"full"},{"key":"skills","label":"Skills / Experience","type":"checkbox","required":false,"options":["Networking","Web Security","Cryptography","Reverse Engineering","Forensics","Competitive Programming","None"],"placeholder":"Select all that apply","width":"full"}]');
 

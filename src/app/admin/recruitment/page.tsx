@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   Plus, Trash2, Loader2, AlertCircle, Save, ChevronUp, ChevronDown,
-  FileDown, Settings2, Inbox, Eye, X,
+  FileDown, Settings2, Inbox, Eye, X, ArrowLeft, Pencil, ExternalLink, ClipboardList,
 } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { useToast } from "@/components/ToastProvider";
@@ -23,8 +23,29 @@ interface Field {
   width: "full" | "half";
 }
 
+interface FormSummary {
+  id: number;
+  slug: string;
+  title: string;
+  description: string | null;
+  is_open: boolean;
+  deadline: string | null;
+  submission_count: number;
+}
+
+interface FormDetail {
+  id: number;
+  slug: string;
+  title: string;
+  description: string | null;
+  is_open: boolean;
+  deadline: string | null;
+  fields: { key: string; label: string; type: string; required: boolean; options: string[]; placeholder: string; width: "full" | "half" }[];
+}
+
 interface Submission {
   id: number;
+  form_id: number | null;
   data: Record<string, any>;
   created_at: string;
 }
@@ -65,6 +86,14 @@ const toDatetimeLocal = (iso: string | null) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
+const statusOf = (form: FormSummary) => {
+  if (!form.is_open) return { label: "Closed", cls: "text-red-400 bg-red-500/10 border-red-500/30" };
+  if (form.deadline && new Date(form.deadline).getTime() < Date.now()) {
+    return { label: "Deadline passed", cls: "text-amber-400 bg-amber-500/10 border-amber-500/30" };
+  }
+  return { label: "Open", cls: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" };
+};
+
 export default function AdminRecruitmentPage() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -72,46 +101,73 @@ export default function AdminRecruitmentPage() {
   const { loading: fetchLoading, setLoading: setFetchLoading } = useLoading(true);
   const { loading: saveLoading, setLoading: setSaveLoading } = useLoading();
   const { loading: deleteLoading, setLoading: setDeleteLoading } = useLoading();
+  const { loading: subLoading, setLoading: setSubLoading } = useLoading();
 
   const userRole = session?.user ? (session.user as any).role : null;
 
-  const [tab, setTab] = useState<"settings" | "submissions">("settings");
+  const [view, setView] = useState<"list" | "edit" | "submissions">("list");
+  const [forms, setForms] = useState<FormSummary[]>([]);
+
+  // Editor state
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [slug, setSlug] = useState("");
   const [isOpen, setIsOpen] = useState(true);
   const [deadline, setDeadline] = useState("");
   const [fields, setFields] = useState<Field[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Submissions state
+  const [selectedFormId, setSelectedFormId] = useState<number | 0>(0);
+  const [selectedFormFields, setSelectedFormFields] = useState<Field[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const [preview, setPreview] = useState<Submission | null>(null);
+  const [previewFields, setPreviewFields] = useState<Field[]>([]);
+  const [previewFormTitle, setPreviewFormTitle] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchAll();
-  }, [currentPage]);
-
-  const fetchAll = async () => {
+  const fetchForms = async () => {
     setFetchLoading(true);
     try {
-      const res = await fetch(`/api/admin/recruitment?page=${currentPage}&limit=15`);
+      const res = await fetch("/api/admin/recruitment");
       const data = await res.json();
       if (!res.ok) {
         if (data.error === "Admin access required") {
           router.push(userRole === 2 ? "/admin" : "/");
           return;
         }
-        throw new Error(data.error || "Failed to fetch recruitment data");
+        throw new Error(data.error || "Failed to fetch application forms");
       }
-      if (data.settings) {
-        setTitle(data.settings.title || "");
-        setDescription(data.settings.description || "");
-        setIsOpen(!!data.settings.is_open);
-        setDeadline(toDatetimeLocal(data.settings.deadline));
-        setFields(
-          (data.settings.fields || []).map((f: any) => ({
+      setForms(data.forms || []);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load application forms");
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchForms();
+  }, []);
+
+  useEffect(() => {
+    if (view !== "submissions") return;
+    fetchSubmissions();
+  }, [view, currentPage, selectedFormId]);
+
+  useEffect(() => {
+    if (view !== "submissions" || !selectedFormId) {
+      setSelectedFormFields([]);
+      return;
+    }
+    fetch(`/api/admin/recruitment/${selectedFormId}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setSelectedFormFields(
+          (data?.fields || []).map((f: any) => ({
             _id: ++fieldSeq,
             key: f.key,
             label: f.label,
@@ -122,14 +178,97 @@ export default function AdminRecruitmentPage() {
             width: f.width === "half" ? "half" : "full",
           }))
         );
+      })
+      .catch(() => setSelectedFormFields([]));
+  }, [view, selectedFormId]);
+
+  const loadPreviewFields = async (formId: number | null) => {
+    setPreviewFields([]);
+    setPreviewFormTitle(null);
+    if (formId == null) return;
+    const form = forms.find((f) => f.id === formId);
+    setPreviewFormTitle(form?.title ?? null);
+    const res = await fetch(`/api/admin/recruitment/${formId}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    setPreviewFields(
+      (data.fields || []).map((f: any) => ({
+        _id: ++fieldSeq,
+        key: f.key,
+        label: f.label,
+        type: f.type,
+        required: !!f.required,
+        options: Array.isArray(f.options) ? f.options : [],
+        placeholder: f.placeholder || "",
+        width: f.width === "half" ? "half" : "full",
+      }))
+    );
+  };
+
+  const fetchSubmissions = async () => {
+    setSubLoading(true);
+    try {
+      const query = selectedFormId ? `form_id=${selectedFormId}&` : "";
+      const res = await fetch(`/api/admin/recruitment/submissions?${query}page=${currentPage}&limit=15`);
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.error === "Admin access required") {
+          router.push(userRole === 2 ? "/admin" : "/");
+          return;
+        }
+        throw new Error(data.error || "Failed to fetch submissions");
       }
       setSubmissions(data.submissions || []);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
     } catch (error: any) {
-      toast.error(error.message || "Failed to load recruitment data");
+      toast.error(error.message || "Failed to load submissions");
     } finally {
-      setFetchLoading(false);
+      setSubLoading(false);
+    }
+  };
+
+  const startCreate = () => {
+    setEditingId(null);
+    setTitle("");
+    setDescription("");
+    setSlug("");
+    setIsOpen(true);
+    setDeadline("");
+    setFields([newField()]);
+    setFormError(null);
+    setView("edit");
+  };
+
+  const startEdit = async (form: FormSummary) => {
+    setFormError(null);
+    setView("edit");
+    setEditingId(form.id);
+    setTitle(form.title);
+    setDescription(form.description || "");
+    setSlug(form.slug);
+    setIsOpen(form.is_open);
+    setDeadline(toDatetimeLocal(form.deadline));
+    setFields([]);
+    try {
+      const res = await fetch(`/api/admin/recruitment/${form.id}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to load form");
+      setFields(
+        (data.fields || []).map((f: any) => ({
+          _id: ++fieldSeq,
+          key: f.key,
+          label: f.label,
+          type: f.type,
+          required: !!f.required,
+          options: Array.isArray(f.options) ? f.options : [],
+          placeholder: f.placeholder || "",
+          width: f.width === "half" ? "half" : "full",
+        }))
+      );
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load form");
+      setFields([newField()]);
     }
   };
 
@@ -172,33 +311,62 @@ export default function AdminRecruitmentPage() {
     setSaveLoading(true);
     try {
       const payload = {
+        ...(editingId ? { id: editingId } : {}),
         title,
         description,
         is_open: isOpen,
         deadline: deadline ? new Date(deadline).toISOString() : null,
+        slug,
         fields: fields.map(({ _id, ...rest }) => rest),
       };
       const res = await fetch("/api/admin/recruitment", {
-        method: "PUT",
+        method: editingId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
-        setFormError(data.error || "Failed to save settings");
+        setFormError(data.error || "Failed to save form");
         return;
       }
-      toast.success(data.message || "Recruitment settings saved");
+      toast.success(data.message || "Application form saved");
+      setView("list");
+      fetchForms();
     } catch (error: any) {
-      setFormError(error.message || "Failed to save settings");
+      setFormError(error.message || "Failed to save form");
     } finally {
       setSaveLoading(false);
     }
   };
 
+  const deleteForm = async (form: FormSummary) => {
+    const suffix = form.submission_count > 0
+      ? ` It has ${form.submission_count} application${form.submission_count === 1 ? "" : "s"} (they will be kept but no longer linked to this form).`
+      : "";
+    if (!(await confirm({
+      message: `Delete form "${form.title}"?${suffix} This cannot be undone.`,
+      danger: true,
+      confirmLabel: "Delete",
+    }))) return;
+
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/admin/recruitment/${form.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete form");
+      toast.success(data.message || "Application form deleted");
+      fetchForms();
+      if (selectedFormId === form.id) setSelectedFormId(0);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete form");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const deleteSubmission = async (submission: Submission) => {
     if (!(await confirm({
-      message: `Delete submission #${submission.id}? This cannot be undone.`,
+      message: `Delete application #${submission.id}? This cannot be undone.`,
       danger: true,
       confirmLabel: "Delete",
     }))) return;
@@ -208,9 +376,9 @@ export default function AdminRecruitmentPage() {
       const res = await fetch(`/api/admin/recruitment/submissions/${submission.id}`, { method: "DELETE" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to delete submission");
-      toast.success("Submission deleted");
+      toast.success("Application deleted");
       setPreview(null);
-      fetchAll();
+      fetchSubmissions();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete submission");
     } finally {
@@ -219,13 +387,137 @@ export default function AdminRecruitmentPage() {
   };
 
   const exportCsv = () => {
-    window.location.href = "/api/admin/recruitment/export";
+    const query = selectedFormId ? `?form_id=${selectedFormId}` : "";
+    window.location.href = `/api/admin/recruitment/export${query}`;
   };
 
-  const previewFields = fields.filter((f) => f.label.trim() !== "");
-  const previewColumns = previewFields.slice(0, 3);
+  const openSubmissions = (formId: number | 0) => {
+    setSelectedFormId(formId);
+    setCurrentPage(1);
+    setView("submissions");
+  };
 
-  if (fetchLoading) {
+  const selectedForm = selectedFormId
+    ? forms.find((f) => f.id === selectedFormId) ?? null
+    : null;
+
+  const renderFormFields = (fields: Field[]) => fields.map((field, index) => (
+    <div key={field._id} className="rounded-lg border border-slate-800 bg-slate-800/40 p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+            {index + 1}
+          </span>
+          <span className="text-sm font-medium text-slate-300">{field.label || "Untitled Field"}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => moveField(field._id, -1)}
+            disabled={index === 0}
+            className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-200 disabled:opacity-30"
+            title="Move up"
+          >
+            <ChevronUp size={16} />
+          </button>
+          <button
+            onClick={() => moveField(field._id, 1)}
+            disabled={index === fields.length - 1}
+            className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-200 disabled:opacity-30"
+            title="Move down"
+          >
+            <ChevronDown size={16} />
+          </button>
+          <button
+            onClick={() => setFields((prev) => prev.filter((f) => f._id !== field._id))}
+            className="rounded p-1 text-red-500 transition hover:bg-red-950/50"
+            title="Delete field"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <label className={labelClass}>Label</label>
+          <input
+            className={inputClass}
+            value={field.label}
+            onChange={(e) => {
+              const label = e.target.value;
+              updateField(field._id, { label, key: field.key || label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") });
+            }}
+            placeholder="Full Name"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Field Key</label>
+          <input
+            className={inputClass}
+            value={field.key}
+            onChange={(e) => updateField(field._id, { key: e.target.value })}
+            placeholder="full_name"
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Type</label>
+          <select
+            className={inputClass}
+            value={field.type}
+            onChange={(e) => updateField(field._id, { type: e.target.value as Field["type"] })}
+          >
+            {FIELD_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelClass}>Width</label>
+          <select
+            className={inputClass}
+            value={field.width}
+            onChange={(e) => updateField(field._id, { width: e.target.value as "full" | "half" })}
+          >
+            <option value="full">Full width</option>
+            <option value="half">Half width</option>
+          </select>
+        </div>
+        {field.type !== "select" && field.type !== "radio" && field.type !== "checkbox" && (
+          <div className="sm:col-span-2">
+            <label className={labelClass}>Placeholder</label>
+            <input
+              className={inputClass}
+              value={field.placeholder}
+              onChange={(e) => updateField(field._id, { placeholder: e.target.value })}
+              placeholder="Optional placeholder text"
+            />
+          </div>
+        )}
+        {(field.type === "select" || field.type === "radio" || field.type === "checkbox") && (
+          <div className="sm:col-span-2">
+            <label className={labelClass}>Options (one per line)</label>
+            <textarea
+              className={`${inputClass} min-h-20 resize-y`}
+              value={field.options.join("\n")}
+              onChange={(e) => updateField(field._id, { options: e.target.value.split("\n") })}
+              placeholder="Option 1&#10;Option 2&#10;Option 3"
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-2 sm:col-span-2">
+          <input
+            type="checkbox"
+            checked={field.required}
+            onChange={(e) => updateField(field._id, { required: e.target.checked })}
+            className="h-4 w-4 accent-primary"
+          />
+          <span className="text-sm text-slate-300">Required field</span>
+        </div>
+      </div>
+    </div>
+  ));
+
+  if (fetchLoading && view === "list") {
     return (
       <div className="flex items-center justify-center py-32">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -235,34 +527,143 @@ export default function AdminRecruitmentPage() {
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader
-        title="Recruitment"
-        actionButton={{
-          label: "View Public Page",
-          onClick: () => router.push("/recruitment"),
-        }}
-      />
-      <p className="-mt-4 text-sm text-slate-500">
-        Customize the New Member Recruitment form and review applications.
-      </p>
+      {view === "list" && (
+        <>
+          <AdminPageHeader
+            title="Apply Forms"
+            actionButton={{
+              label: "New Form",
+              onClick: startCreate,
+              icon: <Plus size={16} />,
+            }}
+          />
+          <p className="-mt-4 text-sm text-slate-500">
+            Create and manage application forms. Each form gets its own public page at /apply/&lt;slug&gt;.
+          </p>
 
-      <div className="flex gap-1 rounded-xl border border-slate-800 bg-slate-900 p-1">
-        <button
-          onClick={() => setTab("settings")}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${tab === "settings" ? "bg-primary text-black" : "text-slate-400 hover:text-slate-200"}`}
-        >
-          <Settings2 size={16} /> Form Settings
-        </button>
-        <button
-          onClick={() => setTab("submissions")}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${tab === "submissions" ? "bg-primary text-black" : "text-slate-400 hover:text-slate-200"}`}
-        >
-          <Inbox size={16} /> Applications ({total})
-        </button>
-      </div>
+          <div className="flex gap-1 rounded-xl border border-slate-800 bg-slate-900 p-1">
+            <button
+              onClick={() => setView("list")}
+              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${view === "list" ? "bg-primary text-black" : "text-slate-400 hover:text-slate-200"}`}
+            >
+              <ClipboardList size={16} /> Forms
+            </button>
+            <button
+              onClick={() => openSubmissions(0)}
+              className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition text-slate-400 hover:text-slate-200"
+            >
+              <Inbox size={16} /> All Applications
+            </button>
+          </div>
 
-      {tab === "settings" && (
-        <div className="space-y-6">
+          {forms.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 p-12 text-center">
+              <ClipboardList className="mx-auto mb-3 h-10 w-10 text-slate-600" />
+              <p className="text-sm text-slate-400">No application forms yet.</p>
+              <button
+                onClick={startCreate}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-black transition hover:opacity-90"
+              >
+                <Plus size={16} /> Create your first form
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
+                    <th className="px-4 py-3">Form</th>
+                    <th className="px-4 py-3">URL</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Deadline</th>
+                    <th className="px-4 py-3">Applications</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800">
+                  {forms.map((form) => {
+                    const status = statusOf(form);
+                    return (
+                      <tr key={form.id} className="transition hover:bg-slate-800/40">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-slate-200">{form.title}</p>
+                          {form.description && (
+                            <p className="max-w-64 truncate text-xs text-slate-500">{form.description}</p>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="rounded bg-slate-800 px-2 py-1 font-mono text-xs text-slate-400">
+                            /apply/{form.slug}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${status.cls}`}>
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-slate-300">
+                          {form.deadline ? formatDateTime(form.deadline) : <span className="text-slate-600">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-300">{form.submission_count}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => router.push(`/apply/${form.slug}`)}
+                              className="rounded p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-200"
+                              title="View public page"
+                            >
+                              <ExternalLink size={16} />
+                            </button>
+                            <button
+                              onClick={() => startEdit(form)}
+                              className="rounded p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-200"
+                              title="Edit form"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                            <button
+                              onClick={() => openSubmissions(form.id)}
+                              className="rounded p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-200"
+                              title="View applications"
+                            >
+                              <Inbox size={16} />
+                            </button>
+                            <button
+                              onClick={() => deleteForm(form)}
+                              disabled={deleteLoading}
+                              className="rounded p-1.5 text-red-500 transition hover:bg-red-950/50 disabled:opacity-40"
+                              title="Delete form"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {view === "edit" && (
+        <>
+          <div className="flex items-center justify-between">
+            <AdminPageHeader
+              title={editingId ? "Edit Application Form" : "New Application Form"}
+              actionButton={{
+                label: "Back to forms",
+                onClick: () => { setView("list"); fetchForms(); },
+                icon: <ArrowLeft size={16} />,
+              }}
+            />
+          </div>
+          <p className="-mt-4 text-sm text-slate-500">
+            {editingId ? "Update the form details, fields, and availability." : "Configure the form; a public page will be created at /apply/<slug>."}
+          </p>
+
           {formError && (
             <div className="flex items-center gap-2 rounded-lg border border-red-700/50 bg-red-950/40 px-4 py-3 text-sm text-red-300">
               <AlertCircle size={16} /> {formError}
@@ -276,15 +677,25 @@ export default function AdminRecruitmentPage() {
                 <label className={labelClass}>Form Title</label>
                 <input className={inputClass} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Member Recruitment" />
               </div>
-              <div className="sm:col-span-2">
-                <label className={labelClass}>Description</label>
-                <textarea className={`${inputClass} min-h-20 resize-y`} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description shown on the public page" />
+              <div>
+                <label className={labelClass}>URL Slug</label>
+                <input
+                  className={inputClass}
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="auto-generated from title"
+                />
+                <p className="mt-1 text-xs text-slate-500">Public URL: /apply/{slug || "&lt;title&gt;"}</p>
               </div>
               <div>
                 <label className={labelClass}>Application Deadline</label>
                 <input type="datetime-local" className={inputClass} value={deadline} onChange={(e) => setDeadline(e.target.value)} />
               </div>
-              <div className="flex items-end">
+              <div className="sm:col-span-2">
+                <label className={labelClass}>Description</label>
+                <textarea className={`${inputClass} min-h-20 resize-y`} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description shown on the public page" />
+              </div>
+              <div className="flex items-end sm:col-span-2">
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
                   <input
                     type="checkbox"
@@ -319,143 +730,60 @@ export default function AdminRecruitmentPage() {
             )}
 
             <div className="space-y-4">
-              {fields.map((field, index) => (
-                <div key={field._id} className="rounded-lg border border-slate-800 bg-slate-800/40 p-4">
-                  <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-                        {index + 1}
-                      </span>
-                      <span className="text-sm font-medium text-slate-300">{field.label || "Untitled Field"}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => moveField(field._id, -1)}
-                        disabled={index === 0}
-                        className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-200 disabled:opacity-30"
-                        title="Move up"
-                      >
-                        <ChevronUp size={16} />
-                      </button>
-                      <button
-                        onClick={() => moveField(field._id, 1)}
-                        disabled={index === fields.length - 1}
-                        className="rounded p-1 text-slate-500 transition hover:bg-slate-700 hover:text-slate-200 disabled:opacity-30"
-                        title="Move down"
-                      >
-                        <ChevronDown size={16} />
-                      </button>
-                      <button
-                        onClick={() => setFields((prev) => prev.filter((f) => f._id !== field._id))}
-                        className="rounded p-1 text-red-500 transition hover:bg-red-950/50"
-                        title="Delete field"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className={labelClass}>Label</label>
-                      <input
-                        className={inputClass}
-                        value={field.label}
-                        onChange={(e) => {
-                          const label = e.target.value;
-                          updateField(field._id, { label, key: field.key || label.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") });
-                        }}
-                        placeholder="Full Name"
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Field Key</label>
-                      <input
-                        className={inputClass}
-                        value={field.key}
-                        onChange={(e) => updateField(field._id, { key: e.target.value })}
-                        placeholder="full_name"
-                      />
-                    </div>
-                    <div>
-                      <label className={labelClass}>Type</label>
-                      <select
-                        className={inputClass}
-                        value={field.type}
-                        onChange={(e) => updateField(field._id, { type: e.target.value as Field["type"] })}
-                      >
-                        {FIELD_TYPES.map((t) => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelClass}>Width</label>
-                      <select
-                        className={inputClass}
-                        value={field.width}
-                        onChange={(e) => updateField(field._id, { width: e.target.value as "full" | "half" })}
-                      >
-                        <option value="full">Full width</option>
-                        <option value="half">Half width</option>
-                      </select>
-                    </div>
-                    {field.type !== "select" && field.type !== "radio" && field.type !== "checkbox" && (
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Placeholder</label>
-                        <input
-                          className={inputClass}
-                          value={field.placeholder}
-                          onChange={(e) => updateField(field._id, { placeholder: e.target.value })}
-                          placeholder="Optional placeholder text"
-                        />
-                      </div>
-                    )}
-                    {(field.type === "select" || field.type === "radio" || field.type === "checkbox") && (
-                      <div className="sm:col-span-2">
-                        <label className={labelClass}>Options (one per line)</label>
-                        <textarea
-                          className={`${inputClass} min-h-20 resize-y`}
-                          value={field.options.join("\n")}
-                          onChange={(e) => updateField(field._id, { options: e.target.value.split("\n") })}
-                          placeholder="Option 1&#10;Option 2&#10;Option 3"
-                        />
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 sm:col-span-2">
-                      <input
-                        type="checkbox"
-                        checked={field.required}
-                        onChange={(e) => updateField(field._id, { required: e.target.checked })}
-                        className="h-4 w-4 accent-primary"
-                      />
-                      <span className="text-sm text-slate-300">Required field</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {renderFormFields(fields)}
             </div>
 
-            <div className="mt-6 flex justify-end">
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => { setView("list"); fetchForms(); }}
+                className="rounded-lg border border-slate-700 px-6 py-2.5 text-sm font-medium text-slate-300 transition hover:border-slate-500"
+              >
+                Cancel
+              </button>
               <button
                 onClick={saveSettings}
                 disabled={saveLoading}
                 className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-black transition hover:opacity-90 disabled:opacity-50"
               >
                 {saveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save size={16} />}
-                {saveLoading ? "Saving..." : "Save Settings"}
+                {saveLoading ? "Saving..." : editingId ? "Save Changes" : "Create Form"}
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
-      {tab === "submissions" && (
+      {view === "submissions" && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900 p-4">
-            <p className="text-sm text-slate-300">
-              <span className="font-semibold text-slate-100">{total}</span> application{total === 1 ? "" : "s"} received
-            </p>
+          <AdminPageHeader
+            title={selectedForm ? `Applications — ${selectedForm.title}` : "All Applications"}
+            actionButton={{
+              label: "Back to forms",
+              onClick: () => setView("list"),
+              icon: <ArrowLeft size={16} />,
+            }}
+          />
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-slate-800 bg-slate-900 p-4">
+            <div className="flex items-center gap-3">
+              <label className={labelClass}>Form:</label>
+              <select
+                className={`${inputClass} w-auto`}
+                value={selectedFormId}
+                onChange={(e) => {
+                  setSelectedFormId(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={0}>All forms</option>
+                {forms.map((f) => (
+                  <option key={f.id} value={f.id}>{f.title}</option>
+                ))}
+              </select>
+              <p className="text-sm text-slate-300">
+                <span className="font-semibold text-slate-100">{total}</span> application{total === 1 ? "" : "s"}
+              </p>
+            </div>
             <button
               onClick={exportCsv}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-black transition hover:opacity-90"
@@ -464,20 +792,25 @@ export default function AdminRecruitmentPage() {
             </button>
           </div>
 
-          {submissions.length === 0 ? (
+          {subLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : submissions.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/50 p-12 text-center">
               <Inbox className="mx-auto mb-3 h-10 w-10 text-slate-600" />
               <p className="text-sm text-slate-400">No applications yet.</p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
+            <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
                     <th className="px-4 py-3">ID</th>
+                    {!selectedFormId && <th className="px-4 py-3">Form</th>}
                     <th className="px-4 py-3">Submitted</th>
-                    {previewColumns.map((f) => (
-                      <th key={f._id} className="px-4 py-3">{f.label}</th>
+                    {selectedFormFields.slice(0, 3).map((f) => (
+                      <th key={f.key} className="px-4 py-3">{f.label}</th>
                     ))}
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -486,9 +819,14 @@ export default function AdminRecruitmentPage() {
                   {submissions.map((submission) => (
                     <tr key={submission.id} className="transition hover:bg-slate-800/40">
                       <td className="px-4 py-3 text-slate-400">#{submission.id}</td>
+                      {!selectedFormId && (
+                        <td className="px-4 py-3 text-slate-300">
+                          {forms.find((f) => f.id === submission.form_id)?.title ?? <span className="text-slate-600">—</span>}
+                        </td>
+                      )}
                       <td className="px-4 py-3 text-slate-300">{formatDateTime(submission.created_at)}</td>
-                      {previewColumns.map((f) => (
-                        <td key={f._id} className="max-w-48 truncate px-4 py-3 text-slate-300">
+                      {selectedFormFields.slice(0, 3).map((f) => (
+                        <td key={f.key} className="max-w-48 truncate px-4 py-3 text-slate-300">
                           {Array.isArray(submission.data[f.key])
                             ? submission.data[f.key].join(", ")
                             : submission.data[f.key] ?? "—"}
@@ -497,7 +835,7 @@ export default function AdminRecruitmentPage() {
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <button
-                            onClick={() => setPreview(submission)}
+                            onClick={() => { setPreview(submission); loadPreviewFields(submission.form_id); }}
                             className="rounded p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-slate-200"
                             title="View full application"
                           >
@@ -558,21 +896,29 @@ export default function AdminRecruitmentPage() {
                 <X size={18} />
               </button>
             </div>
+            {previewFormTitle && (
+              <p className="mb-3 text-xs text-slate-500">
+                Form: <span className="text-slate-300">{previewFormTitle}</span>
+              </p>
+            )}
             <div className="space-y-4">
-              {previewFields.map((f) => (
-                <div key={f._id}>
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-500">{f.label}</p>
-                  <p className="text-sm text-slate-200 break-words">
-                    {Array.isArray(preview.data[f.key])
-                      ? preview.data[f.key].join(", ")
-                      : preview.data[f.key] !== "" && preview.data[f.key] != null
-                        ? String(preview.data[f.key])
-                        : <span className="text-slate-600">—</span>}
-                  </p>
-                </div>
-              ))}
-              {previewFields.length === 0 && (
-                <p className="text-sm text-slate-500">No data in this application.</p>
+              {previewFields.length > 0 ? (
+                previewFields.map((f) => (
+                  <div key={f.key}>
+                    <p className="mb-1 text-xs font-medium uppercase tracking-wider text-slate-500">{f.label}</p>
+                    <p className="text-sm text-slate-200 break-words">
+                      {Array.isArray(preview.data[f.key])
+                        ? preview.data[f.key].join(", ")
+                        : preview.data[f.key] !== "" && preview.data[f.key] != null
+                          ? String(preview.data[f.key])
+                          : <span className="text-slate-600">—</span>}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <pre className="whitespace-pre-wrap break-words text-sm text-slate-300">
+                  {JSON.stringify(preview.data, null, 2)}
+                </pre>
               )}
             </div>
             <div className="mt-6 flex justify-end">

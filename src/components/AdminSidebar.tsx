@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
   { label: "Achievements", href: "/admin/achievements", icon: <Award size={18} /> },
   { label: "Teams", href: "/admin/teams", icon: <Users size={18} /> },
   { label: "Alumni", href: "/admin/alumni", icon: <GraduationCap size={18} />, roles: [1] },
-  { label: "Recruitment", href: "/admin/recruitment", icon: <ClipboardList size={18} /> },
+  { label: "Apply Forms", href: "/admin/recruitment", icon: <ClipboardList size={18} /> },
   { label: "Settings", href: "/admin/settings", icon: <Settings size={18} />, roles: [1] },
 ];
 

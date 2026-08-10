@@ -69,7 +69,7 @@ export default function Navbar() {
     { href: "/executive", label: "Executive", category: "about" },
     { href: "/alumni", label: "Alumni", category: "about" },
     { href: "/contests", label: "Contests", category: "about" },
-    { href: "/recruitment", label: "Recruitment", category: "about" },
+    { href: "/apply", label: "Apply", category: "about" },
   ];
 
   const navItems = allNavItems.filter(item => !item.requiresAuth || session);

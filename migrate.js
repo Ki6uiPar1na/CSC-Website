@@ -645,6 +645,100 @@ async function migrate() {
     console.log('recruitment settings seed error:', err.message);
   }
 
+  // 30. Multi-form support: add slug to recruitment_settings
+  try {
+    const [cols] = await connection.query(
+      `SHOW COLUMNS FROM recruitment_settings LIKE 'slug'`
+    );
+    if (cols.length === 0) {
+      await connection.query(
+        `ALTER TABLE recruitment_settings ADD COLUMN slug VARCHAR(255) NULL AFTER id`
+      );
+      console.log('Added slug column to recruitment_settings table');
+    }
+  } catch (err) {
+    console.log('recruitment_settings slug column migration error:', err.message);
+  }
+
+  // 30b. Add UNIQUE constraint on slug
+  try {
+    await connection.query(
+      `ALTER TABLE recruitment_settings ADD UNIQUE KEY unique_recruitment_slug (slug)`
+    );
+    console.log('Added UNIQUE constraint on recruitment_settings.slug');
+  } catch (err) {
+    if (!err.message.includes('Duplicate key name')) {
+      console.log('unique_recruitment_slug constraint message:', err.message);
+    }
+  }
+
+  // 30c. Backfill a default slug for the existing form (row id=1)
+  try {
+    const [rows] = await connection.query(
+      `SELECT id FROM recruitment_settings WHERE slug IS NULL`
+    );
+    for (const row of rows) {
+      const safeSlug = row.id === 1
+        ? 'new-member-recruitment'
+        : `form-${row.id}`;
+      await connection.query(
+        `UPDATE recruitment_settings SET slug = ? WHERE id = ? AND slug IS NULL`,
+        [safeSlug, row.id]
+      );
+      console.log(`Backfilled slug '${safeSlug}' for recruitment form id=${row.id}`);
+    }
+  } catch (err) {
+    console.log('recruitment slug backfill error:', err.message);
+  }
+
+  // 31. Multi-form support: add form_id to recruitment_submissions
+  try {
+    const [cols] = await connection.query(
+      `SHOW COLUMNS FROM recruitment_submissions LIKE 'form_id'`
+    );
+    if (cols.length === 0) {
+      await connection.query(
+        `ALTER TABLE recruitment_submissions ADD COLUMN form_id INT NULL AFTER id`
+      );
+      console.log('Added form_id column to recruitment_submissions table');
+    }
+  } catch (err) {
+    console.log('recruitment_submissions form_id column migration error:', err.message);
+  }
+
+  // 31b. Backfill existing submissions to the original form (id=1)
+  try {
+    const [result] = await connection.query(
+      `UPDATE recruitment_submissions SET form_id = 1 WHERE form_id IS NULL`
+    );
+    console.log('Backfilled form_id=1 for existing recruitment submissions');
+  } catch (err) {
+    console.log('recruitment submissions form_id backfill error:', err.message);
+  }
+
+  // 31c. Add index and FK on form_id
+  try {
+    await connection.query(
+      `ALTER TABLE recruitment_submissions ADD INDEX idx_form_id (form_id)`
+    );
+    console.log('Added idx_form_id index to recruitment_submissions');
+  } catch (err) {
+    if (!err.message.includes('Duplicate key name') && !err.message.includes('already exists')) {
+      console.log('idx_form_id index message:', err.message);
+    }
+  }
+
+  try {
+    await connection.query(
+      `ALTER TABLE recruitment_submissions ADD CONSTRAINT fk_submission_form FOREIGN KEY (form_id) REFERENCES recruitment_settings(id) ON DELETE SET NULL`
+    );
+    console.log('Added FK constraint on recruitment_submissions.form_id');
+  } catch (err) {
+    if (!err.message.includes('Duplicate foreign key') && !err.message.includes('already exists')) {
+      console.log('fk_submission_form constraint message:', err.message);
+    }
+  }
+
   console.log('Migration synchronized successfully');
   await connection.end();
 }

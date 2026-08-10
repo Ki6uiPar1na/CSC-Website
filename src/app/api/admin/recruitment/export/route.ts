@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { checkAdminRole } from "@/lib/admin-auth";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
-import { parseFields } from "@/app/api/recruitment/route";
+import { getFormById, getAllForms } from "@/lib/recruitment";
 
 function escapeCsv(value: any): string {
   if (value === null || value === undefined) return "";
@@ -17,18 +17,41 @@ function escapeCsv(value: any): string {
   return `"${str.replace(/"/g, '""')}"`;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const auth = await checkAdminRole([1, 2]);
     if (!auth.authorized) return auth.response;
 
-    const [settingsRows] = await pool.query<RowDataPacket[]>(
-      `SELECT fields_json FROM recruitment_settings WHERE id = 1 LIMIT 1`
-    );
-    const fields = settingsRows.length > 0 ? parseFields((settingsRows[0] as any).fields_json) : [];
+    const { searchParams } = new URL(request.url);
+    const formId = parseInt(searchParams.get("form_id") || "", 10);
+
+    let formLabel = "all-forms";
+    let whereClause = "";
+    const params: any[] = [];
+    let fields: any[] = [];
+
+    if (Number.isFinite(formId)) {
+      const form = await getFormById(formId);
+      if (!form) {
+        return NextResponse.json({ error: "Application form not found" }, { status: 404 });
+      }
+      formLabel = form.slug;
+      fields = form.fields;
+      whereClause = "WHERE form_id = ?";
+      params.push(formId);
+    } else {
+      const labelMap: Record<string, string> = {};
+      for (const form of await getAllForms(true)) {
+        for (const f of form.fields) {
+          if (!labelMap[f.key]) labelMap[f.key] = f.label;
+        }
+      }
+      fields = Object.keys(labelMap).map((key) => ({ key, label: labelMap[key] }));
+    }
 
     const [submissionRows] = await pool.query<RowDataPacket[]>(
-      `SELECT id, data, created_at FROM recruitment_submissions ORDER BY created_at DESC, id DESC`
+      `SELECT id, form_id, data, created_at FROM recruitment_submissions ${whereClause} ORDER BY created_at DESC, id DESC`,
+      params
     );
 
     const headers = ["ID", "Submitted At", ...fields.map((f) => f.label)];
@@ -51,11 +74,11 @@ export async function GET() {
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="recruitment-submissions-${date}.csv"`,
+        "Content-Disposition": `attachment; filename="applications-${formLabel}-${date}.csv"`,
       },
     });
   } catch (error: any) {
-    console.error("Export Recruitment CSV Error:", error);
+    console.error("Export Submissions CSV Error:", error);
     return NextResponse.json(
       { error: error.message || "Failed to export submissions" },
       { status: 500 }

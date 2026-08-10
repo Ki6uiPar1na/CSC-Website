@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Loader2, Send, CheckCircle2, AlertCircle, ClipboardList } from "lucide-react";
 
 interface Field {
@@ -24,9 +25,13 @@ interface FormConfig {
 const inputClass =
   "w-full rounded-lg border border-slate-600 bg-slate-900/70 px-4 py-3 text-slate-100 placeholder-slate-500 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30";
 
-export default function RecruitmentPage() {
+export default function ApplyFormPage() {
+  const params = useParams<{ slug: string }>();
+  const slug = params.slug;
+
   const [hydrated, setHydrated] = useState(false);
   const [config, setConfig] = useState<FormConfig | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -38,29 +43,33 @@ export default function RecruitmentPage() {
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !slug) return;
 
     const fetchConfig = async () => {
       try {
-        const response = await fetch("/api/recruitment");
-        if (response.ok) {
-          const data = await response.json();
-          setConfig(data);
-          const initial: Record<string, any> = {};
-          (data.fields as Field[]).forEach((field) => {
-            initial[field.key] = field.type === "checkbox" ? [] : "";
-          });
-          setFormData(initial);
+        const response = await fetch(`/api/recruitment/${slug}`);
+        if (response.status === 404) {
+          setNotFound(true);
+          setLoading(false);
+          return;
         }
+        if (!response.ok) throw new Error("Failed to load application form");
+        const data = await response.json();
+        setConfig(data);
+        const initial: Record<string, any> = {};
+        (data.fields as Field[]).forEach((field) => {
+          initial[field.key] = field.type === "checkbox" ? [] : "";
+        });
+        setFormData(initial);
       } catch (error) {
-        console.error("Failed to load recruitment form:", error);
+        console.error("Failed to load application form:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchConfig();
-  }, [hydrated]);
+  }, [hydrated, slug]);
 
   const setValue = (key: string, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -102,7 +111,7 @@ export default function RecruitmentPage() {
     setSubmitting(true);
     setSuccess(null);
     try {
-      const response = await fetch("/api/recruitment", {
+      const response = await fetch(`/api/recruitment/${slug}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -110,7 +119,7 @@ export default function RecruitmentPage() {
       const data = await response.json();
       if (response.ok) {
         setSuccess(data.message || "Application submitted successfully!");
-        setFormData((prev) => {
+        setFormData(() => {
           const cleared: Record<string, any> = {};
           config.fields.forEach((field) => {
             cleared[field.key] = field.type === "checkbox" ? [] : "";
@@ -246,10 +255,10 @@ export default function RecruitmentPage() {
     );
   }
 
-  if (!config) {
+  if (notFound || !config) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-black via-slate-900 to-black text-slate-400">
-        Recruitment form is not available right now.
+        Application form not found.
       </div>
     );
   }
@@ -281,7 +290,7 @@ export default function RecruitmentPage() {
         {!config.is_open ? (
           <div className="rounded-2xl border border-slate-700 bg-slate-900/60 p-10 text-center">
             <p className="text-lg font-medium text-slate-200">Applications are currently closed.</p>
-            <p className="mt-2 text-slate-400">Please check back later for future recruitment drives.</p>
+            <p className="mt-2 text-slate-400">Please check back later.</p>
           </div>
         ) : success ? (
           <div className="rounded-2xl border border-emerald-700/50 bg-emerald-950/40 p-10 text-center">
