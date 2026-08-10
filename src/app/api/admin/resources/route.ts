@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
 import { checkAdminRole } from "@/lib/admin-auth";
+import { cacheInvalidators } from "@/lib/cacheInvalidators";
 
 export async function GET(req: Request) {
   try {
@@ -19,7 +20,7 @@ export async function GET(req: Request) {
     const total = (countResult[0] as any).total;
 
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.is_premium, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,
@@ -56,16 +57,16 @@ export async function POST(req: Request) {
 
     const userId = auth.userId;
     const body = await req.json();
-    const { title, description, url, category, action, is_external, urls } = body;
+    const { title, description, url, category, action, is_external, is_premium, urls } = body;
 
     if (!title || !url) {
       return NextResponse.json({ error: "Title and URL required" }, { status: 400 });
     }
 
     const [result] = await pool.query(
-      `INSERT INTO resources (title, description, url, category, action, is_external, created_by_admin_id) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [title, description || "", url, category || "General", action || "Read", is_external !== false, userId]
+      `INSERT INTO resources (title, description, url, category, action, is_external, is_premium, created_by_admin_id) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title, description || "", url, category || "General", action || "Read", is_external !== false, is_premium === true, userId]
     );
 
     const resourceId = (result as any).insertId;
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
 
     // Fetch updated resources list with URLs
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.is_premium, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,
@@ -107,6 +108,7 @@ export async function POST(req: Request) {
       [`New resource "${title}" has been added. Check the resources page to explore it.`]
     );
     console.log("Resource creation notification sent:", resourceNotif);
+    cacheInvalidators.invalidateResourcesCache();
 
     return NextResponse.json(
       { success: true, message: "Resource created", resources },
@@ -124,7 +126,7 @@ export async function PUT(req: Request) {
     if (!auth.authorized) return auth.response;
 
     const body = await req.json();
-    const { resourceId, title, description, url, category, action, is_external, urls } = body;
+    const { resourceId, title, description, url, category, action, is_external, is_premium, urls } = body;
 
     if (!resourceId) return NextResponse.json({ error: "Resource ID required" }, { status: 400 });
 
@@ -155,6 +157,10 @@ export async function PUT(req: Request) {
       updates.push("is_external = ?");
       values.push(is_external);
     }
+    if (is_premium !== undefined) {
+      updates.push("is_premium = ?");
+      values.push(is_premium === true);
+    }
 
     if (updates.length === 0 && !urls) {
       return NextResponse.json({ error: "No fields to update" }, { status: 400 });
@@ -184,7 +190,7 @@ export async function PUT(req: Request) {
 
     // Fetch updated resources list with URLs
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.is_premium, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,
@@ -207,6 +213,7 @@ export async function PUT(req: Request) {
       [`Resource "${resourceTitle}" has been updated. Check the resources page for details.`]
     );
     console.log("Resource update notification sent:", updateNotif);
+    cacheInvalidators.invalidateResourcesCache();
 
     return NextResponse.json(
       { success: true, message: "Resource updated", resources },
@@ -232,7 +239,7 @@ export async function DELETE(req: Request) {
 
     // Fetch updated resources list with URLs
     const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.created_at, r.created_by_admin_id,
+      `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.is_premium, r.created_at, r.created_by_admin_id,
               JSON_ARRAYAGG(
                 JSON_OBJECT(
                   'id', ru.id,
@@ -246,6 +253,8 @@ export async function DELETE(req: Request) {
        GROUP BY r.id
        ORDER BY r.created_at DESC`
     );
+
+    cacheInvalidators.invalidateResourcesCache();
 
     return NextResponse.json({ success: true, message: "Resource deleted", resources }, { status: 200 });
   } catch (error: any) {

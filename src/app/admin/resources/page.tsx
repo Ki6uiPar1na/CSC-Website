@@ -17,6 +17,7 @@ export default function ResourcesPage() {
     description: "",
     category: "tutorial",
     action: "Read",
+    is_premium: false,
     urls: [{ url: "", display_name: "" }],
   });
 
@@ -48,7 +49,7 @@ export default function ResourcesPage() {
   };
 
   const resetForm = () => {
-    setFormData({ title: "", description: "", category: "tutorial", action: "Read", urls: [{ url: "", display_name: "" }] });
+    setFormData({ title: "", description: "", category: "tutorial", action: "Read", is_premium: false, urls: [{ url: "", display_name: "" }] });
     setEditingResource(null);
     setShowForm(false);
   };
@@ -101,6 +102,7 @@ export default function ResourcesPage() {
       description: resource.description,
       category: resource.category,
       action: resource.action || "Read",
+      is_premium: !!resource.is_premium,
       urls: (resource.urls || []).map((u) => ({ url: u.url, display_name: u.display_name || "" })),
     });
     setShowForm(true);
@@ -166,7 +168,14 @@ export default function ResourcesPage() {
             <div key={resource.id} className="card">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">{resource.title}</h3>
+                  <h3 className="text-lg font-semibold text-white">
+                    {resource.title}
+                    {resource.is_premium && (
+                      <span className="inline-block ml-2 px-2 py-0.5 bg-amber-500/15 text-amber-400 rounded text-[10px] font-bold align-middle">
+                        Premium
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-xs text-gray-400 mt-1">
                     <span className="inline-block px-2 py-1 bg-primary/20 rounded text-primary text-xs mr-2">
                       {resource.category}
@@ -281,6 +290,19 @@ export default function ResourcesPage() {
                   ))}
                 </select>
               </div>
+
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={formData.is_premium}
+                  onChange={(e) => setFormData({ ...formData, is_premium: e.target.checked })}
+                  className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-primary focus:ring-primary"
+                  disabled={formLoading}
+                />
+                <span className="text-sm font-medium">
+                  Premium resource <span className="text-amber-400">(members only)</span>
+                </span>
+              </label>
 
               <div>
                 <label className="block text-sm font-medium mb-2">Links *</label>

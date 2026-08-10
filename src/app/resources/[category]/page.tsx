@@ -4,16 +4,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
-import { Search, CheckCircle, Circle, ChevronLeft } from "lucide-react";
+import { Search, CheckCircle, Circle, ChevronLeft, Lock, Sparkles } from "lucide-react";
 import { SearchBox } from "@/components/SearchBox";
 
 interface ResourceLink {
   id?: number;
   name: string;
-  url: string;
+  url: string | null;
   description?: string;
   action?: string;
   is_completed?: boolean;
+  is_premium?: boolean;
+  is_locked?: boolean;
   extraLinks?: { name: string; url: string }[];
 }
 
@@ -26,6 +28,7 @@ export default function CategoryResourcesPage() {
   const [links, setLinks] = useState<ResourceLink[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isPremiumUser, setIsPremiumUser] = useState(true);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -39,9 +42,10 @@ export default function CategoryResourcesPage() {
 
     const fetchResources = async () => {
       try {
-        const res = await fetch(`/api/resources?category=${encodeURIComponent(category)}&limit=100`);
+        const res = await fetch(`/api/resources?category=${encodeURIComponent(category)}&limit=500`);
         if (!res.ok) throw new Error("Failed to fetch resources");
         const data = await res.json();
+        setIsPremiumUser(data.isPremium !== false);
         if (data.categories && data.categories.length > 0) {
           setLinks(data.categories[0].links || []);
         }
@@ -99,6 +103,19 @@ export default function CategoryResourcesPage() {
         Resources in the {category} category.
       </p>
 
+      {!isPremiumUser && links.some((l) => l.is_locked) && (
+        <div className="flex items-center gap-3 mb-8 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+          <Lock size={20} className="text-amber-400 shrink-0" />
+          <p className="text-sm text-gray-300">
+            Some resources are <span className="text-amber-400 font-semibold">premium</span> — join as a club member to
+            unlock them.{" "}
+            <button onClick={() => router.push("/profile")} className="text-primary underline underline-offset-2">
+              Upgrade now
+            </button>
+          </p>
+        </div>
+      )}
+
       <div className="mb-10 max-w-md">
         <SearchBox
           query={searchQuery}
@@ -128,14 +145,31 @@ export default function CategoryResourcesPage() {
               {filtered.map((link, i) => (
                 <tr key={link.id || i} className={`border-b border-border-color/50 hover:bg-white/[0.02] transition-colors ${link.is_completed ? 'opacity-60' : ''}`}>
                   <td className="py-3 px-3 sm:px-4">
-                    <a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-200 hover:text-primary transition-colors font-medium text-xs sm:text-sm"
-                    >
-                      {link.name}
-                    </a>
+                    {link.is_locked ? (
+                      <span className="inline-flex items-center gap-2 text-gray-400 font-medium text-xs sm:text-sm">
+                        <Lock size={14} className="text-amber-400 shrink-0" />
+                        {link.name}
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded text-[10px] font-bold">
+                          <Sparkles size={10} /> Premium
+                        </span>
+                      </span>
+                    ) : link.url ? (
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-200 hover:text-primary transition-colors font-medium text-xs sm:text-sm"
+                      >
+                        {link.name}
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 font-medium text-xs sm:text-sm">{link.name}</span>
+                    )}
+                    {link.is_premium && !link.is_locked && (
+                      <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 bg-amber-500/10 text-amber-400 rounded text-[10px] font-bold align-middle">
+                        <Sparkles size={10} /> Premium
+                      </span>
+                    )}
                     {link.description && (
                       <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">{link.description}</p>
                     )}
@@ -168,17 +202,23 @@ export default function CategoryResourcesPage() {
                     </span>
                   </td>
                   <td className="py-3 px-2 sm:px-4 text-center align-top">
-                    <button
-                      onClick={() => link.id && toggleComplete(link.id, !!link.is_completed)}
-                      className="text-gray-500 hover:text-primary transition-colors p-1"
-                      title={link.is_completed ? "Mark incomplete" : "Mark complete"}
-                    >
-                      {link.is_completed ? (
-                        <CheckCircle size={16} className="text-green-500" />
-                      ) : (
-                        <Circle size={16} />
-                      )}
-                    </button>
+                    {link.is_locked ? (
+                      <span className="text-gray-600 inline-block py-1" title="Join as a club member to unlock">
+                        <Lock size={16} />
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => link.id && toggleComplete(link.id, !!link.is_completed)}
+                        className="text-gray-500 hover:text-primary transition-colors p-1"
+                        title={link.is_completed ? "Mark incomplete" : "Mark complete"}
+                      >
+                        {link.is_completed ? (
+                          <CheckCircle size={16} className="text-green-500" />
+                        ) : (
+                          <Circle size={16} />
+                        )}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

@@ -19,6 +19,30 @@ export async function GET(req: NextRequest) {
 
     const session = await getServerSession(authOptions);
     const userId = session?.user && "id" in session.user ? parseInt((session.user as any).id) : null;
+    const userRole = session?.user && "role" in session.user ? (session.user as any).role : null;
+
+    // Check viewer premium status via upgrade codes
+    let isPremium = false;
+    if (userId) {
+      const isPremiumCached = await withCache(
+        CACHE_KEYS.USER_PROFILE,
+        async () => {
+          const [premiumRows] = await pool.query<RowDataPacket[]>(
+            `SELECT 1 FROM upgrade_code_usage u 
+             JOIN upgrade_codes c ON u.upgrade_code_id = c.id 
+             WHERE u.user_id = ? AND c.is_active = TRUE LIMIT 1`,
+            [userId]
+          );
+          return premiumRows.length > 0;
+        },
+        CACHE_TTL.SHORT,
+        { userId },
+        userId
+      );
+      isPremium = isPremiumCached;
+    }
+    const isAdmin = userRole === 1;
+    const canViewPremium = isPremium || isAdmin;
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -40,7 +64,7 @@ export async function GET(req: NextRequest) {
       CACHE_KEYS.RESOURCES,
       async () => {
         const [result] = await pool.query<RowDataPacket[]>(
-          `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external,
+          `SELECT r.id, r.title, r.description, r.url, r.category, r.action, r.is_external, r.is_premium,
                   ru.url as extra_url, ru.display_name as extra_display_name
            FROM resources r
            LEFT JOIN resource_urls ru ON r.id = ru.resource_id
@@ -68,19 +92,23 @@ export async function GET(req: NextRequest) {
 
       let resource = categories[categoryName].links.find((l: any) => l.id === row.id);
       if (!resource) {
+        const isResourcePremium = row.is_premium === 1 || row.is_premium === true;
+        const isLocked = isResourcePremium && !canViewPremium;
         resource = {
           id: row.id,
           name: row.title,
-          url: row.url,
+          url: isLocked ? null : row.url,
           description: row.description,
           action: row.action || "Read",
+          is_premium: isResourcePremium,
+          is_locked: isLocked,
           is_completed: false,
           extraLinks: []
         };
         categories[categoryName].links.push(resource);
       }
 
-      if (row.extra_url) {
+      if (row.extra_url && !resource.is_locked) {
         resource.extraLinks.push({
           url: row.extra_url,
           name: row.extra_display_name
@@ -110,6 +138,7 @@ export async function GET(req: NextRequest) {
       page,
       limit,
       totalPages: Math.ceil(total / limit),
+      isPremium: canViewPremium,
     }, { status: 200 });
   } catch (error: any) {
     console.error("Resources API Error:", error);

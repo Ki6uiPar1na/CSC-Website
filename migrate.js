@@ -739,6 +739,31 @@ async function migrate() {
     }
   }
 
+  // 32. Premium resources: add is_premium column to resources
+  try {
+    const [cols] = await connection.query(
+      `SHOW COLUMNS FROM resources LIKE 'is_premium'`
+    );
+    if (cols.length === 0) {
+      await connection.query(
+        `ALTER TABLE resources ADD COLUMN is_premium BOOLEAN DEFAULT FALSE AFTER is_external`
+      );
+      console.log('Added is_premium column to resources table');
+    }
+  } catch (err) {
+    console.log('resources is_premium column migration error:', err.message);
+  }
+
+  // 32b. Premium resources: allow created_by_admin_id to be NULL (bulk import with no admin user)
+  try {
+    await connection.query(
+      `ALTER TABLE resources MODIFY COLUMN created_by_admin_id INT NULL DEFAULT NULL`
+    );
+    console.log('Made resources.created_by_admin_id nullable');
+  } catch (err) {
+    console.log('resources created_by_admin_id nullable migration error:', err.message);
+  }
+
   console.log('Migration synchronized successfully');
   await connection.end();
 }

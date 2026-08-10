@@ -3,13 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Search, FolderOpen, CheckCircle, Circle } from "lucide-react";
+import { Search, FolderOpen, CheckCircle, Circle, Lock } from "lucide-react";
 import { SearchBox } from "@/components/SearchBox";
 
 interface Category {
   name: string;
   count: number;
   completed: number;
+  premium: number;
 }
 
 export default function ResourcesPage() {
@@ -31,7 +32,7 @@ export default function ResourcesPage() {
 
     const fetchData = async () => {
       try {
-        const res = await fetch("/api/resources?limit=100");
+        const res = await fetch("/api/resources?limit=500");
         if (!res.ok) throw new Error("Failed to fetch resources");
         const data = await res.json();
         if (data.categories && data.categories.length > 0) {
@@ -39,23 +40,24 @@ export default function ResourcesPage() {
             name: c.name,
             count: c.links.length,
             completed: c.links.filter((l: any) => l.is_completed).length,
+            premium: c.links.filter((l: any) => l.is_premium).length,
           }));
           setCategories(cats);
         } else {
           setCategories([
-            { name: "Web Exploitation", count: 3, completed: 0 },
-            { name: "Reverse Engineering & Pwn", count: 3, completed: 0 },
-            { name: "Cryptography", count: 3, completed: 0 },
-            { name: "Forensics", count: 3, completed: 0 },
+            { name: "Web Exploitation", count: 3, completed: 0, premium: 0 },
+            { name: "Reverse Engineering & Pwn", count: 3, completed: 0, premium: 0 },
+            { name: "Cryptography", count: 3, completed: 0, premium: 0 },
+            { name: "Forensics", count: 3, completed: 0, premium: 0 },
           ]);
         }
       } catch (err: any) {
         console.error("Fetch error:", err);
         setCategories([
-          { name: "Web Exploitation", count: 3, completed: 0 },
-          { name: "Reverse Engineering & Pwn", count: 3, completed: 0 },
-          { name: "Cryptography", count: 3, completed: 0 },
-          { name: "Forensics", count: 3, completed: 0 },
+          { name: "Web Exploitation", count: 3, completed: 0, premium: 0 },
+          { name: "Reverse Engineering & Pwn", count: 3, completed: 0, premium: 0 },
+          { name: "Cryptography", count: 3, completed: 0, premium: 0 },
+          { name: "Forensics", count: 3, completed: 0, premium: 0 },
         ]);
       } finally {
         setIsLoading(false);
@@ -113,6 +115,11 @@ export default function ResourcesPage() {
                 <div className="min-w-0">
                   <h3 className="text-lg font-bold text-white group-hover:text-primary transition-colors truncate">{cat.name}</h3>
                   <p className="text-sm text-gray-500 mt-1">{cat.count} resource{cat.count !== 1 ? 's' : ''}</p>
+                  {cat.premium > 0 && (
+                    <p className="flex items-center gap-1 text-xs text-amber-400/90 mt-0.5">
+                      <Lock size={11} /> {cat.premium} premium
+                    </p>
+                  )}
                   <div className="flex items-center gap-2 mt-2">
                     {cat.completed === cat.count && cat.count > 0 ? (
                       <span className="flex items-center gap-1 text-xs text-green-500">

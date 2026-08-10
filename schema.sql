@@ -232,7 +232,8 @@ CREATE TABLE IF NOT EXISTS resources (
   category VARCHAR(100),
   action VARCHAR(50) DEFAULT 'Read',
   is_external BOOLEAN DEFAULT TRUE,
-  created_by_admin_id INT NOT NULL,
+  is_premium BOOLEAN DEFAULT FALSE,
+  created_by_admin_id INT NULL DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (created_by_admin_id) REFERENCES users(id)

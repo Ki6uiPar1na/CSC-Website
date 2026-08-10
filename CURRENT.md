@@ -37,6 +37,7 @@
 - **Lessons**: Structured learning materials within modules
 - **Premium Content**: Modules and challenges can be premium
 - **Materials Page**: Browse and study learning modules
+- **Resources**: Curated learning materials ("Hacker's Toolkit"); resources can be premium (members-only), with URLs masked and completion tracking gated for non-members. Bulk-imported from the club Google Sheet (121 premium resources).
 
 ## 3. Database Schema Status
 ### Tables Implemented

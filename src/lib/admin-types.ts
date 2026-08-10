@@ -100,6 +100,7 @@ export interface Resource {
   url: string;
   category: string;
   action?: string;
+  is_premium: boolean;
   created_at: string;
   urls?: Array<{ id: number; url: string; display_name?: string; url_order: number }>;
 }

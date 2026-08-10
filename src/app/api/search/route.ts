@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import pool from "@/models/db";
 import { RowDataPacket } from "mysql2";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    const userId = session?.user && "id" in session.user ? parseInt((session.user as any).id) : null;
+    const userRole = session?.user && "role" in session.user ? (session.user as any).role : null;
+
+    // Check viewer premium status via upgrade codes
+    let isPremium = false;
+    if (userId) {
+      const [premiumRows] = await pool.query<RowDataPacket[]>(
+        `SELECT 1 FROM upgrade_code_usage u 
+         JOIN upgrade_codes c ON u.upgrade_code_id = c.id 
+         WHERE u.user_id = ? AND c.is_active = TRUE LIMIT 1`,
+        [userId]
+      );
+      isPremium = premiumRows.length > 0;
+    }
+    const isAdmin = userRole === 1;
+
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q");
 
@@ -38,11 +57,16 @@ export async function GET(req: NextRequest) {
     );
 
     // 4. Search Resources
-    const [resources] = await pool.query<RowDataPacket[]>(
-      `SELECT id, title, category as subtitle, description, 'resource' as type, '/resources' as link 
+    let resourceQuery = `SELECT id, title, category as subtitle, description, 'resource' as type, '/resources' as link 
        FROM resources 
-       WHERE title LIKE ? OR description LIKE ?`,
-      [searchTerm, searchTerm]
+       WHERE (title LIKE ? OR description LIKE ?)`;
+    const resourceParams = [searchTerm, searchTerm];
+    if (!isPremium && !isAdmin) {
+      resourceQuery += " AND is_premium = 0";
+    }
+    const [resources] = await pool.query<RowDataPacket[]>(
+      resourceQuery,
+      resourceParams
     );
 
     const allResults = [
