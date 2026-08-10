@@ -58,6 +58,13 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const allNavItems = [
     { href: "/challenges", label: "Challenges", category: "main", requiresAuth: true },
     { href: "/leaderboard", label: "Leaderboard", category: "main", requiresAuth: true },
@@ -75,7 +82,8 @@ export default function Navbar() {
   const navItems = allNavItems.filter(item => !item.requiresAuth || session);
 
   return (
-    <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-md border-b border-white/10 py-3' : 'bg-transparent py-4'}`}>
+    <>
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/90 backdrop-blur-md border-b border-white/10 py-3' : 'bg-transparent py-4'}`}>
       <div className="w-full">
         {/* Top Bar: Logo + User Menu */}
         <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mb-4 lg:mb-0">
@@ -218,11 +226,12 @@ export default function Navbar() {
           })}
         </nav>
       </div>
+      </header>
 
       {/* Mobile Navigation Menu */}
       {isOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-black/95 backdrop-blur-md overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
+        <div className="lg:hidden fixed inset-0 z-40 bg-black/95 backdrop-blur-md overflow-y-auto">
+          <div className="max-w-7xl mx-auto px-4 pt-20 pb-6 space-y-4">
             {/* Main Section */}
             <div>
               <p className="text-xs uppercase tracking-widest text-primary/70 font-bold px-2 mb-3">Platform</p>
@@ -392,6 +401,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }
