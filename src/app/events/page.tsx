@@ -2,9 +2,9 @@
 
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Calendar, MapPin, Link as LinkIcon, Users, Crown, Loader2, Copy, Share2, Search } from "lucide-react";
-import { SearchBox } from "@/components/SearchBox";
+import { Calendar, MapPin, Link as LinkIcon, Users, Crown, Share2, Search, ArrowLeft } from "lucide-react";
 
 interface Event {
   id: number;
@@ -30,6 +30,21 @@ interface Event {
   created_at: string;
 }
 
+type SortOrder = "date_desc" | "date_asc" | "title_asc" | "title_desc";
+
+const LoadingSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {Array.from({ length: 6 }).map((_, i) => (
+      <div key={i} className="bg-card-bg/80 border border-gray-800 rounded-2xl p-6 space-y-4 animate-pulse">
+        <div className="h-40 bg-gray-800/60 rounded-xl"></div>
+        <div className="h-5 bg-gray-800/60 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-800/40 rounded w-full"></div>
+        <div className="h-4 bg-gray-800/40 rounded w-2/3"></div>
+      </div>
+    ))}
+  </div>
+);
+
 export default function EventsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -40,6 +55,8 @@ export default function EventsPage() {
   const [message, setMessage] = useState<string>("");
   const [copiedEventId, setCopiedEventId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<SortOrder>("date_desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
@@ -54,7 +71,7 @@ export default function EventsPage() {
     try {
       setLoading(true);
       const response = await fetch(`/api/events?page=${currentPage}&limit=15`);
-      
+
       if (!response.ok) {
         throw new Error("Failed to fetch events");
       }
@@ -64,7 +81,7 @@ export default function EventsPage() {
       setTotalPages(data.totalPages || 1);
       setTotal(data.total || 0);
       setIsPremium(data.isPremium || false);
-      
+
       // Show helpful message for non-premium users
       if (!data.isPremium && data.message) {
         setMessage(data.message);
@@ -99,261 +116,317 @@ export default function EventsPage() {
     window.open(twitterUrl, "_blank");
   };
 
+  const eventTypes = Array.from(new Set(events.map((e) => e.type))).filter(Boolean).sort();
+
+  const filteredEvents = events.filter((event) => {
+    const query = searchQuery.toLowerCase();
+    const matchesSearch =
+      event.title.toLowerCase().includes(query) ||
+      event.type.toLowerCase().includes(query) ||
+      (event.description && event.description.toLowerCase().includes(query)) ||
+      (event.location && event.location.toLowerCase().includes(query));
+    const matchesType = typeFilter === "all" || event.type === typeFilter;
+    return matchesSearch && matchesType;
+  });
+
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    if (sortBy === "date_asc") return new Date(a.event_date).getTime() - new Date(b.event_date).getTime();
+    if (sortBy === "date_desc") return new Date(b.event_date).getTime() - new Date(a.event_date).getTime();
+    if (sortBy === "title_asc") return a.title.localeCompare(b.title);
+    if (sortBy === "title_desc") return b.title.localeCompare(a.title);
+    return 0;
+  });
+
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-primary" />
-          <p className="text-gray-400">Loading events...</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <div className="max-w-7xl mx-auto space-y-8 py-4 px-2 sm:px-4">
+          <div className="bg-card-bg/80 backdrop-blur-xl border border-gray-800 rounded-2xl p-5 animate-pulse">
+            <div className="h-8 bg-gray-800/60 rounded w-1/3"></div>
+          </div>
+          <div className="bg-card-bg/80 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 sm:p-6 animate-pulse">
+            <div className="h-10 bg-gray-800/40 rounded-xl"></div>
+          </div>
+          <LoadingSkeleton />
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <main>
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 sm:gap-3 mb-4">
-            <Calendar size={24} className="text-primary shrink-0" />
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-primary">Events & News Update</h1>
-            {isPremium && (
-              <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-sm font-semibold">
-                <Crown size={14} />
-                Premium
-              </span>
-            )}
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto space-y-8 py-4 px-2 sm:px-4">
+        {/* Header card */}
+        <div className="bg-card-bg/80 backdrop-blur-xl border border-gray-800 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              title="Back to Home"
+              className="p-2.5 rounded-2xl bg-gray-800 border border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-primary transition-colors shadow-sm shrink-0"
+            >
+              <ArrowLeft size={16} />
+            </Link>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-black text-foreground flex items-center gap-2 flex-wrap">
+                <Calendar size={22} className="text-primary shrink-0" />
+                Events & News Update
+                {isPremium && (
+                  <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full text-xs font-semibold">
+                    <Crown size={12} />
+                    Premium
+                  </span>
+                )}
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-400 mt-0.5">
+                {isPremium
+                  ? "You have access to all premium and free events"
+                  : "Showing available events for your subscription level"}
+              </p>
+            </div>
           </div>
-          <p className="text-gray-400">
-            {isPremium
-              ? "You have access to all premium and free events"
-              : "Showing available events for your subscription level"}
-          </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-8 max-w-md">
-          <SearchBox 
-            query={searchQuery}
-            setQuery={setSearchQuery}
-            placeholder="Search events by title or type..."
-          />
+        {/* Filter bar */}
+        <div className="bg-card-bg/80 backdrop-blur-xl border border-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4 transition-colors">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+            <div className="relative lg:col-span-6">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search events by title, type, or location..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-black/40 border border-gray-800 focus:border-primary rounded-xl pl-10 pr-3 py-2.5 text-xs sm:text-sm text-foreground outline-none transition-all"
+              />
+            </div>
+            <div className="lg:col-span-3">
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="w-full bg-black/40 border border-gray-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-foreground outline-none font-mono"
+              >
+                <option value="all">All Types</option>
+                {eventTypes.map((type) => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <div className="lg:col-span-3">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOrder)}
+                className="w-full bg-black/40 border border-gray-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-foreground outline-none font-mono"
+              >
+                <option value="date_desc">Newest First</option>
+                <option value="date_asc">Oldest First</option>
+                <option value="title_asc">Title (A-Z)</option>
+                <option value="title_desc">Title (Z-A)</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Message for non-premium users */}
         {message && (
-          <div className="bg-blue-900/30 border border-blue-700 text-blue-200 px-4 py-3 rounded mb-6">
+          <div className="bg-blue-900/30 border border-blue-700 text-blue-200 px-4 py-3 rounded-xl">
             <p className="text-sm">{message}</p>
           </div>
         )}
 
         {/* Error message */}
         {error && (
-          <div className="bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded mb-6">
+          <div className="bg-red-900/30 border border-red-700 text-red-200 px-4 py-3 rounded-xl">
             <p className="text-sm">{error}</p>
           </div>
         )}
 
         {/* Events Grid */}
-        {events.length > 0 ? (
-          (() => {
-            const filteredEvents = events.filter(event => {
-              const query = searchQuery.toLowerCase();
-              return event.title.toLowerCase().includes(query) || 
-                     event.type.toLowerCase().includes(query) ||
-                     (event.description && event.description.toLowerCase().includes(query)) ||
-                     (event.location && event.location.toLowerCase().includes(query));
-            });
+        {sortedEvents.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedEvents.map((event) => (
+              <div
+                key={event.id}
+                onClick={() => event.event_code && router.push(`/events/${event.event_code}`)}
+                className="bg-card-bg/80 backdrop-blur-xl border border-gray-800 rounded-2xl overflow-hidden hover:border-primary/50 hover:shadow-glow-primary transition-all cursor-pointer group"
+              >
+                {/* Event Photo */}
+                {(event.photo_url || (event.gallery_images && JSON.parse(event.gallery_images).length > 0)) && (
+                  <div className="w-full h-40 sm:h-48 overflow-hidden border-b border-gray-800">
+                    <img
+                      src={event.photo_url || JSON.parse(event.gallery_images!)[0]}
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                )}
 
-            if (filteredEvents.length === 0) {
-              return (
-                <div className="text-center py-20 bg-gray-900/30 border border-dashed border-gray-800 rounded-3xl">
-                  <Search size={48} className="mx-auto text-gray-700 mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-300 mb-2">No matches found</h3>
-                  <p className="text-gray-500">Try adjusting your search terms or filters.</p>
-                </div>
-              );
-            }
-
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    onClick={() => event.event_code && router.push(`/events/${event.event_code}`)}
-                    className="bg-gray-900/50 border border-gray-800 rounded-lg overflow-hidden hover:border-primary/50 transition-all cursor-pointer group"
-                  >
-                    {/* Event Photo */}
-                    {(event.photo_url || (event.gallery_images && JSON.parse(event.gallery_images).length > 0)) && (
-                      <div className="w-full h-40 sm:h-48 overflow-hidden border-b border-gray-800">
-                        <img 
-                          src={event.photo_url || JSON.parse(event.gallery_images!)[0]} 
-                          alt={event.title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-                        />
-                      </div>
-                    )}
-
-                    <div className="p-4 sm:p-6">
-                      {/* Event Header */}
-                      <div className="flex items-start justify-between mb-3 gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg sm:text-xl font-bold mb-2 group-hover:text-primary transition-colors break-words">{event.title}</h3>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            {event.target_audience && event.target_audience !== 'all' && (
-                              <span className="text-[10px] tracking-tighter bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 uppercase font-bold">
-                                {event.target_audience}
-                              </span>
-                            )}
-                            <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
-                              {event.type}
-                            </span>
-                            {event.is_premium && (
-                              <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-xs font-semibold">
-                                <Crown size={12} />
-                                PREMIUM
-                              </span>
-                            )}
-                            {event.rsvp_status && (
-                              <span className={`text-[10px] px-2 py-0.5 rounded border font-bold uppercase ${
-                                event.rsvp_status === 'going' ? 'bg-primary/20 text-primary border-primary/30' :
-                                event.rsvp_status === 'maybe' ? 'bg-accent/20 text-accent border-accent/30' :
-                                'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                              }`}>
-                                {event.rsvp_status}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            copyToClipboard(getEventShareUrl(event.event_code), event.id);
-                          }}
-                          className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-primary"
-                          title="Share Event"
-                        >
-                          {copiedEventId === event.id ? <span className="text-[10px] font-bold text-primary animate-in fade-in zoom-in duration-300">COPIED!</span> : <Share2 size={18} />}
-                        </button>
-                      </div>
-
-                    {/* Description */}
-                    {event.description && (
-                      <p className="text-sm text-gray-400 mb-4 line-clamp-2">
-                        {event.description}
-                      </p>
-                    )}
-
-                    {/* Event Details */}
-                    <div className="space-y-3 mb-4 pb-4 border-b border-gray-800">
-                      {/* Date & Time */}
-                      <div className="flex items-start gap-3">
-                        <Calendar size={16} className="text-primary mt-0.5 shrink-0" />
-                        <div>
-                          <p className="text-sm font-semibold">
-                            {new Date(event.event_date).toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
-                          </p>
-                          <p className="text-xs text-gray-400">{event.event_time}</p>
-                        </div>
-                      </div>
-
-                      {/* Event Type & Location/Link */}
-                      <div className="flex items-start gap-3">
-                        {event.event_type === "offline" ? (
-                          <>
-                            <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
-                            <div>
-                              <p className="text-xs font-semibold text-gray-400">
-                                {event.event_type}
-                              </p>
-                              {event.location && (
-                                <p className="text-sm">{event.location}</p>
-                              )}
-                            </div>
-                          </>
-                        ) : event.event_type === "online" ? (
-                          <>
-                            <LinkIcon size={16} className="text-primary mt-0.5 shrink-0" />
-                            <div>
-                              <p className="text-xs font-semibold text-gray-400">
-                                {event.platform_name || "Online"}
-                              </p>
-                              {event.meeting_link && (
-                                <span className="text-sm text-primary hover:underline break-all">
-                                  Join Meeting →
-                                </span>
-                              )}
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
-                            <div>
-                              <p className="text-xs font-semibold text-gray-400">
-                                Hybrid
-                              </p>
-                              {event.location && (
-                                <p className="text-sm text-gray-300">{event.location}</p>
-                              )}
-                              {event.platform_name && (
-                                <p className="text-xs text-gray-400 mt-1">{event.platform_name}</p>
-                              )}
-                              {event.meeting_link && (
-                                <span className="text-xs text-primary hover:underline block mt-1">
-                                  Join Online →
-                                </span>
-                              )}
-                            </div>
-                          </>
+                <div className="p-4 sm:p-6">
+                  {/* Event Header */}
+                  <div className="flex items-start justify-between mb-3 gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg sm:text-xl font-bold mb-2 group-hover:text-primary transition-colors break-words">{event.title}</h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {event.target_audience && event.target_audience !== 'all' && (
+                          <span className="text-[10px] tracking-tighter bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 uppercase font-bold">
+                            {event.target_audience}
+                          </span>
+                        )}
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                          {event.type}
+                        </span>
+                        {event.is_premium && (
+                          <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-xs font-semibold">
+                            <Crown size={12} />
+                            PREMIUM
+                          </span>
+                        )}
+                        {event.rsvp_status && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded border font-bold uppercase ${
+                            event.rsvp_status === 'going' ? 'bg-primary/20 text-primary border-primary/30' :
+                            event.rsvp_status === 'maybe' ? 'bg-accent/20 text-accent border-accent/30' :
+                            'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                          }`}>
+                            {event.rsvp_status}
+                          </span>
                         )}
                       </div>
                     </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copyToClipboard(getEventShareUrl(event.event_code), event.id);
+                      }}
+                      className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-primary shrink-0"
+                      title="Share Event"
+                    >
+                      {copiedEventId === event.id ? <span className="text-[10px] font-bold text-primary animate-in fade-in zoom-in duration-300">COPIED!</span> : <Share2 size={18} />}
+                    </button>
+                  </div>
 
-                    {/* Capacity */}
-                    {event.capacity && (
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
-                        <Users size={14} />
-                        <span>
-                          {event.registered_count} / {event.capacity} registered
-                        </span>
-                      </div>
-                    )}
+                  {/* Description */}
+                  {event.description && (
+                    <p className="text-sm text-gray-400 mb-4 line-clamp-2">
+                      {event.description}
+                    </p>
+                  )}
 
-                    {/* View Details Button */}
-                    {event.event_code && (
-                      <div className="w-full mt-4 bg-gray-800 group-hover:bg-primary group-hover:text-background text-white px-4 py-2 rounded text-sm font-semibold transition-all text-center">
-                        View Full Details →
+                  {/* Event Details */}
+                  <div className="space-y-3 mb-4 pb-4 border-b border-gray-800">
+                    {/* Date & Time */}
+                    <div className="flex items-start gap-3">
+                      <Calendar size={16} className="text-primary mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold">
+                          {new Date(event.event_date).toLocaleDateString("en-US", {
+                            weekday: "short",
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </p>
+                        <p className="text-xs text-gray-400">{event.event_time}</p>
                       </div>
-                    )}
+                    </div>
+
+                    {/* Event Type & Location/Link */}
+                    <div className="flex items-start gap-3">
+                      {event.event_type === "offline" ? (
+                        <>
+                          <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-semibold text-gray-400">
+                              {event.event_type}
+                            </p>
+                            {event.location && (
+                              <p className="text-sm">{event.location}</p>
+                            )}
+                          </div>
+                        </>
+                      ) : event.event_type === "online" ? (
+                        <>
+                          <LinkIcon size={16} className="text-primary mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-semibold text-gray-400">
+                              {event.platform_name || "Online"}
+                            </p>
+                            {event.meeting_link && (
+                              <span className="text-sm text-primary hover:underline break-all">
+                                Join Meeting →
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
+                          <div>
+                            <p className="text-xs font-semibold text-gray-400">
+                              Hybrid
+                            </p>
+                            {event.location && (
+                              <p className="text-sm text-gray-300">{event.location}</p>
+                            )}
+                            {event.platform_name && (
+                              <p className="text-xs text-gray-400 mt-1">{event.platform_name}</p>
+                            )}
+                            {event.meeting_link && (
+                              <span className="text-xs text-primary hover:underline block mt-1">
+                                Join Online →
+                              </span>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
-                ))}
+
+                  {/* Capacity */}
+                  {event.capacity && (
+                    <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <Users size={14} />
+                      <span>
+                        {event.registered_count} / {event.capacity} registered
+                      </span>
+                    </div>
+                  )}
+
+                  {/* View Details Button */}
+                  {event.event_code && (
+                    <div className="w-full mt-4 bg-gray-800 group-hover:bg-primary group-hover:text-background text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all text-center">
+                      View Full Details →
+                    </div>
+                  )}
+                </div>
               </div>
-            );
-          })()
+            ))}
+          </div>
         ) : (
-          <div className="text-center py-12">
-            <Calendar size={48} className="mx-auto text-gray-700 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-300 mb-2">
-              No Events Available
-            </h3>
-            <p className="text-gray-400 max-w-md mx-auto">
-              {isPremium
-                ? "Check back soon for upcoming events!"
-                : "Premium events will appear here once you upgrade your membership."}
-            </p>
+          <div className="bg-card-bg/80 backdrop-blur-xl border border-dashed border-gray-800 rounded-2xl py-20 text-center">
+            {searchQuery || typeFilter !== "all" ? (
+              <>
+                <Search size={48} className="mx-auto text-gray-700 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">No matches found</h3>
+                <p className="text-gray-500">Try adjusting your search terms or filters.</p>
+              </>
+            ) : (
+              <>
+                <Calendar size={48} className="mx-auto text-gray-700 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">
+                  No Events Available
+                </h3>
+                <p className="text-gray-400 max-w-md mx-auto">
+                  {isPremium
+                    ? "Check back soon for upcoming events!"
+                    : "Premium events will appear here once you upgrade your membership."}
+                </p>
+              </>
+            )}
           </div>
         )}
 
         {/* Upgrade CTA for non-premium */}
         {!isPremium && events.length > 0 && (
-          <div className="mt-12 bg-linear-to-r from-primary/20 to-transparent border border-primary/30 rounded-lg p-8 text-center">
+          <div className="bg-gradient-to-r from-primary/20 to-transparent border border-primary/30 rounded-2xl p-8 text-center">
             <Crown size={32} className="mx-auto text-primary mb-3" />
             <h3 className="text-2xl font-bold mb-2">Want to Access Premium Events?</h3>
             <p className="text-gray-400 mb-4">
@@ -361,33 +434,35 @@ export default function EventsPage() {
             </p>
             <button
               onClick={() => router.push("/profile")}
-              className="px-6 py-3 bg-primary text-background rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+              className="px-6 py-3 bg-primary text-background rounded-xl font-semibold hover:bg-primary/90 transition-colors"
             >
               Upgrade Membership
-          </button>
-        </div>
-      )}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 mt-8">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
-          >
-            Previous
-          </button>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span>Page {currentPage} of {totalPages}</span>
+            </button>
           </div>
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-            className="px-4 py-2 bg-gray-800 text-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
-          >
-            Next
-          </button>
-        </div>
-      )}
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span>Page {currentPage} of {totalPages}</span>
+            </div>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-700 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </main>
   );
