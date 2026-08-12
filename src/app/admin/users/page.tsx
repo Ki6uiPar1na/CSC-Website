@@ -412,10 +412,21 @@ export default function UsersPage() {
                       </td>
                       <td className="py-4 px-4">
                         {user.is_premium ? (
-                          <div className="space-y-1">
+                          <div className="space-y-1.5 min-w-[160px]">
                             <span className="flex items-center gap-1.5 text-yellow-400 bg-yellow-500/10 w-fit px-2.5 py-1 rounded-full font-semibold text-xs border border-yellow-500/20">
                               <Crown size={12} /> Premium
                             </span>
+                            {user.premium_code && (
+                              <div>
+                                <p className="text-[10px] text-gray-500 mb-0.5">Upgrade code</p>
+                                <p
+                                  className="font-mono text-[11px] text-yellow-300/90 bg-black/40 border border-gray-800 rounded px-2 py-1 break-all cursor-help"
+                                  title={`Code: ${user.premium_code}`}
+                                >
+                                  {user.premium_code}
+                                </p>
+                              </div>
+                            )}
                             {user.code_expires_at && (
                               <p className="text-[10px] text-gray-500">
                                 Expires: {new Date(user.code_expires_at).toLocaleDateString()}
