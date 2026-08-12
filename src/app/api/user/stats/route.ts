@@ -69,8 +69,14 @@ export async function GET(req: NextRequest) {
 
     const isPremium = premiumRows;
 
+    const [resourceCompletions] = await pool.query<RowDataPacket[]>(
+      `SELECT completed_at FROM resource_completions WHERE user_id = ? ORDER BY completed_at DESC`,
+      [userId]
+    );
+
     return NextResponse.json({
       solves: solves.map(s => ({ solved_at: s.solved_at, challenge_id: s.challenge_id })),
+      resourceCompletions: resourceCompletions.map(rc => ({ completed_at: rc.completed_at })),
       moduleStatus,
       totalPoints: user?.total_points || 0,
       streak: user?.current_streak || 0,

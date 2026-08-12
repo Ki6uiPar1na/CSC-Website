@@ -9,6 +9,7 @@ import PaymentModal from "@/components/PaymentModal";
 
 interface Stats {
   solves: { solved_at: string; challenge_id: number }[];
+  resourceCompletions?: { completed_at: string }[];
   moduleStatus: { moduleId: number; title: string; isCompleted: boolean }[];
   totalScore: number;
   streak: number;
@@ -83,6 +84,12 @@ export default function ProfilePage() {
     acc[d] = (acc[d] || 0) + 1;
     return acc;
   }, {});
+
+  // Merge resource completions into the activity heatmap
+  (stats.resourceCompletions || []).forEach((rc) => {
+    const d = new Date(rc.completed_at).toISOString().split('T')[0];
+    solveMap[d] = (solveMap[d] || 0) + 1;
+  });
 
   const activeDay = hoveredDay || selectedDay;
 
