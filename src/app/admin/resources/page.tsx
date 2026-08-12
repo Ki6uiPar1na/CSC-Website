@@ -130,6 +130,20 @@ export default function ResourcesPage() {
   const categories = ["tutorial", "documentation", "tool", "video", "article", "course"];
   const actions = ["Read", "Watch", "Tools", "Practice", "Article", "Course"];
 
+  const categoryOrder = ["tutorial", "documentation", "tool", "video", "article", "course"];
+  const presentCategories = Array.from(new Set(resources.map((r) => r.category)));
+  presentCategories.sort((a, b) => {
+    const ia = categoryOrder.indexOf(a);
+    const ib = categoryOrder.indexOf(b);
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  });
+  const groupedResources = presentCategories.map((category) => ({
+    category,
+    items: resources.filter((r) => r.category === category),
+  }));
+
+  const formatCategory = (c: string) => c.charAt(0).toUpperCase() + c.slice(1);
+
   return (
     <div>
       <AdminPageHeader
@@ -163,67 +177,78 @@ export default function ResourcesPage() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {resources.map((resource) => (
-            <div key={resource.id} className="card">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">
-                    {resource.title}
-                    {resource.is_premium && (
-                      <span className="inline-block ml-2 px-2 py-0.5 bg-amber-500/15 text-amber-400 rounded text-[10px] font-bold align-middle">
-                        Premium
-                      </span>
-                    )}
-                  </h3>
-                  <p className="text-xs text-gray-400 mt-1">
-                    <span className="inline-block px-2 py-1 bg-primary/20 rounded text-primary text-xs mr-2">
-                      {resource.category}
-                    </span>
-                    <span className="inline-block px-2 py-1 bg-accent/20 rounded text-accent text-xs mr-2">
-                      {resource.action || "Read"}
-                    </span>
-                    Created: {formatDate(resource.created_at)}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(resource)}
-                    className="btn btn-sm btn-secondary"
-                    disabled={actionLoading}
-                    title="Edit"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(resource)}
-                    className="btn btn-sm btn-error"
-                    disabled={actionLoading}
-                    title="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+        <div className="space-y-4">
+          {groupedResources.map((group) => (
+            <div key={group.category} className="space-y-4">
+              <div className="flex items-center gap-3 mt-8 first:mt-0">
+                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/30 text-primary rounded-full text-xs font-bold uppercase tracking-wider">
+                  {formatCategory(group.category)}
+                </span>
+                <span className="text-xs text-gray-500 font-mono">{group.items.length} resource{group.items.length !== 1 ? "s" : ""}</span>
+                <div className="flex-1 h-px bg-gray-800"></div>
               </div>
 
-              <p className="text-gray-400 text-sm mb-3">{resource.description}</p>
+              <div className="grid gap-4">
+                {group.items.map((resource) => (
+                  <div key={resource.id} className="card">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-white">
+                          {resource.title}
+                          {resource.is_premium && (
+                            <span className="inline-block ml-2 px-2 py-0.5 bg-amber-500/15 text-amber-400 rounded text-[10px] font-bold align-middle">
+                              Premium
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-xs text-gray-400 mt-1">
+                          <span className="inline-block px-2 py-1 bg-accent/20 rounded text-accent text-xs mr-2">
+                            {resource.action || "Read"}
+                          </span>
+                          Created: {formatDate(resource.created_at)}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(resource)}
+                          className="btn btn-sm btn-secondary"
+                          disabled={actionLoading}
+                          title="Edit"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(resource)}
+                          className="btn btn-sm btn-error"
+                          disabled={actionLoading}
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
 
-              {resource.urls && resource.urls.length > 0 && (
-                <div className="space-y-2">
-                  {resource.urls.map((link, idx) => (
-                    <a
-                      key={idx}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
-                    >
-                      <LinkIcon size={14} />
-                      <span className="truncate">{link.display_name || link.url}</span>
-                    </a>
-                  ))}
-                </div>
-              )}
+                    <p className="text-gray-400 text-sm mb-3">{resource.description}</p>
+
+                    {resource.urls && resource.urls.length > 0 && (
+                      <div className="space-y-2">
+                        {resource.urls.map((link, idx) => (
+                          <a
+                            key={idx}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                          >
+                            <LinkIcon size={14} />
+                            <span className="truncate">{link.display_name || link.url}</span>
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
