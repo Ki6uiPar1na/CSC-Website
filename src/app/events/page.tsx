@@ -33,13 +33,16 @@ interface Event {
 type SortOrder = "date_desc" | "date_asc" | "title_asc" | "title_desc";
 
 const LoadingSkeleton = () => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {Array.from({ length: 6 }).map((_, i) => (
-      <div key={i} className="bg-card-bg/80 border border-gray-800 rounded-2xl p-6 space-y-4 animate-pulse">
-        <div className="h-40 bg-gray-800/60 rounded-xl"></div>
-        <div className="h-5 bg-gray-800/60 rounded w-3/4"></div>
-        <div className="h-4 bg-gray-800/40 rounded w-full"></div>
-        <div className="h-4 bg-gray-800/40 rounded w-2/3"></div>
+  <div className="space-y-4">
+    {Array.from({ length: 4 }).map((_, i) => (
+      <div key={i} className="bg-card-bg/80 border border-gray-800 rounded-2xl p-5 flex gap-5 animate-pulse">
+        <div className="hidden sm:block w-48 h-40 bg-gray-800/60 rounded-xl shrink-0"></div>
+        <div className="flex-1 space-y-3 py-1">
+          <div className="h-5 bg-gray-800/60 rounded w-2/3"></div>
+          <div className="h-3 bg-gray-800/40 rounded w-1/3"></div>
+          <div className="h-3 bg-gray-800/40 rounded w-full"></div>
+          <div className="h-3 bg-gray-800/40 rounded w-3/4"></div>
+        </div>
       </div>
     ))}
   </div>
@@ -107,13 +110,6 @@ export default function EventsPage() {
       return `${window.location.origin}/events/${eventCode}`;
     }
     return `/events/${eventCode}`;
-  };
-
-  const shareOnTwitter = (event: Event) => {
-    const url = getEventShareUrl(event.event_code);
-    const text = `Check out this event: ${event.title} 🎉`;
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
-    window.open(twitterUrl, "_blank");
   };
 
   const eventTypes = Array.from(new Set(events.map((e) => e.type))).filter(Boolean).sort();
@@ -240,40 +236,55 @@ export default function EventsPage() {
           </div>
         )}
 
-        {/* Events Grid */}
+        {/* Events Feed List */}
         {sortedEvents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedEvents.map((event) => (
-              <div
-                key={event.id}
-                onClick={() => event.event_code && router.push(`/events/${event.event_code}`)}
-                className="bg-card-bg/80 backdrop-blur-xl border border-gray-800 rounded-2xl overflow-hidden hover:border-primary/50 hover:shadow-glow-primary transition-all cursor-pointer group"
-              >
-                {/* Event Photo */}
-                {(event.photo_url || (event.gallery_images && JSON.parse(event.gallery_images).length > 0)) && (
-                  <div className="w-full h-40 sm:h-48 overflow-hidden border-b border-gray-800">
-                    <img
-                      src={event.photo_url || JSON.parse(event.gallery_images!)[0]}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                )}
+          <div className="space-y-4">
+            {sortedEvents.map((event) => {
+              const photo = event.photo_url || (event.gallery_images && JSON.parse(event.gallery_images).length > 0 ? JSON.parse(event.gallery_images)[0] : null);
+              return (
+                <div
+                  key={event.id}
+                  onClick={() => event.event_code && router.push(`/events/${event.event_code}`)}
+                  className="bg-card-bg/80 backdrop-blur-xl border border-gray-800 rounded-2xl overflow-hidden hover:border-primary/50 hover:shadow-glow-primary transition-all cursor-pointer group"
+                >
+                  <div className="flex flex-col sm:flex-row">
+                    {/* Event Photo */}
+                    {photo && (
+                      <div className="sm:w-48 lg:w-56 shrink-0 overflow-hidden border-b sm:border-b-0 sm:border-r border-gray-800">
+                        <img
+                          src={photo}
+                          alt={event.title}
+                          className="w-full h-40 sm:h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    )}
 
-                <div className="p-4 sm:p-6">
-                  {/* Event Header */}
-                  <div className="flex items-start justify-between mb-3 gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg sm:text-xl font-bold mb-2 group-hover:text-primary transition-colors break-words">{event.title}</h3>
-                      <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex-1 p-4 sm:p-5">
+                      {/* Title + share */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="text-lg sm:text-xl font-bold group-hover:text-primary transition-colors break-words">{event.title}</h3>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(getEventShareUrl(event.event_code), event.id);
+                          }}
+                          className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-primary shrink-0"
+                          title="Share Event"
+                        >
+                          {copiedEventId === event.id ? <span className="text-[10px] font-bold text-primary animate-in fade-in zoom-in duration-300">COPIED!</span> : <Share2 size={18} />}
+                        </button>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex items-center gap-2 flex-wrap mb-3">
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                          {event.type}
+                        </span>
                         {event.target_audience && event.target_audience !== 'all' && (
                           <span className="text-[10px] tracking-tighter bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20 uppercase font-bold">
                             {event.target_audience}
                           </span>
                         )}
-                        <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
-                          {event.type}
-                        </span>
                         {event.is_premium && (
                           <span className="flex items-center gap-1 bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded text-xs font-semibold">
                             <Crown size={12} />
@@ -290,115 +301,66 @@ export default function EventsPage() {
                           </span>
                         )}
                       </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        copyToClipboard(getEventShareUrl(event.event_code), event.id);
-                      }}
-                      className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-primary shrink-0"
-                      title="Share Event"
-                    >
-                      {copiedEventId === event.id ? <span className="text-[10px] font-bold text-primary animate-in fade-in zoom-in duration-300">COPIED!</span> : <Share2 size={18} />}
-                    </button>
-                  </div>
 
-                  {/* Description */}
-                  {event.description && (
-                    <p className="text-sm text-gray-400 mb-4 line-clamp-2">
-                      {event.description}
-                    </p>
-                  )}
+                      {/* Description */}
+                      {event.description && (
+                        <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+                          {event.description}
+                        </p>
+                      )}
 
-                  {/* Event Details */}
-                  <div className="space-y-3 mb-4 pb-4 border-b border-gray-800">
-                    {/* Date & Time */}
-                    <div className="flex items-start gap-3">
-                      <Calendar size={16} className="text-primary mt-0.5 shrink-0" />
-                      <div>
-                        <p className="text-sm font-semibold">
+                      {/* Details row */}
+                      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm text-gray-400">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar size={14} className="text-primary" />
                           {new Date(event.event_date).toLocaleDateString("en-US", {
-                            weekday: "short",
                             month: "short",
                             day: "numeric",
                             year: "numeric",
                           })}
-                        </p>
-                        <p className="text-xs text-gray-400">{event.event_time}</p>
-                      </div>
-                    </div>
+                          {event.event_time && <span className="text-gray-500">· {event.event_time}</span>}
+                        </span>
 
-                    {/* Event Type & Location/Link */}
-                    <div className="flex items-start gap-3">
-                      {event.event_type === "offline" ? (
-                        <>
-                          <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-xs font-semibold text-gray-400">
-                              {event.event_type}
-                            </p>
-                            {event.location && (
-                              <p className="text-sm">{event.location}</p>
-                            )}
+                        {event.event_type === "offline" && event.location && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin size={14} className="text-primary" />
+                            <span className="truncate max-w-[220px]">{event.location}</span>
+                          </span>
+                        )}
+                        {event.event_type === "online" && (
+                          <span className="flex items-center gap-1.5">
+                            <LinkIcon size={14} className="text-primary" />
+                            {event.platform_name || "Online"}
+                          </span>
+                        )}
+                        {event.event_type === "hybrid" && (
+                          <span className="flex items-center gap-1.5">
+                            <MapPin size={14} className="text-primary" />
+                            {event.location || "Hybrid"}
+                          </span>
+                        )}
+
+                        {event.capacity && (
+                          <span className="flex items-center gap-1.5">
+                            <Users size={14} className="text-primary" />
+                            {event.registered_count} / {event.capacity}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* View Details */}
+                      {event.event_code && (
+                        <div className="mt-4 flex items-center justify-between gap-3">
+                          <div className="w-full sm:w-auto px-4 py-2 bg-gray-800 group-hover:bg-primary group-hover:text-background text-white rounded-xl text-sm font-semibold transition-all text-center">
+                            View Full Details →
                           </div>
-                        </>
-                      ) : event.event_type === "online" ? (
-                        <>
-                          <LinkIcon size={16} className="text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-xs font-semibold text-gray-400">
-                              {event.platform_name || "Online"}
-                            </p>
-                            {event.meeting_link && (
-                              <span className="text-sm text-primary hover:underline break-all">
-                                Join Meeting →
-                              </span>
-                            )}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <MapPin size={16} className="text-primary mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-xs font-semibold text-gray-400">
-                              Hybrid
-                            </p>
-                            {event.location && (
-                              <p className="text-sm text-gray-300">{event.location}</p>
-                            )}
-                            {event.platform_name && (
-                              <p className="text-xs text-gray-400 mt-1">{event.platform_name}</p>
-                            )}
-                            {event.meeting_link && (
-                              <span className="text-xs text-primary hover:underline block mt-1">
-                                Join Online →
-                              </span>
-                            )}
-                          </div>
-                        </>
+                        </div>
                       )}
                     </div>
                   </div>
-
-                  {/* Capacity */}
-                  {event.capacity && (
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <Users size={14} />
-                      <span>
-                        {event.registered_count} / {event.capacity} registered
-                      </span>
-                    </div>
-                  )}
-
-                  {/* View Details Button */}
-                  {event.event_code && (
-                    <div className="w-full mt-4 bg-gray-800 group-hover:bg-primary group-hover:text-background text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all text-center">
-                      View Full Details →
-                    </div>
-                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="bg-card-bg/80 backdrop-blur-xl border border-dashed border-gray-800 rounded-2xl py-20 text-center">
