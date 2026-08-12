@@ -12,10 +12,19 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "15");
+    const category = searchParams.get("category") || "";
     const offset = (page - 1) * limit;
 
+    let whereClause = "";
+    const queryParams: (string | number)[] = [];
+    if (category) {
+      whereClause = "WHERE r.category = ?";
+      queryParams.push(category);
+    }
+
     const [countResult] = await pool.query<RowDataPacket[]>(
-      "SELECT COUNT(*) as total FROM resources"
+      `SELECT COUNT(*) as total FROM resources r ${whereClause}`,
+      queryParams
     );
     const total = (countResult[0] as any).total;
 
@@ -31,14 +40,20 @@ export async function GET(req: Request) {
               ) as urls
        FROM resources r
        LEFT JOIN resource_urls ru ON r.id = ru.resource_id
+       ${whereClause}
        GROUP BY r.id
        ORDER BY r.created_at DESC
        LIMIT ? OFFSET ?`,
-      [limit, offset]
+      [...queryParams, limit, offset]
+    );
+
+    const [categoryRows] = await pool.query<RowDataPacket[]>(
+      `SELECT category, COUNT(*) as count FROM resources GROUP BY category ORDER BY count DESC`
     );
 
     return NextResponse.json({
       resources,
+      categories: categoryRows,
       total,
       page,
       limit,

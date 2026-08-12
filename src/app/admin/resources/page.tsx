@@ -1,15 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Edit2, Trash2, Link as LinkIcon, Loader2, AlertCircle } from "lucide-react";
+import { Plus, Edit2, Trash2, Link as LinkIcon, Loader2, AlertCircle, Folder, FolderOpen, ChevronLeft } from "lucide-react";
 import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { useToast } from "@/components/ToastProvider";
 import { useLoading } from "@/lib/admin-hooks";
 import { Resource } from "@/lib/admin-types";
 import { formatDate } from "@/lib/admin-utils";
 
+interface FolderStat {
+  category: string;
+  count: number;
+}
+
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
+  const [folderStats, setFolderStats] = useState<FolderStat[]>([]);
+  const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [formData, setFormData] = useState({
@@ -31,21 +38,36 @@ export default function ResourcesPage() {
 
   useEffect(() => {
     fetchResourcesData();
-  }, [currentPage]);
+  }, [currentPage, activeFolder]);
 
   const fetchResourcesData = async () => {
     setFetchLoading(true);
     try {
-      const res = await fetch(`/api/admin/resources?page=${currentPage}&limit=15`);
+      const res = await fetch(
+        `/api/admin/resources?page=${currentPage}&limit=15${activeFolder ? `&category=${encodeURIComponent(activeFolder)}` : ""}`
+      );
       const data = await res.json();
       setResources(data.resources || []);
       setTotal(data.total || 0);
       setTotalPages(data.totalPages || 1);
+      if (Array.isArray(data.categories)) {
+        setFolderStats(data.categories);
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
       setFetchLoading(false);
     }
+  };
+
+  const openFolder = (category: string) => {
+    setActiveFolder(category);
+    setCurrentPage(1);
+  };
+
+  const goBackToFolders = () => {
+    setActiveFolder(null);
+    setCurrentPage(1);
   };
 
   const resetForm = () => {
@@ -130,26 +152,76 @@ export default function ResourcesPage() {
   const categories = ["tutorial", "documentation", "tool", "video", "article", "course"];
   const actions = ["Read", "Watch", "Tools", "Practice", "Article", "Course"];
 
-  const categoryOrder = ["tutorial", "documentation", "tool", "video", "article", "course"];
-  const presentCategories = Array.from(new Set(resources.map((r) => r.category)));
-  presentCategories.sort((a, b) => {
-    const ia = categoryOrder.indexOf(a);
-    const ib = categoryOrder.indexOf(b);
-    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-  });
-  const groupedResources = presentCategories.map((category) => ({
-    category,
-    items: resources.filter((r) => r.category === category),
-  }));
-
   const formatCategory = (c: string) => c.charAt(0).toUpperCase() + c.slice(1);
 
+  const totalResourceCount = folderStats.reduce((sum, f) => sum + f.count, 0);
+
+  const renderResourceCard = (resource: Resource) => (
+    <div key={resource.id} className="card">
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-white">
+            {resource.title}
+            {resource.is_premium && (
+              <span className="inline-block ml-2 px-2 py-0.5 bg-amber-500/15 text-amber-400 rounded text-[10px] font-bold align-middle">
+                Premium
+              </span>
+            )}
+          </h3>
+          <p className="text-xs text-gray-400 mt-1">
+            <span className="inline-block px-2 py-1 bg-accent/20 rounded text-accent text-xs mr-2">
+              {resource.action || "Read"}
+            </span>
+            Created: {formatDate(resource.created_at)}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleEdit(resource)}
+            className="btn btn-sm btn-secondary"
+            disabled={actionLoading}
+            title="Edit"
+          >
+            <Edit2 size={16} />
+          </button>
+          <button
+            onClick={() => handleDelete(resource)}
+            className="btn btn-sm btn-error"
+            disabled={actionLoading}
+            title="Delete"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+
+      <p className="text-gray-400 text-sm mb-3">{resource.description}</p>
+
+      {resource.urls && resource.urls.length > 0 && (
+        <div className="space-y-2">
+          {resource.urls.map((link, idx) => (
+            <a
+              key={idx}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
+            >
+              <LinkIcon size={14} />
+              <span className="truncate">{link.display_name || link.url}</span>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div>
+    <div className="space-y-8 animate-in fade-in duration-700">
       <AdminPageHeader
         title="Resources"
-        icon={<span>📖</span>}
-        count={resources.length}
+        icon={<FolderOpen className="text-primary" />}
+        count={activeFolder ? resources.length : totalResourceCount}
         actionButton={{
           label: "Add Resource",
           onClick: () => {
@@ -157,7 +229,6 @@ export default function ResourcesPage() {
             setShowForm(true);
           },
         }}
-        
       />
 
       {fetchLoading ? (
@@ -165,93 +236,74 @@ export default function ResourcesPage() {
           <Loader2 className="animate-spin mx-auto mb-4" size={32} />
           <p className="text-gray-400">Loading resources...</p>
         </div>
-      ) : resources.length === 0 ? (
-        <div className="card text-center py-12">
-          <AlertCircle size={32} className="mx-auto mb-4 text-gray-500" />
-          <p className="text-gray-400 mb-4">No resources yet</p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="btn btn-primary inline-flex items-center gap-2"
-          >
-            <Plus size={18} /> Add First Resource
-          </button>
-        </div>
+      ) : activeFolder === null ? (
+        folderStats.length === 0 ? (
+          <div className="card text-center py-12">
+            <AlertCircle size={32} className="mx-auto mb-4 text-gray-500" />
+            <p className="text-gray-400 mb-4">No resources yet</p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="btn btn-primary inline-flex items-center gap-2"
+            >
+              <Plus size={18} /> Add First Resource
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {folderStats.map((folder) => (
+              <button
+                key={folder.category}
+                onClick={() => openFolder(folder.category)}
+                className="group bg-gray-900/40 border border-gray-800 rounded-2xl p-6 flex flex-col items-center gap-3 text-center hover:border-primary/40 hover:bg-gray-800/40 hover:text-foreground hover:shadow-glow-primary transition-all duration-300 cursor-pointer"
+              >
+                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/30 text-primary group-hover:bg-primary group-hover:text-background transition-all duration-300">
+                  <Folder size={28} />
+                </div>
+                <div>
+                  <p className="font-bold text-white group-hover:text-foreground">{formatCategory(folder.category)}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {folder.count} resource{folder.count !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )
       ) : (
-        <div className="space-y-4">
-          {groupedResources.map((group) => (
-            <div key={group.category} className="space-y-4">
-              <div className="flex items-center gap-3 mt-8 first:mt-0">
-                <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/30 text-primary rounded-full text-xs font-bold uppercase tracking-wider">
-                  {formatCategory(group.category)}
-                </span>
-                <span className="text-xs text-gray-500 font-mono">{group.items.length} resource{group.items.length !== 1 ? "s" : ""}</span>
-                <div className="flex-1 h-px bg-gray-800"></div>
-              </div>
+        <>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={goBackToFolders}
+              className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 text-gray-300 rounded-lg hover:bg-gray-700 transition-colors text-sm font-semibold"
+            >
+              <ChevronLeft size={16} /> Folders
+            </button>
+            <span className="text-gray-600">/</span>
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/30 text-primary rounded-full text-xs font-bold uppercase tracking-wider">
+              <FolderOpen size={14} /> {formatCategory(activeFolder)}
+            </span>
+            <span className="text-xs text-gray-500 font-mono">
+              {resources.length} resource{resources.length !== 1 ? "s" : ""}
+            </span>
+          </div>
 
-              <div className="grid gap-4">
-                {group.items.map((resource) => (
-                  <div key={resource.id} className="card">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white">
-                          {resource.title}
-                          {resource.is_premium && (
-                            <span className="inline-block ml-2 px-2 py-0.5 bg-amber-500/15 text-amber-400 rounded text-[10px] font-bold align-middle">
-                              Premium
-                            </span>
-                          )}
-                        </h3>
-                        <p className="text-xs text-gray-400 mt-1">
-                          <span className="inline-block px-2 py-1 bg-accent/20 rounded text-accent text-xs mr-2">
-                            {resource.action || "Read"}
-                          </span>
-                          Created: {formatDate(resource.created_at)}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(resource)}
-                          className="btn btn-sm btn-secondary"
-                          disabled={actionLoading}
-                          title="Edit"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(resource)}
-                          className="btn btn-sm btn-error"
-                          disabled={actionLoading}
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <p className="text-gray-400 text-sm mb-3">{resource.description}</p>
-
-                    {resource.urls && resource.urls.length > 0 && (
-                      <div className="space-y-2">
-                        {resource.urls.map((link, idx) => (
-                          <a
-                            key={idx}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm transition-colors"
-                          >
-                            <LinkIcon size={14} />
-                            <span className="truncate">{link.display_name || link.url}</span>
-                          </a>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+          {resources.length === 0 ? (
+            <div className="card text-center py-12">
+              <Folder size={32} className="mx-auto mb-4 text-gray-500" />
+              <p className="text-gray-400 mb-4">No resources in this folder</p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="btn btn-primary inline-flex items-center gap-2"
+              >
+                <Plus size={18} /> Add Resource
+              </button>
             </div>
-          ))}
-        </div>
+          ) : (
+            <div className="grid gap-4">
+              {resources.map(renderResourceCard)}
+            </div>
+          )}
+        </>
       )}
 
       {/* Form Modal */}
