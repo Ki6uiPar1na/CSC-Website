@@ -82,6 +82,7 @@ export default function UsersPage() {
   const [selectedRow, setSelectedRow] = useState<number | null>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
+  const contextMenuJustOpened = useRef(false);
 
   const userRole = session?.user ? (session.user as any).role : null;
 
@@ -90,14 +91,18 @@ export default function UsersPage() {
   }, [searchQuery, roleFilter, currentPage]);
 
   useEffect(() => {
-    const handleClick = () => setContextMenu(null);
+    const handleClick = (e: MouseEvent) => {
+      if (contextMenuJustOpened.current) return;
+      if (contextMenuRef.current && contextMenuRef.current.contains(e.target as Node)) return;
+      setContextMenu(null);
+    };
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") setContextMenu(null);
     };
-    document.addEventListener("click", handleClick);
+    document.addEventListener("mousedown", handleClick);
     document.addEventListener("keydown", handleEscape);
     return () => {
-      document.removeEventListener("click", handleClick);
+      document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
@@ -326,6 +331,8 @@ export default function UsersPage() {
 
   const handleContextMenu = (e: React.MouseEvent, user: UserWithPremium) => {
     e.preventDefault();
+    contextMenuJustOpened.current = true;
+    requestAnimationFrame(() => { contextMenuJustOpened.current = false; });
     setContextMenu({ x: e.clientX, y: e.clientY, user });
   };
 
