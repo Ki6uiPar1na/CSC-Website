@@ -89,7 +89,7 @@ export default function ApplyPage() {
               >
                 <h2 className="text-xl font-semibold text-slate-100">{form.title}</h2>
                 {form.description && (
-                  <div className="prose prose-invert prose-sm mt-2 flex-1 max-w-none text-slate-400" style={{ textAlign: form.description_align || "left" }}>
+                  <div className="prose prose-invert prose-sm mt-2 flex-1 max-w-none text-slate-400 line-clamp-2" style={{ textAlign: form.description_align || "left" }}>
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.description}</ReactMarkdown>
                   </div>
                 )}
