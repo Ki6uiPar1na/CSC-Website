@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.20",
     "@types/react-syntax-highlighter": "^15.5.13",
     "bcryptjs": "^3.0.3",
     "csv-parser": "^3.2.0",

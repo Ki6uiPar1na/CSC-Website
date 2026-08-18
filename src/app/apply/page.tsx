@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Loader2, ClipboardList, CalendarClock, ArrowRight, Ban } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ApplyForm {
   id: number;
@@ -86,7 +88,9 @@ export default function ApplyPage() {
               >
                 <h2 className="text-xl font-semibold text-slate-100">{form.title}</h2>
                 {form.description && (
-                  <p className="mt-2 flex-1 text-sm text-slate-400">{form.description}</p>
+                  <div className="prose prose-invert prose-sm mt-2 flex-1 max-w-none text-slate-400">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{form.description}</ReactMarkdown>
+                  </div>
                 )}
                 <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
                   <CalendarClock size={14} />

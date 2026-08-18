@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Loader2, Send, CheckCircle2, AlertCircle, ClipboardList } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Field {
   key: string;
@@ -274,7 +276,9 @@ export default function ApplyFormPage() {
             {config.title}
           </h1>
           {config.description && (
-            <p className="mx-auto mt-4 max-w-2xl text-slate-400">{config.description}</p>
+            <div className="prose prose-invert mx-auto mt-4 max-w-2xl text-slate-400">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{config.description}</ReactMarkdown>
+            </div>
           )}
           {config.deadline && (
             <p className="mt-3 text-sm text-slate-500">

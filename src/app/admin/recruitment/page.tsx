@@ -11,6 +11,8 @@ import { AdminPageHeader } from "@/components/AdminPageHeader";
 import { useToast } from "@/components/ToastProvider";
 import { useLoading } from "@/lib/admin-hooks";
 import { formatDateTime } from "@/lib/admin-utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Field {
   _id: number;
@@ -692,8 +694,18 @@ export default function AdminRecruitmentPage() {
                 <input type="datetime-local" className={inputClass} value={deadline} onChange={(e) => setDeadline(e.target.value)} />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>Description</label>
-                <textarea className={`${inputClass} min-h-20 resize-y`} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description shown on the public page" />
+                <label className={labelClass}>Description (Markdown supported)</label>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <textarea className={`${inputClass} min-h-28 resize-y font-mono text-sm`} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description shown on the public page (supports **bold**, *italic*, links, lists, etc.)" />
+                  {description && (
+                    <div className={`${inputClass} min-h-28 overflow-auto`}>
+                      <p className="mb-1 text-[10px] uppercase tracking-wider text-slate-500">Preview</p>
+                      <div className="prose prose-invert prose-sm max-w-none text-slate-400">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex items-end sm:col-span-2">
                 <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
