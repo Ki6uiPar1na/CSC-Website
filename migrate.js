@@ -764,6 +764,24 @@ async function migrate() {
     console.log('resources created_by_admin_id nullable migration error:', err.message);
   }
 
+  // 33. Add description_align column to recruitment_settings
+  try {
+    const [descAlignCols] = await connection.query(
+      `SHOW COLUMNS FROM recruitment_settings LIKE 'description_align'`
+    );
+    if (descAlignCols.length === 0) {
+      await connection.query(
+        `ALTER TABLE recruitment_settings ADD COLUMN description_align VARCHAR(10) NOT NULL DEFAULT 'left' AFTER description`
+      );
+      console.log('Added description_align column to recruitment_settings');
+    }
+    await connection.query(
+      `UPDATE recruitment_settings SET description_align = 'left' WHERE description_align IS NULL OR description_align = ''`
+    );
+  } catch (err) {
+    console.log('description_align column migration error:', err.message);
+  }
+
   console.log('Migration synchronized successfully');
   await connection.end();
 }

@@ -21,6 +21,7 @@ export async function GET(
       slug: form.slug,
       title: form.title,
       description: form.description,
+      description_align: form.description_align,
       is_open: !!form.is_open,
       deadline: form.deadline,
       fields: form.fields,

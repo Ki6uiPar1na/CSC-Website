@@ -513,6 +513,7 @@ CREATE TABLE IF NOT EXISTS recruitment_settings (
   slug VARCHAR(255) NULL,
   title VARCHAR(255) NOT NULL DEFAULT 'New Member Recruitment',
   description TEXT,
+  description_align VARCHAR(10) NOT NULL DEFAULT 'left',
   is_open BOOLEAN DEFAULT TRUE,
   deadline TIMESTAMP NULL,
   fields_json LONGTEXT,

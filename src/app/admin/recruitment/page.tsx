@@ -30,6 +30,7 @@ interface FormSummary {
   slug: string;
   title: string;
   description: string | null;
+  description_align: "left" | "center" | "right";
   is_open: boolean;
   deadline: string | null;
   submission_count: number;
@@ -114,6 +115,7 @@ export default function AdminRecruitmentPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionAlign, setDescriptionAlign] = useState<"left" | "center" | "right">("left");
   const [slug, setSlug] = useState("");
   const [isOpen, setIsOpen] = useState(true);
   const [deadline, setDeadline] = useState("");
@@ -234,6 +236,7 @@ export default function AdminRecruitmentPage() {
     setEditingId(null);
     setTitle("");
     setDescription("");
+    setDescriptionAlign("left");
     setSlug("");
     setIsOpen(true);
     setDeadline("");
@@ -248,6 +251,7 @@ export default function AdminRecruitmentPage() {
     setEditingId(form.id);
     setTitle(form.title);
     setDescription(form.description || "");
+    setDescriptionAlign(form.description_align || "left");
     setSlug(form.slug);
     setIsOpen(form.is_open);
     setDeadline(toDatetimeLocal(form.deadline));
@@ -316,6 +320,7 @@ export default function AdminRecruitmentPage() {
         ...(editingId ? { id: editingId } : {}),
         title,
         description,
+        description_align: descriptionAlign,
         is_open: isOpen,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         slug,
@@ -695,12 +700,24 @@ export default function AdminRecruitmentPage() {
               </div>
               <div className="sm:col-span-2">
                 <label className={labelClass}>Description (Markdown supported)</label>
+                <div className="mb-2 flex items-center gap-1">
+                  <span className="text-xs text-slate-500">Align:</span>
+                  {(["left", "center", "right"] as const).map((a) => (
+                    <button key={a} type="button" onClick={() => setDescriptionAlign(a)}
+                      className={`px-2 py-0.5 text-xs rounded capitalize transition ${
+                        descriptionAlign === a
+                          ? "bg-primary text-background font-semibold"
+                          : "text-slate-400 hover:text-slate-200"
+                      }`}
+                    >{a}</button>
+                  ))}
+                </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <textarea className={`${inputClass} min-h-28 resize-y font-mono text-sm`} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Short description shown on the public page (supports **bold**, *italic*, links, lists, etc.)" />
                   {description && (
                     <div className={`${inputClass} min-h-28 overflow-auto`}>
                       <p className="mb-1 text-[10px] uppercase tracking-wider text-slate-500">Preview</p>
-                      <div className="prose prose-invert prose-sm max-w-none text-slate-400">
+                      <div className="prose prose-invert prose-sm max-w-none text-slate-400" style={{ textAlign: descriptionAlign }}>
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{description}</ReactMarkdown>
                       </div>
                     </div>

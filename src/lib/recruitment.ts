@@ -16,6 +16,7 @@ export interface RecruitmentForm {
   slug: string;
   title: string;
   description: string | null;
+  description_align: "left" | "center" | "right";
   is_open: number | boolean;
   deadline: string | null;
   fields: RecruitmentField[];
@@ -53,11 +54,13 @@ export function parseFields(fieldsJson: string | null): RecruitmentField[] {
 }
 
 function mapFormRow(row: any): RecruitmentForm {
+  const align = row.description_align;
   return {
     id: row.id,
     slug: row.slug || `form-${row.id}`,
     title: row.title,
     description: row.description,
+    description_align: align === "center" || align === "right" ? align : "left",
     is_open: row.is_open,
     deadline: row.deadline,
     fields: parseFields(row.fields_json),

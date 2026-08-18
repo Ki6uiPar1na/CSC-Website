@@ -19,6 +19,7 @@ interface Field {
 interface FormConfig {
   title: string;
   description: string;
+  description_align: "left" | "center" | "right";
   is_open: boolean;
   deadline: string | null;
   fields: Field[];
@@ -276,7 +277,7 @@ export default function ApplyFormPage() {
             {config.title}
           </h1>
           {config.description && (
-            <div className="prose prose-invert mx-auto mt-4 max-w-2xl text-slate-400">
+            <div className="prose prose-invert mx-auto mt-4 max-w-2xl text-slate-400" style={{ textAlign: config.description_align || "left" }}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{config.description}</ReactMarkdown>
             </div>
           )}

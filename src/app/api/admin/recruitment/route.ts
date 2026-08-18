@@ -92,6 +92,7 @@ export async function GET() {
         slug: f.slug,
         title: f.title,
         description: f.description,
+        description_align: f.description_align,
         is_open: !!f.is_open,
         deadline: f.deadline,
         submission_count: f.submission_count ?? 0,
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
     const auth = await checkAdminRole([1]);
     if (!auth.authorized) return auth.response;
 
-    const { title, description, is_open, deadline, fields, slug } = await request.json();
+    const { title, description, description_align, is_open, deadline, fields, slug } = await request.json();
 
     if (!title || !String(title).trim()) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -126,12 +127,13 @@ export async function POST(request: NextRequest) {
     const deadlineValue = deadline ? new Date(deadline).toISOString() : null;
 
     const [result] = await pool.query<ResultSetHeader>(
-      `INSERT INTO recruitment_settings (slug, title, description, is_open, deadline, fields_json)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO recruitment_settings (slug, title, description, description_align, is_open, deadline, fields_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         formSlug,
         String(title).trim(),
         String(description || ""),
+        ["center", "right"].includes(description_align) ? description_align : "left",
         !!is_open ? 1 : 0,
         deadlineValue,
         JSON.stringify(validated.fields),
@@ -157,7 +159,7 @@ export async function PUT(request: NextRequest) {
     const auth = await checkAdminRole([1]);
     if (!auth.authorized) return auth.response;
 
-    const { id, title, description, is_open, deadline, fields, slug } = await request.json();
+    const { id, title, description, description_align, is_open, deadline, fields, slug } = await request.json();
     const formId = parseInt(id, 10);
     if (!Number.isFinite(formId)) {
       return NextResponse.json({ error: "Invalid form ID" }, { status: 400 });
@@ -194,6 +196,7 @@ export async function PUT(request: NextRequest) {
          slug = ?,
          title = ?,
          description = ?,
+         description_align = ?,
          is_open = ?,
          deadline = ?,
          fields_json = ?,
@@ -203,6 +206,7 @@ export async function PUT(request: NextRequest) {
         formSlug,
         String(title).trim(),
         String(description || ""),
+        ["center", "right"].includes(description_align) ? description_align : "left",
         !!is_open ? 1 : 0,
         deadlineValue,
         JSON.stringify(validated.fields),
